@@ -177,7 +177,7 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 | D-11 | 媒体默认对齐                 | 锁定基准媒体按内容流默认左对齐（固定样例 `audio-basic`、`youtube-id-forms`）                                                                                                                                | audio 和 YouTube iframe 默认左对齐；图片继续按内容区规则显示                                                                                                                                            | 人工验收；固定样例 `audio-basic`、`youtube-id-forms`                                                                        |
 | D-12 | size 视觉缩放（已解决）      | `[size=N]` 相对 14px 基准按百分比显示（`basic_size.html`）                                                                                                                                                  | 已对齐；200/150/30 分别为 28/21/4.2px，见 §6.2                                                                                                                                                          | `size-boundary-200`、`size-over-range-250`、§6.2                                                                                   |
 | D-13 | spoiler 揭示方式             | 人工验收观察到 osu! 默认黑色遮盖，只有被文字选区覆盖的部分显示                                                                                                                                       | 预览默认黑色文字和背景；使用浏览器 `::selection` 只显示当前选中的那一小段，不切换整段状态                                                                                                               | 人工验收；固定样例 `spoiler-inline`                                                                                         |
-| D-14 | spoilerbox/box 外观          | 上游字符式折叠标题与内容（`resources/css/bem/bbcode-spoilerbox.less`）                                                                                                                                      | 预览无背景、边框和卡片填充，使用可点击的字符标题、粉色标题文字和展开内容；保留原生展开/收起语义                                                                                                         | 人工验收附图；固定样例 `spoilerbox-basic`、`box-with-title`                                                                 |
+| D-14 | spoilerbox/box 外观          | 上游字符式折叠标题与内容（`resources/css/bem/bbcode-spoilerbox.less`）                                                                                                                                      | 预览无背景、边框和卡片填充，使用可点击的字符标题、主题令牌驱动的标题文字（Darkode 为主题蓝 `--color-accent`，2026-10-03 授权由粉色改来）和展开内容；保留原生展开/收起语义                                         | 人工验收附图；固定样例 `spoilerbox-basic`、`box-with-title`；`tests/e2e/preview.spec.ts` |
 | D-15 | 折叠展开/收起动画            | 点击标题后对盒体执行 jQuery `slideDown`/`slideUp`，未传时长，取 jQuery 默认 400ms 与 `swing` 缓动；盒体初始 `display:none`（`resources/js/core/spoilerbox.ts`、`resources/css/bem/bbcode-spoilerbox.less`） | 预览用 Web Animations API 在 400ms 内动画盒体高度与上间距，结束后释放内联样式并写入 `hidden`；`swing` 以 CSS 标准 `ease-in-out` 近似，未复制上游代码                                                    | 上游证据路径；固定样例 `spoilerbox-basic`、`box-with-title`、`box-bbcode-title`、`box-nested`；2026-09-19 人工验收（Chrome、Edge） |
 | D-16 | 交叉嵌套等病态输入的配对近似 | 保存阶段按标签类型各自成对识别（`app/Libraries/BBCodeForDB.php`），成对成功的标签即使相互交叠也各自渲染，交叠 HTML 由浏览器容错解析；未配对的标签保留为可见文本（`unclosed-bold`、`stray-close-tag`）       | 预览配对只承认能构成严格嵌套的组合：结束标签与最近一层同名开始标签配对，中间未闭合的标签自身保留为可见文本，其内部已配对成功的后代仍按原位渲染；因此 `[b]…[i]…[/b]…[/i]` 只渲染 `b`，`i` 保留为可见文本 | DOM-02、DOM-05、NFR-SEC-02、NFR-SEC-06；固定样例 `crossed-nesting`；§5 第 16 条                                                    |
 
@@ -185,7 +185,7 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 
 - 锁定基准的可观察事实：`[box=标题]...[/box]` 使用参数作为标题；空标题和 `[spoilerbox]...[/spoilerbox]` 使用 `SPOILER`；标题继续解析项目支持的行内 BBCode；标题缺少右括号时整段保持原文；盒子可以嵌套且各自独立折叠；盒体没有外边距，与相邻内容的上下间距只来自换行元素（见 §5 第 20 条）。
 - 本项目输出统一的 `bbcode-spoilerbox` 结构，使用语义化 `button` 作为标题控件，并用 `aria-expanded`、`hidden` 表达状态。`button` 是出于键盘可访问性、事件隔离和安全白名单最小化的项目实现选择。
-- 本项目不复制锁定版本的上游 DOM 类名、CSS 或实现代码；只对齐字符式箭头、粉色标题、默认折叠、内容缩进和可观察展开/收起行为。
+- 本项目不复制锁定版本的上游 DOM 类名、CSS 或实现代码；只对齐字符式箭头、默认折叠、内容缩进和可观察展开/收起行为。标题文字颜色自 2026-10-03 起由主题令牌驱动（Darkode 为主题蓝），不再与上游的粉色系对齐，差异见 D-14 与 §6.4。
 - 盒体内容仅去除标签紧邻产生的一侧包围换行，内容内部换行、空行、嵌套盒和盒子外部文字的换行保持可观察结果。固定样例 `box-with-title`、`box-bbcode-title`、`box-nested`、`spoilerbox-basic` 记录该边界。
 - 折叠盒用 Web Animations API 在 `400ms`、`ease-in-out` 内过渡高度与 `margin-top`；该曲线是上游 `swing` 的近似（D-15）。动画结束释放内联高度并写入 `hidden`；连续点击会取消同元素上一个动画，嵌套盒状态独立。展开目标取无溢出裁剪时的自然高度，避免释放 `overflow: hidden` 后因外边距折叠产生末端跳变；`tests/e2e/preview.spec.ts` 以采样最大高度与结束高度差 `<0.5px` 锁定。
 
@@ -219,7 +219,14 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 **配色裁决（2026-09-25，项目所有者）**：预览配色保持项目自有深色主题，不采用上游色相族；**任何新增配色或修改配色（新增颜色、改动色值、调整透明度等）都必须先取得项目所有者授权**，未获授权的配色候选项一律保持现状。上游配色数据仅作为证据保留，用于说明"数值型排版是稳定事实、颜色随色相设置变化"，不代表本项目会采用。
 
 - 已授权并落地：`[notice]` 使用项目深色主题层次色——背景 `--color-surface-raised`、边框 `--color-border`、文字继承正文色（授权来源：2026-09-25 项目所有者要求改为深色主题样式）；计算样式由 `tests/e2e/typography.spec.ts` 锁定。
-- 未获授权、保持现状：引用块左侧竖线继续使用 `--color-accent`；行内 `code` 继续不带背景；`h2` 继续使用 `#f1f5fa`；预览画布与页面底色继续使用项目主题。
+- 已授权并落地（2026-10-03）：**预览配色改为按主题令牌取值**。所有者和指令原文为"这些标签渲染出来还是粉色的，不符合主题；改成可以被后续主题修改的颜色；先接入深色模式的配色"。落地内容：
+  - `[box]` / `[spoilerbox]` 标题文字由固定粉色 `#d68bb5` 改为 `--preview-box-title`，Darkode 取值 `var(--color-accent)`（实测 `rgb(98, 181, 255)`）；折叠箭头由固定 `#fff` 改为 `currentcolor`，跟随标题色。
+  - 行内 `[spoiler]` 的选中底色由固定 osu! 粉 `#b33672` 改为 `--preview-spoiler-selection-background`，取 `color-mix(in srgb, var(--color-accent) 60%, transparent)`；遮盖色与遮盖文字色分别提取为 `--preview-spoiler-cover`、`--preview-spoiler-cover-text`（取值不变，仍为 `#000`）。
+  - 顺带提取、**取值未变**的令牌：`--preview-code-background`（`pre` 底色 `#15181d`）、`--preview-heading`（`h2` 的 `#f1f5fa`）、`--preview-error-text`（媒体失败文字 `#f48771`）、`--preview-imagemap-region-border` / `--preview-imagemap-region-background`（D-09 的粉色热区，保持原值）。
+  - 令牌的权威声明处是 `theme.css` 的 `[data-theme='darkode']` 块；`[data-theme='…']` 的取值来自 `DEFAULT_THEME_ID`，由 `App.vue` 写到文档根。`h2` 的颜色值因此**没有变化**，只是改为经令牌解析。
+  - 变化前后的计算样式锁定在 `tests/e2e/preview.spec.ts`（标题、箭头、行内 spoiler 的遮盖与选中色）。
+- 已授权并落地（2026-10-03）：主题 `vscode-dark` 更名为 `Darkode`（主题 ID `darkode`），主题菜单标题由"编辑器深色"改为"Darkode"。仓库尚未发布，无需迁移旧 ID。
+- 未获授权、保持现状：引用块左侧竖线继续使用 `--color-accent`；行内 `code` 继续不带背景；预览画布与页面底色继续使用项目主题。
 - 上游配色证据索引：`resources/css/colors.less` 定义 `--hsl-b1`、`--hsl-b5`、`--hsl-c1`、`--hsl-c2`、`--hsl-l1`（数值见 §5 第 19 条），`resources/css/bbcode.less` 用这些变量给行内 `code`、`pre`、`.well`、`blockquote`、`h2` 上色；色相默认 osu! 粉（`333`）且可由用户自定义。
 
 同时待决的排版项：

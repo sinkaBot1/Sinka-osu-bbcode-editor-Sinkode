@@ -29,6 +29,7 @@ import {
 } from '@lucide/vue'
 import sinkodeSymbol from './assets/sinkode-symbol.png'
 import sinkodeWordmark from './assets/sinkode-wordmark.png'
+import githubMark from './assets/github-mark.svg'
 import { EditorView, type ViewUpdate } from '@codemirror/view'
 import type { PreviewResult } from '../bbcode/compatibility'
 import { diagnoseDocument, type DiagnosticCode } from '../bbcode/diagnostics'
@@ -48,6 +49,13 @@ import {
   useWorkspaceStore,
 } from '../templates'
 import { HelpPanel } from '../help'
+import { DEFAULT_THEME_ID } from '../templates/storage/types'
+
+// GitHub 仓库标志的遮罩地址写进样式表，而不是用行内样式对象：
+// Vue 解析含冒号的行内样式值时会把整个绑定丢掉，`url(data:…)` 正好会命中这一点。
+const githubMarkStyleElement = document.createElement('style')
+githubMarkStyleElement.textContent = `.header-action-icon[data-icon='github-mark']::before{mask-image:url("${githubMark}");-webkit-mask-image:url("${githubMark}");}`
+document.head.append(githubMarkStyleElement)
 
 const workspace = useWorkspaceStore()
 
@@ -186,6 +194,17 @@ watch(
       activeDiagnosticKey.value = null
     }
   },
+)
+
+// 主题只通过文档根上的 data-theme 生效：theme.css 里每个主题是一个
+// [data-theme='…'] 块，切换主题不需要改任何组件。
+watch(
+  () => workspace.selectedThemeId,
+  (id) => {
+    if (id) document.documentElement.setAttribute('data-theme', id)
+    else document.documentElement.removeAttribute('data-theme')
+  },
+  { immediate: true },
 )
 
 function handleEditorUpdate(update: ViewUpdate) {
@@ -466,6 +485,7 @@ onMounted(async () => {
 onUnmounted(() => {
   headerResizeObserver?.disconnect()
   workspaceResizeObserver?.disconnect()
+  document.documentElement.removeAttribute('data-theme')
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   document.removeEventListener('pointerdown', handleThemePointerDown)
   window.removeEventListener('keydown', handleThemeKeydown)
@@ -513,24 +533,43 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
         <header ref="headerElement" class="app-header">
           <div class="app-header-brand">
             <h1 class="visually-hidden">osu! BBCode Editor | Sinkode</h1>
-            <img
-              class="brand-symbol"
-              :src="sinkodeSymbol"
-              alt=""
-              width="403"
-              height="423"
-              aria-hidden="true"
-            />
-            <img
-              class="brand-wordmark"
-              :src="sinkodeWordmark"
-              alt=""
-              width="813"
-              height="156"
-              aria-hidden="true"
-            />
+            <a
+              class="brand-link"
+              href="https://osu.ppy.sh/users/21614712"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="在 osu! 打开 Sinkode 的主页（新标签页）"
+              title="在 osu! 打开 Sinkode 的主页"
+            >
+              <img
+                class="brand-symbol"
+                :src="sinkodeSymbol"
+                alt=""
+                width="403"
+                height="423"
+                aria-hidden="true"
+              />
+              <img
+                class="brand-wordmark"
+                :src="sinkodeWordmark"
+                alt=""
+                width="813"
+                height="156"
+                aria-hidden="true"
+              />
+            </a>
           </div>
           <nav class="app-header-actions" aria-label="工作台入口">
+            <span class="app-header-actions-divider" aria-hidden="true"></span>
+            <a
+              class="header-action header-action-icon"
+              data-icon="github-mark"
+              href="https://github.com/sinkaBot1/Sinka-osu-bbcode-editor"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="在 GitHub 打开项目仓库（新标签页）"
+              title="在 GitHub 打开项目仓库"
+            ></a>
             <button
               ref="helpButtonElement"
               class="header-action"
@@ -941,19 +980,19 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
         <div class="theme-options" role="radiogroup" aria-label="主题选项">
           <label
             class="theme-option"
-            :class="{ 'is-selected': workspace.selectedThemeId === 'vscode-dark' }"
+            :class="{ 'is-selected': workspace.selectedThemeId === DEFAULT_THEME_ID }"
           >
             <input
               class="visually-hidden"
               type="radio"
               name="workspace-theme"
-              value="vscode-dark"
-              :checked="workspace.selectedThemeId === 'vscode-dark'"
-              @change="selectTheme('vscode-dark')"
+              :value="DEFAULT_THEME_ID"
+              :checked="workspace.selectedThemeId === DEFAULT_THEME_ID"
+              @change="selectTheme(DEFAULT_THEME_ID)"
             />
             <span class="theme-option-copy">
-              <span class="theme-option-title">编辑器深色</span>
-              <span class="theme-option-description">编辑器与预览统一使用深色</span>
+              <span class="theme-option-title">Darkode</span>
+              <span class="theme-option-description">深色主题：编辑器、预览与工作台统一配色</span>
             </span>
             <span class="theme-preview" aria-hidden="true">
               <span></span>

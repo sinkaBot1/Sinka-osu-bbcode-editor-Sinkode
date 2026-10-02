@@ -22,7 +22,8 @@ export interface LocalWorkspace extends WorkspaceSettings {
 }
 
 export const WORKSPACE_RECORD_KEY = 'workspace'
-export const DEFAULT_THEME_ID = 'vscode-dark'
+// 主题 ID 与 theme.css 里的 [data-theme='…'] 块一一对应；改名必须同时改两处。
+export const DEFAULT_THEME_ID = 'darkode'
 
 export interface WorkspaceRecord extends WorkspaceSettings {
   key: typeof WORKSPACE_RECORD_KEY

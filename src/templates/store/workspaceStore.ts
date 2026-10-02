@@ -8,6 +8,7 @@ import {
   type WorkspaceRepository,
 } from '../storage/workspaceRepository'
 import type { LocalWorkspace, MobileView, TemplateRecord } from '../storage/types'
+import { DEFAULT_THEME_ID } from '../storage/types'
 import {
   createSaveScheduler,
   type SaveScheduler,
@@ -29,7 +30,7 @@ function makeTemplate(name: string, content: string): TemplateRecord {
 export const useWorkspaceStore = defineStore('workspace', () => {
   const templates = ref<TemplateRecord[]>([])
   const activeTemplateId = ref<string | null>(null)
-  const selectedThemeId = ref('vscode-dark')
+  const selectedThemeId = ref(DEFAULT_THEME_ID)
   const lastMobileView = ref<MobileView | null>(null)
   const loadState = ref<WorkspaceLoadState>('loading')
   const storageAvailable = ref(true)

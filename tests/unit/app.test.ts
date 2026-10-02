@@ -28,6 +28,20 @@ describe('应用骨架', () => {
 
     await wrapper.get('button[title="选择主题"]').trigger('click')
 
-    expect(wrapper.get('[role="dialog"]').text()).toContain('编辑器深色')
+    expect(wrapper.get('[role="dialog"]').text()).toContain('Darkode')
+  })
+
+  it('选中的主题写入文档根，供 theme.css 的 [data-theme] 块接管配色', async () => {
+    const wrapper = mount(App)
+    await vi.waitFor(() => {
+      expect(wrapper.find('.cm-content').exists()).toBe(true)
+    })
+
+    await vi.waitFor(() => {
+      expect(document.documentElement.getAttribute('data-theme')).toBe('darkode')
+    })
+
+    wrapper.unmount()
+    expect(document.documentElement.getAttribute('data-theme')).toBeNull()
   })
 })

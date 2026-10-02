@@ -43,6 +43,87 @@ test.describe('安全实时预览', () => {
     await expect(spoiler).not.toHaveClass(/is-revealed/)
   })
 
+  test('折叠标题与箭头取自主题令牌，不再是固定粉色', async ({ page }) => {
+    await openEmptyEditor(page)
+    await page.locator('.cm-content').click()
+    await page.keyboard.insertText('[spoilerbox]折叠内容[/spoilerbox][box=标题]盒内内容[/box]')
+
+    const links = page.locator('.preview-content .bbcode-spoilerbox__link')
+    await expect(links).toHaveCount(2)
+    // 令牌解析与元素取值都断言：令牌决定颜色，元素确实用上了它
+    const theme = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement)
+      return {
+        themeAttribute: document.documentElement.getAttribute('data-theme'),
+        token: root.getPropertyValue('--preview-box-title').trim(),
+        accent: root.getPropertyValue('--color-accent').trim(),
+      }
+    })
+    expect(theme.themeAttribute).toBe('darkode')
+    // 自定义属性的计算值会把 var() 引用解成具体颜色，所以这里比对解析结果
+    expect(theme.token).toBe(theme.accent)
+    expect(theme.token).toBe('#62b5ff')
+
+    for (const link of [links.nth(0), links.nth(1)]) {
+      await expect(link).toHaveCSS('color', 'rgb(98, 181, 255)')
+      await expect(link.locator('.bbcode-spoilerbox__link-icon')).toHaveCSS(
+        'color',
+        'rgb(98, 181, 255)',
+      )
+    }
+  })
+
+  test('行内 spoiler 的遮盖与选中色都取自主题令牌', async ({ page }) => {
+    const editor = await openEmptyEditor(page)
+    await editor.click()
+    await page.keyboard.type('[spoiler]秘密内容[/spoiler]')
+
+    const spoiler = page.locator('.preview-content .bbcode-spoiler')
+    await expect(spoiler).toBeVisible()
+    const tokens = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement)
+      return {
+        cover: root.getPropertyValue('--preview-spoiler-cover').trim(),
+        coverText: root.getPropertyValue('--preview-spoiler-cover-text').trim(),
+        selection: root.getPropertyValue('--preview-spoiler-selection-background').trim(),
+        selectionText: root.getPropertyValue('--preview-spoiler-selection-text').trim(),
+      }
+    })
+    expect(tokens.cover).toBe('#000')
+    expect(tokens.coverText).toBe('#000')
+    // color-mix() 在计算值阶段就已求值，Chromium 序列化为 color(srgb …)
+    expect(tokens.selection).toMatch(/color-mix|color\(srgb/)
+    expect(tokens.selection).toContain('60%')
+    expect(tokens.selectionText).toBe('#fff')
+
+    const styles = await spoiler.evaluate((element) => {
+      const computed = getComputedStyle(element)
+      const selected = getComputedStyle(element, '::selection')
+      return {
+        background: computed.backgroundColor,
+        color: computed.color,
+        selectionBackground: selected.backgroundColor,
+        selectionColor: selected.color,
+      }
+    })
+    // 遮盖色不再是 osu! 粉（#b33672）；选中底色由主题强调色派生
+    expect(styles.background).toBe('rgb(0, 0, 0)')
+    expect(styles.color).toBe('rgb(0, 0, 0)')
+    expect(styles.selectionColor).toBe('rgb(255, 255, 255)')
+    expect(styles.selectionBackground).not.toContain('179, 54, 114')
+    const [srgbRed, srgbGreen, srgbBlue, srgbAlpha] =
+      styles.selectionBackground.match(/[\d.]+/g)?.map(Number) ?? []
+    if (styles.selectionBackground.startsWith('color(')) {
+      // color(srgb r g b / a) 的通道是 0–1 的小数
+      expect(Math.round(srgbRed * 255)).toBe(98)
+      expect(Math.round(srgbGreen * 255)).toBe(181)
+      expect(Math.round(srgbBlue * 255)).toBe(255)
+      expect(Math.abs(srgbAlpha - 0.6)).toBeLessThanOrEqual(1 / 255)
+    } else {
+      expect(styles.selectionBackground).toContain('98, 181, 255')
+    }
+  })
+
   test('折叠标题只显示字符式控件，不显示卡片背景', async ({ page }) => {
     await openEmptyEditor(page)
     await page.locator('.cm-content').click()

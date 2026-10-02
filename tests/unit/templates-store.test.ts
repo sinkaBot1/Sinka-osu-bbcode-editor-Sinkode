@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import {
   DEFAULT_EXAMPLE_NAME,
+  DEFAULT_THEME_ID,
   useWorkspaceStore,
   type LocalWorkspace,
   type TemplateRecord,
@@ -27,7 +28,7 @@ function createStubRepository(
   const workspace: LocalWorkspace = {
     schemaVersion: 1,
     templates: [makeRecord({ name: DEFAULT_EXAMPLE_NAME, content: '示例内容' })],
-    selectedThemeId: 'vscode-dark',
+    selectedThemeId: DEFAULT_THEME_ID,
     lastMobileView: null,
     activeTemplateId: '',
     ...initial,
@@ -204,10 +205,10 @@ describe('工作区 Pinia store', () => {
     const store = makeStore()
     await store.initialize(repository)
 
-    await store.selectTheme('vscode-dark')
+    await store.selectTheme(DEFAULT_THEME_ID)
 
-    expect(store.selectedThemeId).toBe('vscode-dark')
-    expect(savedSettings.at(-1)).toEqual({ selectedThemeId: 'vscode-dark' })
+    expect(store.selectedThemeId).toBe(DEFAULT_THEME_ID)
+    expect(savedSettings.at(-1)).toEqual({ selectedThemeId: DEFAULT_THEME_ID })
   })
 
   it('本地存储不可用时进入内存工作区并拒绝写入（失败路径）', async () => {

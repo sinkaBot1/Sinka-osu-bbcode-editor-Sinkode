@@ -1,6 +1,15 @@
 import { expect, test, type Page } from '@playwright/test'
 import { installNetworkIsolation } from './helpers'
 
+const osProfileUrl = 'https://osu.ppy.sh/users/21614712'
+const OS_PROFILE_LINK_NAME = '在 osu! 打开 Sinkode 的主页（新标签页）'
+const OS_PROFILE_TITLE = '在 osu! 打开 Sinkode 的主页'
+const repositoryUrl = 'https://github.com/sinkaBot1/Sinka-osu-bbcode-editor'
+const REPOSITORY_LINK_NAME = '在 GitHub 打开项目仓库（新标签页）'
+const REPOSITORY_TITLE = '在 GitHub 打开项目仓库'
+const HOVER_OVERLAY = 'rgba(215, 222, 232, 0.09)'
+const RESTING_SURFACE = 'rgba(0, 0, 0, 0)'
+
 async function measureHeaderEdgeGap(page: Page) {
   return page.evaluate(async () => {
     const dock = document.querySelector('.header-dock')!
@@ -46,6 +55,7 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   await expect(page.getByRole('dialog', { name: 'BBCode 参考' })).not.toBeVisible()
   await expect(help).toBeFocused()
   await expect(nav.locator('svg[aria-hidden="true"]')).toHaveCount(2)
+  await expect(nav.locator('a[data-icon="github-mark"]')).toHaveCount(1)
   await theme.focus()
   await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: '选择主题' })
@@ -85,6 +95,210 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   await expect(dialog).not.toBeVisible()
 })
 
+test('顶栏品牌标志链接到项目所有者的 osu! 主页', async ({ page, context }) => {
+  await installNetworkIsolation(page)
+  await page.goto('/')
+  const brandLink = page.getByRole('link', { name: OS_PROFILE_LINK_NAME })
+  await expect(brandLink).toBeVisible()
+  await expect(brandLink).toHaveAttribute('href', osProfileUrl)
+  await expect(brandLink).toHaveAttribute('target', '_blank')
+  await expect(brandLink).toHaveAttribute('rel', 'noopener noreferrer')
+  await expect(brandLink).toHaveAttribute('title', OS_PROFILE_TITLE)
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'osu! BBCode Editor | Sinkode' }),
+  ).toBeVisible()
+
+  const focusStyle = await brandLink.evaluate((element) => {
+    element.focus()
+    const style = getComputedStyle(element)
+    return {
+      focused: document.activeElement === element,
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+      textDecoration: style.textDecorationLine,
+      opacity: style.opacity,
+    }
+  })
+  expect(focusStyle.focused).toBe(true)
+  expect(focusStyle.outlineStyle).not.toBe('none')
+  expect(Number.parseFloat(focusStyle.outlineWidth)).toBeGreaterThanOrEqual(2)
+  expect(focusStyle.textDecoration).toBe('none')
+  expect(focusStyle.opacity).toBe('1')
+
+  const images = brandLink.locator('img')
+  await expect(images).toHaveCount(2)
+  await expect(images.first()).toHaveCSS('filter', 'none')
+  await brandLink.hover()
+  await expect(images.first()).toHaveCSS('filter', 'brightness(1.12)')
+  await expect(images.last()).toHaveCSS('filter', 'brightness(1.12)')
+  const layoutShift = await brandLink.evaluate((element) => element.getBoundingClientRect().width)
+  await page.mouse.move(0, 0)
+  await expect(images.first()).toHaveCSS('filter', 'none')
+  const restingWidth = await brandLink.evaluate((element) => element.getBoundingClientRect().width)
+  expect(restingWidth).toBe(layoutShift)
+
+  await page.route(osProfileUrl, (route) => route.fulfill({ status: 204 }))
+  const [opened] = await Promise.all([context.waitForEvent('page'), brandLink.click()])
+  await opened.waitForLoadState()
+  expect(opened.url()).toBe(osProfileUrl)
+  await opened.close()
+  expect(await page.evaluate(() => window.location.href)).toContain('127.0.0.1')
+})
+
+test('顶栏动作入口为无框样式，圆角与工具栏一致并在左侧带功能休止符', async ({ page }) => {
+  await installNetworkIsolation(page)
+  await page.goto('/')
+  const nav = page.getByRole('navigation', { name: '工作台入口' })
+  const help = nav.getByRole('button', { name: '打开帮助', exact: true })
+
+  const resting = await help.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      borderStyle: style.borderTopStyle,
+      borderWidth: style.borderTopWidth,
+      background: style.backgroundColor,
+      radius: style.borderRadius,
+      transitionProperty: style.transitionProperty,
+      transitionDuration: style.transitionDuration,
+      transitionTimingFunction: style.transitionTimingFunction,
+      width: element.getBoundingClientRect().width,
+      height: element.getBoundingClientRect().height,
+    }
+  })
+  expect(resting.borderStyle).toBe('none')
+  expect(resting.borderWidth).toBe('0px')
+  expect(resting.background).toBe(RESTING_SURFACE)
+  expect(resting.transitionProperty).toContain('background-color')
+  expect(resting.transitionProperty).toContain('color')
+  expect(resting.transitionDuration).toContain('0.12s')
+  expect(resting.transitionTimingFunction).toContain('ease')
+  expect(resting.width).toBeGreaterThanOrEqual(44)
+  expect(resting.height).toBeGreaterThanOrEqual(44)
+
+  const geometry = await page.evaluate(() => {
+    const actions = document.querySelector('.app-header-actions')!
+    const divider = document.querySelector<HTMLElement>('.app-header-actions-divider')!
+    const dividerStyle = getComputedStyle(divider)
+    const actionsRect = actions.getBoundingClientRect()
+    const dividerRect = divider.getBoundingClientRect()
+    const buttons = [...actions.querySelectorAll('.header-action')]
+    return {
+      dividerVisible: dividerRect.width >= 1 && dividerRect.height >= 20,
+      dividerBackground: dividerStyle.backgroundColor,
+      dividerAtLeftEdge: Math.round(dividerRect.left - actionsRect.left),
+      dividerToFirstAction: Math.round(buttons[0].getBoundingClientRect().left - dividerRect.right),
+      dividerCentered:
+        Math.abs(
+          (dividerRect.top + dividerRect.bottom) / 2 - (actionsRect.top + actionsRect.bottom) / 2,
+        ) <= 1,
+      dividerHiddenFromAssistiveTech: divider.getAttribute('aria-hidden'),
+      dividerNotFocusable: buttons.every((item) => item !== document.activeElement),
+      focusables: actions.querySelectorAll('a[href], button, input, select, textarea').length,
+      actionCount: buttons.length,
+      width: Math.round(actionsRect.width),
+    }
+  })
+  expect(geometry.dividerVisible).toBe(true)
+  expect(geometry.dividerBackground).toBe('rgba(215, 222, 232, 0.16)')
+  expect(geometry.dividerAtLeftEdge).toBe(0)
+  expect(geometry.dividerToFirstAction).toBe(8)
+  expect(geometry.dividerCentered).toBe(true)
+  expect(geometry.dividerHiddenFromAssistiveTech).toBe('true')
+  expect(geometry.dividerNotFocusable).toBe(true)
+  expect(geometry.focusables).toBe(geometry.actionCount)
+  expect(geometry.width).toBeLessThan(220)
+
+  const toolbarRadius = await page
+    .locator('.editor-toolbar-button')
+    .first()
+    .evaluate((element) => getComputedStyle(element).borderRadius)
+  expect(resting.radius).toBe(toolbarRadius)
+
+  await help.hover()
+  await expect(help).toHaveCSS('background-color', HOVER_OVERLAY)
+  await expect(help).toHaveCSS('border-top-style', 'none')
+  await help.focus()
+  const focusRing = await help.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return { width: style.outlineWidth, style: style.outlineStyle, offset: style.outlineOffset }
+  })
+  expect(focusRing.style).toBe('solid')
+  expect(Number.parseFloat(focusRing.width)).toBeGreaterThanOrEqual(2)
+  expect(Number.parseFloat(focusRing.offset)).toBeGreaterThan(0)
+
+  await page.mouse.move(0, 0)
+  await expect(help).toHaveCSS('background-color', RESTING_SURFACE)
+
+  const unrelated = await page
+    .locator('.template-footer button')
+    .first()
+    .evaluate((element) => getComputedStyle(element).backgroundColor)
+  expect(unrelated).toBe(RESTING_SURFACE)
+})
+
+test('顶栏提供 GitHub 仓库入口，图标与上游客标志一致', async ({ page, context }) => {
+  await installNetworkIsolation(page)
+  await page.goto('/')
+  const repoLink = page.getByRole('link', { name: REPOSITORY_LINK_NAME })
+  await expect(repoLink).toBeVisible()
+  await expect(repoLink).toHaveAttribute('href', repositoryUrl)
+  await expect(repoLink).toHaveAttribute('target', '_blank')
+  await expect(repoLink).toHaveAttribute('rel', 'noopener noreferrer')
+  await expect(repoLink).toHaveAttribute('title', REPOSITORY_TITLE)
+
+  const box = await repoLink.evaluate((element) => {
+    const rect = element.getBoundingClientRect()
+    const style = getComputedStyle(element)
+    const mark = getComputedStyle(element, '::before')
+    return {
+      width: rect.width,
+      height: rect.height,
+      color: style.color,
+      maskImage: mark.maskImage === 'none' ? mark.webkitMaskImage : mark.maskImage,
+      markWidth: mark.width,
+      markHeight: mark.height,
+      markColor: mark.backgroundColor,
+    }
+  })
+  expect(box.width).toBeGreaterThanOrEqual(44)
+  expect(box.height).toBeGreaterThanOrEqual(44)
+  expect(box.maskImage).toContain('data:image/svg+xml')
+  expect(box.markWidth).toBe('18px')
+  expect(box.markHeight).toBe('18px')
+  expect(box.markColor).toBe(box.color)
+
+  await repoLink.focus()
+  const focusStyle = await repoLink.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      focused: document.activeElement === element,
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+      textDecoration: style.textDecorationLine,
+    }
+  })
+  expect(focusStyle.focused).toBe(true)
+  expect(focusStyle.outlineStyle).not.toBe('none')
+  expect(Number.parseFloat(focusStyle.outlineWidth)).toBeGreaterThanOrEqual(2)
+  expect(focusStyle.textDecoration).toBe('none')
+  await page.mouse.move(0, 0)
+  await expect(repoLink).toHaveCSS('background-color', RESTING_SURFACE)
+
+  await repoLink.hover()
+  await expect(repoLink).toHaveCSS('background-color', HOVER_OVERLAY)
+  const hoverColor = await repoLink.evaluate((element) => getComputedStyle(element).color)
+  expect(hoverColor).toBe(box.color)
+  await page.mouse.move(0, 0)
+  await expect(repoLink).toHaveCSS('background-color', RESTING_SURFACE)
+
+  await page.route(repositoryUrl, (route) => route.fulfill({ status: 204 }))
+  const [opened] = await Promise.all([context.waitForEvent('page'), repoLink.click()])
+  await opened.waitForLoadState()
+  expect(opened.url()).toBe(repositoryUrl)
+  await opened.close()
+  expect(await page.evaluate(() => window.location.href)).toContain('127.0.0.1')
+})
+
 for (const width of [320, 390, 820, 1440]) {
   test(`头栏在 ${width}px 下不重叠，操作区域达到 44px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
@@ -110,6 +324,17 @@ for (const width of [320, 390, 820, 1440]) {
           const rect = button.getBoundingClientRect()
           return { width: rect.width, height: rect.height, right: rect.right }
         }),
+        borderless: [...element.querySelectorAll('.header-action')].map((item) => {
+          const style = getComputedStyle(item)
+          const rect = item.getBoundingClientRect()
+          return {
+            borderWidth: style.borderTopWidth,
+            borderStyle: style.borderTopStyle,
+            background: style.backgroundColor,
+            width: rect.width,
+            height: rect.height,
+          }
+        }),
       }
     })
     expect(geometry.fits).toBe(true)
@@ -121,6 +346,13 @@ for (const width of [320, 390, 820, 1440]) {
       expect(button.width).toBeGreaterThanOrEqual(44)
       expect(button.height).toBeGreaterThanOrEqual(44)
       expect(button.right).toBeLessThanOrEqual(width)
+    }
+    for (const action of geometry.borderless) {
+      expect(action.borderWidth).toBe('0px')
+      expect(action.borderStyle).toBe('none')
+      expect(action.background).toBe(RESTING_SURFACE)
+      expect(action.width).toBeGreaterThanOrEqual(44)
+      expect(action.height).toBeGreaterThanOrEqual(44)
     }
   })
 }

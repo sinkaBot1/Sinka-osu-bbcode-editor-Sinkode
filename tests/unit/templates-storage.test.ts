@@ -132,13 +132,13 @@ describe('本地工作区存储（schema v1）', () => {
     await repository.saveTemplate(second)
     await repository.saveSettings({
       activeTemplateId: second.id,
-      selectedThemeId: 'vscode-dark',
+      selectedThemeId: 'darkode',
       lastMobileView: 'preview',
     })
 
     const workspace = await repository.load()
     expect(workspace.activeTemplateId).toBe(second.id)
-    expect(workspace.selectedThemeId).toBe('vscode-dark')
+    expect(workspace.selectedThemeId).toBe('darkode')
     expect(workspace.lastMobileView).toBe('preview')
   })
 

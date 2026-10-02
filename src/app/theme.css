@@ -3,6 +3,10 @@
   color: #d7dee8;
   background: #181b20;
   font-synthesis: none;
+  /* 颜色令牌的权威来源是下面的主题块：每个主题在 [data-theme='…'] 里
+     声明一整套 shell 配色与预览语义色。这里的取值是 Darkode 的兜底副本——
+     主题属性缺失时（首帧、组件脱离主题挂载）仍要有正确颜色，
+     代价是新增主题必须同时提供自己那套兜底值，取舍见 docs/workbench.md。 */
   --color-background: #181b20;
   --color-header: #1e2228;
   --color-surface: #20242b;
@@ -12,7 +16,51 @@
   --color-muted: #8e9aaa;
   --color-accent: #62b5ff;
   --color-success: #78d6a3;
+
+  /* 预览语义色：预览组件只引用这一组，不直接写死颜色 */
+  --preview-code-background: #15181d;
+  --preview-heading: #f1f5fa;
+  /* 折叠盒（[box]、[spoilerbox]）标题：2026-10-03 所有者授权由固定粉色
+     改为主题蓝，与 [notice] 的授权口径一致，取值可被后续主题整体替换。 */
+  --preview-box-title: var(--color-accent);
+  --preview-spoiler-cover: #000;
+  --preview-spoiler-cover-text: #000;
+  --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  --preview-spoiler-selection-text: #fff;
+  --preview-imagemap-region-border: rgb(255 111 178 / 80%);
+  --preview-imagemap-region-background: rgb(255 111 178 / 50%);
+  --preview-error-text: #f48771;
+
   --osu-profile-content-max-width: 890px;
+}
+
+/* 主题块：Darkode（深色）。新增主题复制这一块、换 id 与取值即可，
+   预览组件不需要改动——它们只引用 --preview-* 语义令牌。 */
+[data-theme='darkode'] {
+  color-scheme: dark;
+
+  /* 工作台外壳 */
+  --color-background: #181b20;
+  --color-header: #1e2228;
+  --color-surface: #20242b;
+  --color-surface-raised: #272c34;
+  --color-border: #353c47;
+  --color-text: #d7dee8;
+  --color-muted: #8e9aaa;
+  --color-accent: #62b5ff;
+  --color-success: #78d6a3;
+
+  /* 预览语义色（本主题的实际取值） */
+  --preview-code-background: #15181d;
+  --preview-heading: #f1f5fa;
+  --preview-box-title: var(--color-accent);
+  --preview-spoiler-cover: #000;
+  --preview-spoiler-cover-text: #000;
+  --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  --preview-spoiler-selection-text: #fff;
+  --preview-imagemap-region-border: rgb(255 111 178 / 80%);
+  --preview-imagemap-region-background: rgb(255 111 178 / 50%);
+  --preview-error-text: #f48771;
 }
 
 * {
@@ -183,6 +231,22 @@ h2 {
   width: auto;
   flex: 0 0 auto;
 }
+.brand-link {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+.brand-link:hover img {
+  filter: brightness(1.12);
+}
+.brand-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
 .brand-symbol {
   height: 42px;
 }
@@ -195,6 +259,21 @@ h2 {
   align-items: center;
   gap: 8px;
 }
+/* 动作区左侧的功能休止符：把品牌区与操作区分开。
+   规格对齐编辑器工具栏的分隔线（1px 宽、26px 高，不随 44px 的可操作区域拉满），
+   颜色取 16% 中性描边——比工具栏用的 --color-border 略强，
+   才能和头栏底色保持工具栏同级的可见度（分离度约 1.5:1，两侧共同构成 3:1 边界）。 */
+.app-header-actions-divider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 26px;
+  background: rgb(215 222 232 / 16%);
+}
+/* 顶栏动作入口沿用工作台既有的无框语言（编辑器工具栏、模板行同款）：
+   静止时只有图形和文字，悬停才浮出一层 9% 中性浮层，不做描边、不加底色。
+   原先的实心底与头栏底对比度只有 1.03:1、边框 1.44:1，这个"框"在视觉上
+   几乎不成立，却把顶栏切成了三个方块，因此由项目所有者决定去掉（2026-10-03）。
+   圆角 5px 与编辑器工具栏按钮一致，让浮层在圆角半径上属于同一族。 */
 .header-action {
   display: inline-flex;
   align-items: center;
@@ -202,21 +281,23 @@ h2 {
   gap: 8px;
   min-width: 44px;
   min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 5px;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: transparent;
   font-size: 13px;
   white-space: nowrap;
   cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 .header-action svg {
   flex-shrink: 0;
 }
 .header-action:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  background: var(--color-surface-raised);
+  background: rgb(215 222 232 / 9%);
 }
 .header-action:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -225,6 +306,29 @@ h2 {
 .header-action:disabled {
   color: var(--color-muted);
   cursor: not-allowed;
+}
+/* 图标型动作入口（当前为 GitHub 仓库标志）：官方标志不做描边改写，
+   改为用图形自身当遮罩、由主题文字色上色，几何形状保持上游原样。
+   遮罩图地址由组件注入样式表下发，原因见 App.vue 中的同名注释。
+   悬停不改色：中性浮层已经说明可点，改色会让第三方标志比旁边的
+   帮助、主题更抢眼，违反"不得比本项目名称更显眼"的商标约束。
+   内边距与文字入口统一为 4px，使同一组的圆角浮层在三个入口上外扩一致。 */
+.header-action-icon {
+  padding: 0 4px;
+  text-decoration: none;
+}
+.header-action-icon::before {
+  content: '';
+  display: block;
+  width: 18px;
+  height: 18px;
+  background-color: currentcolor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 .header-action-note {
   font-size: 11px;
@@ -1035,7 +1139,7 @@ h2 {
 }
 .preview-content h2 {
   margin: 10px 0 0;
-  color: #f1f5fa;
+  color: var(--preview-heading);
   font-size: 1.5em;
 }
 .preview-content p {
@@ -1113,7 +1217,7 @@ h2 {
   border-radius: 4px;
   white-space: pre-wrap;
   font-size: inherit;
-  background: #15181d;
+  background: var(--preview-code-background);
 }
 .preview-content pre code {
   padding: 0;
@@ -1131,13 +1235,13 @@ h2 {
   background: var(--color-surface-raised);
 }
 .preview-content .bbcode-spoiler {
-  background: #000;
-  color: #000;
+  background: var(--preview-spoiler-cover);
+  color: var(--preview-spoiler-cover-text);
   user-select: text;
 }
 .preview-content .bbcode-spoiler::selection {
-  background: #b33672;
-  color: #fff;
+  background: var(--preview-spoiler-selection-background);
+  color: var(--preview-spoiler-selection-text);
 }
 .preview-content .bbcode-spoilerbox {
   margin: 0;
@@ -1149,7 +1253,7 @@ h2 {
   min-height: 24px;
   padding: 0;
   border: 0;
-  color: #d68bb5;
+  color: var(--preview-box-title);
   cursor: pointer;
   font: inherit;
   font-weight: 600;
@@ -1161,7 +1265,7 @@ h2 {
 .preview-content .bbcode-spoilerbox__link-icon {
   display: inline-block;
   width: 20px;
-  color: #fff;
+  color: currentcolor;
 }
 .preview-content .bbcode-spoilerbox__link-icon::before {
   content: '▸';
@@ -1196,8 +1300,8 @@ h2 {
 .preview-imagemap-region {
   position: absolute;
   display: block;
-  border: 1px solid rgb(255 111 178 / 80%);
-  background: rgb(255 111 178 / 50%);
+  border: 1px solid var(--preview-imagemap-region-border);
+  background: var(--preview-imagemap-region-background);
 }
 .preview-content .preview-media-failed {
   opacity: 0.35;
@@ -1205,7 +1309,7 @@ h2 {
 .preview-content .preview-media-failure {
   display: block;
   margin: 8px 0 12px;
-  color: #f48771;
+  color: var(--preview-error-text);
   font-size: 12px;
 }
 .preview-placeholder {
@@ -1549,6 +1653,7 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
   .header-dock,
   .app-header,
+  .header-action,
   .header-toggle svg,
   .theme-popover,
   .template-action-menu,
