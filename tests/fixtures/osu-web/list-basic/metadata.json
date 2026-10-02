@@ -1,0 +1,17 @@
+{
+  "case": "list-basic",
+  "category": "normal",
+  "covers": [
+    "list"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_list.html",
+      "note": "上游自带样例：无参 list 为无序（unordered），list=1 为有序；支持嵌套"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "2026-09-25：嵌套子列表已按 basic_list.html 渲染为列表项内部的嵌套列表；列表标题结构与无序列表元素类型仍与上游存在待决差异，见 docs/compatibility.md §6.3。"
+}

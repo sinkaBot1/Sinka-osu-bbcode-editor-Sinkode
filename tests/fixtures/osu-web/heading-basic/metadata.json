@@ -1,0 +1,21 @@
+{
+  "case": "heading-basic",
+  "category": "normal",
+  "covers": [
+    "heading"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "resources/css/bbcode.less",
+      "note": "锁定提交将 heading 映射为大标题样式（注释\"// heading tag\"）"
+    },
+    {
+      "path": "app/Libraries/BBCodeFromDB.php",
+      "note": "heading 在可识别标签清单中；上游自带样例库无 heading 专例"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "无上游自带样例；样式证据为 bbcode.less 的 heading 注释段落与标签清单。"
+}

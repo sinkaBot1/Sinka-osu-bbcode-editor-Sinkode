@@ -1,0 +1,17 @@
+{
+  "case": "imagemap-indented",
+  "category": "edge",
+  "covers": [
+    "imagemap"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/imagemap_indented.html",
+      "note": "上游自带样例：行首缩进的 imagemap 各行仍可解析"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

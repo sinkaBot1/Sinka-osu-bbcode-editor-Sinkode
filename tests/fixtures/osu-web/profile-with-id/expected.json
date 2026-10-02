@@ -1,0 +1,93 @@
+{
+  "case": "profile-with-id",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[profile=数字]名字[/profile] 生成指向 https://osu.ppy.sh/users/{数字} 的链接，显示文字保留。",
+    "上游输出附带交互式用户卡片标记；本项目第一版只渲染普通链接（D-04），新标签页打开（D-07）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 8,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 8,
+        "to": 9,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 9,
+        "to": 12,
+        "text": "102"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 12,
+        "to": 13,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 13,
+        "to": 17,
+        "text": "某位玩家"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 17,
+        "to": 18,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 18,
+        "to": 19,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 19,
+        "to": 26,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 27,
+        "to": 28,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<a href=\"https://osu.ppy.sh/users/102\" target=\"_blank\" rel=\"noopener noreferrer\">某位玩家</a><br>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "case": "centre-basic",
+  "category": "normal",
+  "covers": [
+    "centre"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "resources/css/bbcode.less",
+      "note": "锁定提交存在居中对齐的专用样式类"
+    },
+    {
+      "path": "app/Libraries/BBCodeFromDB.php",
+      "note": "centre 在可识别标签清单中；上游自带样例库无 centre 专例"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "无上游自带样例；样式证据为 bbcode.less 的对齐类与标签清单。"
+}

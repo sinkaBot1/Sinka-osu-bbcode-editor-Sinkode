@@ -1,0 +1,17 @@
+{
+  "case": "color-names-and-hex",
+  "category": "normal",
+  "covers": [
+    "color"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_color.html",
+      "note": "上游自带样例：名称与 6 位十六进制可识别，3 位十六进制不识别"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

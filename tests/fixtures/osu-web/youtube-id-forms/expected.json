@@ -1,0 +1,288 @@
+{
+  "case": "youtube-id-forms",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "watch、youtu.be、移动端域名与裸 ID 等形态都归一为同一个 11 位视频 ID。",
+    "输出为统一宽度嵌入框架，src 固定为 YouTube embed 地址并带 rel=0。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 8,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 8,
+        "to": 9,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 9,
+        "to": 52,
+        "text": "https://www.youtube.com/watch?v=abcDEF12345"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 52,
+        "to": 53,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 53,
+        "to": 54,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 54,
+        "to": 61,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 61,
+        "to": 62,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 62,
+        "to": 64,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 64,
+        "to": 65,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 65,
+        "to": 72,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 72,
+        "to": 73,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 73,
+        "to": 101,
+        "text": "https://youtu.be/abcDEF12345"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 101,
+        "to": 102,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 102,
+        "to": 103,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 103,
+        "to": 110,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 110,
+        "to": 111,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 111,
+        "to": 113,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 113,
+        "to": 114,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 114,
+        "to": 121,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 121,
+        "to": 122,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 122,
+        "to": 169,
+        "text": "https://m.youtube.com/watch?v=abcDEF12345&t=30s"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 169,
+        "to": 170,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 170,
+        "to": 171,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 171,
+        "to": 178,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 178,
+        "to": 179,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 179,
+        "to": 181,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 181,
+        "to": 182,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 182,
+        "to": 189,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 189,
+        "to": 190,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 190,
+        "to": 201,
+        "text": "abcDEF12345"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 201,
+        "to": 202,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 202,
+        "to": 203,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 203,
+        "to": 210,
+        "text": "youtube",
+        "tagName": "youtube",
+        "canonicalTagName": "youtube",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 210,
+        "to": 211,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 211,
+        "to": 212,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<iframe src=\"https://www.youtube.com/embed/abcDEF12345?rel=0\" title=\"YouTube 视频\" loading=\"lazy\"></iframe><br><br><iframe src=\"https://www.youtube.com/embed/abcDEF12345?rel=0\" title=\"YouTube 视频\" loading=\"lazy\"></iframe><br><br><iframe src=\"https://www.youtube.com/embed/abcDEF12345?rel=0\" title=\"YouTube 视频\" loading=\"lazy\"></iframe><br><br><iframe src=\"https://www.youtube.com/embed/abcDEF12345?rel=0\" title=\"YouTube 视频\" loading=\"lazy\"></iframe><br>",
+      "media": [
+        {
+          "kind": "youtube",
+          "url": "https://www.youtube.com/embed/abcDEF12345?rel=0",
+          "allowed": true
+        },
+        {
+          "kind": "youtube",
+          "url": "https://www.youtube.com/embed/abcDEF12345?rel=0",
+          "allowed": true
+        },
+        {
+          "kind": "youtube",
+          "url": "https://www.youtube.com/embed/abcDEF12345?rel=0",
+          "allowed": true
+        },
+        {
+          "kind": "youtube",
+          "url": "https://www.youtube.com/embed/abcDEF12345?rel=0",
+          "allowed": true
+        }
+      ]
+    }
+  }
+}

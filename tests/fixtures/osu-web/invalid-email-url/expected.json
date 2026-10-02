@@ -1,0 +1,255 @@
+{
+  "case": "invalid-email-url",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "参数为空或内容为空的 url/email 标签不被解析，整体原样保留为可见文本；本项目诊断为参数无效。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "email",
+        "tagName": "email",
+        "canonicalTagName": "email",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 6,
+        "to": 7,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 7,
+        "to": 7,
+        "text": ""
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 14,
+        "text": "空的邮箱参数"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 14,
+        "to": 15,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 15,
+        "to": 16,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 16,
+        "to": 21,
+        "text": "email",
+        "tagName": "email",
+        "canonicalTagName": "email",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 21,
+        "to": 22,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 22,
+        "to": 23,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 24,
+        "to": 27,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 27,
+        "to": 28,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 28,
+        "to": 28,
+        "text": ""
+      },
+      {
+        "kind": "close-bracket",
+        "from": 28,
+        "to": 29,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 29,
+        "to": 35,
+        "text": "空的链接参数"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 35,
+        "to": 36,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 36,
+        "to": 37,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 37,
+        "to": 40,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 40,
+        "to": 41,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 41,
+        "to": 42,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 42,
+        "to": 43,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 43,
+        "to": 46,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 46,
+        "to": 47,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 47,
+        "to": 66,
+        "text": "https://example.com"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 66,
+        "to": 67,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 67,
+        "to": 74,
+        "text": "内容为空的链接"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 74,
+        "to": 75,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 75,
+        "to": 76,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 76,
+        "to": 79,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 79,
+        "to": 80,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 80,
+        "to": 81,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 7,
+        "to": 7,
+        "line": 1,
+        "column": 8
+      },
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 28,
+        "to": 28,
+        "line": 2,
+        "column": 6
+      }
+    ],
+    "preview": {
+      "html": "[email=]空的邮箱参数[/email]<br>[url=]空的链接参数[/url]<br><a href=\"https://example.com/\" target=\"_blank\" rel=\"noopener noreferrer\">内容为空的链接</a><br>",
+      "media": []
+    }
+  }
+}

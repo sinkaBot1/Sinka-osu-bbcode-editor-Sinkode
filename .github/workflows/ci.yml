@@ -1,0 +1,52 @@
+name: 质量检查
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: 安装、检查与测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: 配置 Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 按锁文件安装依赖
+        run: npm ci
+
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: 检查格式
+        run: npm run format:check
+
+      - name: 检查文档链接与结构
+        run: npm run docs:check
+
+      - name: 检查代码规范
+        run: npm run lint
+
+      - name: 检查类型
+        run: npm run typecheck
+
+      - name: 运行单元与组件测试
+        run: npm run test
+
+      - name: 构建生产版本
+        run: npm run build
+
+      - name: 运行端到端测试
+        run: npm run test:e2e

@@ -1,0 +1,17 @@
+{
+  "case": "inline-code",
+  "category": "normal",
+  "covers": [
+    "c"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_inline_code.html",
+      "note": "上游自带样例：c 输出行内代码元素"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

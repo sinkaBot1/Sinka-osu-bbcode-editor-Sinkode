@@ -1,0 +1,18 @@
+{
+  "case": "strike-and-alias",
+  "category": "normal",
+  "covers": [
+    "s",
+    "strike"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "app/Libraries/BBCodeFromDB.php",
+      "note": "锁定提交的可识别标签清单同时包含 s 与 strike；上游自带样例库中无 strike 专例"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "无上游自带样例；阶段 2 固化断言时以保存/显示两阶段的识别结果为准，并在诊断与补全中区分主名与别名（别名不进入补全）。"
+}

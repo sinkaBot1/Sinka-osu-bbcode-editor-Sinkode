@@ -1,0 +1,25 @@
+{
+  "case": "autolink-boundaries",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "裸 URL、www. 前缀与邮箱自动成为链接；紧随的冒号、包裹括号、结尾句号不并入链接文本。",
+    "autolink 不属于第一版标签集合，但属于普通文本显示行为，预览需对齐。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 193,
+        "text": "访问 https://example.com/path:1/hello: 冒号不应包含。\n\n括号内的 (https://example.com/paren) 括号不应包含。\n\n结尾句号的 https://example.com/dot. 句号不应包含。\n\nwww.example.com 会被自动补全协议。\n\n邮箱 someone@example.com 会变成 mailto 链接。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "访问 <a href=\"https://example.com/path:1/hello\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/path:1/hello</a>: 冒号不应包含。<br><br>括号内的 (<a href=\"https://example.com/paren\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/paren</a>) 括号不应包含。<br><br>结尾句号的 <a href=\"https://example.com/dot\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/dot</a>. 句号不应包含。<br><br><a href=\"https://www.example.com/\" target=\"_blank\" rel=\"noopener noreferrer\">www.example.com</a> 会被自动补全协议。<br><br>邮箱 <a href=\"mailto:someone@example.com\" target=\"_blank\" rel=\"noopener noreferrer\">someone@example.com</a> 会变成 mailto 链接。<br>",
+      "media": []
+    }
+  }
+}

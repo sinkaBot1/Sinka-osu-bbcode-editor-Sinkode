@@ -1,0 +1,80 @@
+{
+  "case": "underline-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[u]…[/u] 内文本带下划线渲染（上游输出为 <u>）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 2,
+        "text": "u",
+        "tagName": "u",
+        "canonicalTagName": "u",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 2,
+        "to": 3,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 3,
+        "to": 10,
+        "text": "带下划线的文字"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 10,
+        "to": 11,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 11,
+        "to": 12,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 12,
+        "to": 13,
+        "text": "u",
+        "tagName": "u",
+        "canonicalTagName": "u",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 13,
+        "to": 14,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 14,
+        "to": 15,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<u>带下划线的文字</u><br>",
+      "media": []
+    }
+  }
+}

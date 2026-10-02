@@ -1,0 +1,17 @@
+{
+  "case": "size-boundary-200",
+  "category": "size",
+  "covers": [
+    "size"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_size.html",
+      "note": "上游自带样例：size=1500 输出为 200%，200 为夹取上限"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

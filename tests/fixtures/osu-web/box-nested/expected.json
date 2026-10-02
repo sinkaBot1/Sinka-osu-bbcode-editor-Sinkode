@@ -1,0 +1,167 @@
+{
+  "case": "box-nested",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "box 可以嵌套；内层折叠盒渲染在外层折叠盒的内容区内，各自独立展开/折叠。",
+    "内层盒结束标签后的 1 个换行被吸收，盒内后续文字不再多出空行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 4,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 4,
+        "to": 5,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 5,
+        "to": 9,
+        "text": "外层盒子"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 11,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 11,
+        "to": 12,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 12,
+        "to": 15,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 15,
+        "to": 16,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 16,
+        "to": 20,
+        "text": "内层盒子"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 20,
+        "to": 21,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 21,
+        "to": 27,
+        "text": "\n内层内容\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 27,
+        "to": 28,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 28,
+        "to": 29,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 29,
+        "to": 32,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 32,
+        "to": 33,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 33,
+        "to": 41,
+        "text": "\n外层其余内容\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 41,
+        "to": 42,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 42,
+        "to": 43,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 43,
+        "to": 46,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 46,
+        "to": 47,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 47,
+        "to": 48,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<div class=\"bbcode-spoilerbox\"><button type=\"button\" class=\"bbcode-spoilerbox__link\" aria-expanded=\"false\"><span class=\"bbcode-spoilerbox__link-icon\" aria-hidden=\"true\"></span><span class=\"bbcode-spoilerbox__link-text\">外层盒子</span></button><div class=\"bbcode-spoilerbox__body\" hidden=\"\"><div class=\"bbcode-spoilerbox\"><button type=\"button\" class=\"bbcode-spoilerbox__link\" aria-expanded=\"false\"><span class=\"bbcode-spoilerbox__link-icon\" aria-hidden=\"true\"></span><span class=\"bbcode-spoilerbox__link-text\">内层盒子</span></button><div class=\"bbcode-spoilerbox__body\" hidden=\"\">内层内容</div></div>外层其余内容</div></div>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,240 @@
+{
+  "case": "size-in-range",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "50/85/150 等范围内的数值按\"数值%\"字号直接应用，原文不变。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 5,
+        "to": 6,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 6,
+        "to": 8,
+        "text": "50"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 8,
+        "to": 9,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 9,
+        "to": 17,
+        "text": "百分之五十的文字"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 17,
+        "to": 18,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 18,
+        "to": 19,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 19,
+        "to": 23,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 24,
+        "to": 26,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 27,
+        "to": 31,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 31,
+        "to": 32,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 32,
+        "to": 34,
+        "text": "85"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 34,
+        "to": 35,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 35,
+        "to": 44,
+        "text": "百分之八十五的文字"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 44,
+        "to": 45,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 45,
+        "to": 46,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 46,
+        "to": 50,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 50,
+        "to": 51,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 51,
+        "to": 53,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 53,
+        "to": 54,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 54,
+        "to": 58,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 58,
+        "to": 59,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 59,
+        "to": 62,
+        "text": "150"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 62,
+        "to": 63,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 63,
+        "to": 73,
+        "text": "百分之一百五十的文字"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 73,
+        "to": 74,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 74,
+        "to": 75,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 75,
+        "to": 79,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 79,
+        "to": 80,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 80,
+        "to": 81,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<span style=\"font-size:50%\">百分之五十的文字</span><br><br><span style=\"font-size:85%\">百分之八十五的文字</span><br><br><span style=\"font-size:150%\">百分之一百五十的文字</span><br>",
+      "media": []
+    }
+  }
+}

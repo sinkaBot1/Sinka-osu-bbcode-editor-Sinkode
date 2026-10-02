@@ -1,0 +1,17 @@
+{
+  "case": "img-empty",
+  "category": "error",
+  "covers": [
+    "img"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/img_empty.html",
+      "note": "上游自带样例：空 img 整体原样保留"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

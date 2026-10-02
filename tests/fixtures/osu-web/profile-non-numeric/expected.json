@@ -1,0 +1,181 @@
+{
+  "case": "profile-non-numeric",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "参数不是纯数字的 profile 保留为普通文本并诊断为错误，不生成链接（PAR-05/PAR-06）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 8,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 8,
+        "to": 9,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 9,
+        "to": 12,
+        "text": "abc"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 12,
+        "to": 13,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 13,
+        "to": 19,
+        "text": "非数字 ID"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 19,
+        "to": 20,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 20,
+        "to": 21,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 21,
+        "to": 28,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 28,
+        "to": 29,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 29,
+        "to": 31,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 32,
+        "to": 39,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 39,
+        "to": 40,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 40,
+        "to": 44,
+        "text": "12x3"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 44,
+        "to": 45,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 45,
+        "to": 52,
+        "text": "混合数字 ID"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 52,
+        "to": 53,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 53,
+        "to": 54,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 54,
+        "to": 61,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 61,
+        "to": 62,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 62,
+        "to": 63,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 9,
+        "to": 12,
+        "line": 1,
+        "column": 10
+      },
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 40,
+        "to": 44,
+        "line": 3,
+        "column": 10
+      }
+    ],
+    "preview": {
+      "html": "[profile=abc]非数字 ID[/profile]<br><br>[profile=12x3]混合数字 ID[/profile]<br>",
+      "media": []
+    }
+  }
+}

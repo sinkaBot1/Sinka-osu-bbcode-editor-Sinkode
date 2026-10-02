@@ -1,0 +1,17 @@
+{
+  "case": "quote-basic",
+  "category": "normal",
+  "covers": [
+    "quote"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_quote.html",
+      "note": "上游自带样例：quote 输出引用语义；具名引用带署名标题"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "2026-09-25：署名行与贴边换行已按 basic_quote.html 对齐；参数不是 “非空且不含冒号的引号名字” 时（如 [quote=名字]、[quote=\"\"]、名字含冒号），上游不识别该标签、残留空引用元素，本项目按 D-16 把整段保留为可见文本。"
+}

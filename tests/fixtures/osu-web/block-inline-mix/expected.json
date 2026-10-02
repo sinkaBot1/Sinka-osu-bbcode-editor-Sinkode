@@ -1,0 +1,274 @@
+{
+  "case": "block-inline-mix",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "块级标签（notice/box 等）出现在行内文字中间时，输出仍保持块级元素的换行特性，周围文字换行形态按上游规则。",
+    "行内标签（b/i 等）在块级标签内正常解析；混合组合的换行结果以 *_with_surrounding_newlines 系列为准。",
+    "块级标签结束标签后的换行按上游规则被吸收（notice、centre 各吸收 1 个），块级元素与相邻文字之间不会多出空行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 5,
+        "text": "开头文字 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 6,
+        "to": 7,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 12,
+        "text": "行内粗体"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 12,
+        "to": 13,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 13,
+        "to": 14,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 14,
+        "to": 15,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 15,
+        "to": 16,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 16,
+        "to": 19,
+        "text": " 与 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 19,
+        "to": 20,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 20,
+        "to": 26,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 27,
+        "to": 31,
+        "text": "块级公告"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 32,
+        "to": 33,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 33,
+        "to": 39,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 39,
+        "to": 40,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 40,
+        "to": 48,
+        "text": " 结尾文字。\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 48,
+        "to": 49,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 49,
+        "to": 55,
+        "text": "centre",
+        "tagName": "centre",
+        "canonicalTagName": "centre",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 55,
+        "to": 56,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 56,
+        "to": 60,
+        "text": "居中的 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 60,
+        "to": 61,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 61,
+        "to": 62,
+        "text": "i",
+        "tagName": "i",
+        "canonicalTagName": "i",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 62,
+        "to": 63,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 63,
+        "to": 65,
+        "text": "斜体"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 65,
+        "to": 66,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 66,
+        "to": 67,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 67,
+        "to": 68,
+        "text": "i",
+        "tagName": "i",
+        "canonicalTagName": "i",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 68,
+        "to": 69,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 69,
+        "to": 72,
+        "text": " 混排"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 72,
+        "to": 73,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 73,
+        "to": 74,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 74,
+        "to": 80,
+        "text": "centre",
+        "tagName": "centre",
+        "canonicalTagName": "centre",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 80,
+        "to": 81,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 81,
+        "to": 82,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "开头文字 <strong>行内粗体</strong> 与 <div class=\"bbcode-notice\">块级公告</div> 结尾文字。<br><br><div class=\"bbcode-centre\">居中的 <em>斜体</em> 混排</div>",
+      "media": []
+    }
+  }
+}

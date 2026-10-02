@@ -1,0 +1,81 @@
+{
+  "case": "heading-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[heading]…[/heading] 渲染为大号加粗标题样式。",
+    "结束标签后的 1 个换行被吸收。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 8,
+        "text": "heading",
+        "tagName": "heading",
+        "canonicalTagName": "heading",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 8,
+        "to": 9,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 9,
+        "to": 14,
+        "text": "这是大标题"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 14,
+        "to": 15,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 15,
+        "to": 16,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 16,
+        "to": 23,
+        "text": "heading",
+        "tagName": "heading",
+        "canonicalTagName": "heading",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 24,
+        "to": 25,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<h2>这是大标题</h2>",
+      "media": []
+    }
+  }
+}

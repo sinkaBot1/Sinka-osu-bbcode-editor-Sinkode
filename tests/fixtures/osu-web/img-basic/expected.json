@@ -1,0 +1,87 @@
+{
+  "case": "img-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[img]地址[/img] 输出图片元素，地址原样保留。",
+    "上游输出携带服务端预取的 aspect-ratio 与 width 内联样式；本项目由浏览器加载后按原始宽高比与 max-width:100% 缩放（D-03）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 4,
+        "text": "img",
+        "tagName": "img",
+        "canonicalTagName": "img",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 4,
+        "to": 5,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 5,
+        "to": 51,
+        "text": "https://example.com/images/sample-1280x720.png"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 51,
+        "to": 52,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 52,
+        "to": 53,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 53,
+        "to": 56,
+        "text": "img",
+        "tagName": "img",
+        "canonicalTagName": "img",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 56,
+        "to": 57,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 57,
+        "to": 58,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<img src=\"https://example.com/images/sample-1280x720.png\" alt=\"\" loading=\"lazy\"><br>",
+      "media": [
+        {
+          "kind": "image",
+          "url": "https://example.com/images/sample-1280x720.png",
+          "allowed": true
+        }
+      ]
+    }
+  }
+}

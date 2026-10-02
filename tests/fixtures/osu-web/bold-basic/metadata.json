@@ -1,0 +1,17 @@
+{
+  "case": "bold-basic",
+  "category": "normal",
+  "covers": [
+    "b"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_bold.html",
+      "note": "上游自带样例：成对 b 标签输出为加粗语义元素，文本不变"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

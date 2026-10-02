@@ -1,0 +1,143 @@
+{
+  "case": "code-block",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[code]…[/code] 输出为代码块语义；内部的 [b] 等标签不被解析，按字面文本显示。",
+    "代码块内侧首尾换行被吸收，结束标签后的 1 个换行也被吸收。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "code",
+        "tagName": "code",
+        "canonicalTagName": "code",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 6,
+        "to": 17,
+        "text": "这是第一行代码\n标签 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 17,
+        "to": 18,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 18,
+        "to": 19,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 19,
+        "to": 20,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 20,
+        "to": 22,
+        "text": "不会"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 22,
+        "to": 23,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 23,
+        "to": 24,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 24,
+        "to": 25,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 25,
+        "to": 26,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 26,
+        "to": 31,
+        "text": " 被解析\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 32,
+        "to": 33,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 33,
+        "to": 37,
+        "text": "code",
+        "tagName": "code",
+        "canonicalTagName": "code",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 37,
+        "to": 38,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 38,
+        "to": 39,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<pre><code>这是第一行代码\n标签 [b]不会[/b] 被解析</code></pre>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "case": "profile-tag-in-name",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "profile 内容中形似标签的文本（如 [s]…[/s]）按字面文本处理，不解析内部标签；链接目标与显示文本按上游规则编码。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 8,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 8,
+        "to": 9,
+        "text": "]"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 10,
+        "to": 11,
+        "text": "s",
+        "tagName": "s",
+        "canonicalTagName": "s",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 11,
+        "to": 12,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 12,
+        "to": 18,
+        "text": "名字里带标签"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 18,
+        "to": 19,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 19,
+        "to": 20,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 20,
+        "to": 21,
+        "text": "s",
+        "tagName": "s",
+        "canonicalTagName": "s",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 21,
+        "to": 22,
+        "text": "]"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 22,
+        "to": 23,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 23,
+        "to": 24,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 24,
+        "to": 31,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 32,
+        "to": 33,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 1,
+        "to": 8,
+        "line": 1,
+        "column": 2
+      }
+    ],
+    "preview": {
+      "html": "[profile][s]名字里带标签[/s][/profile]<br>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "case": "size-boundary-30",
+  "category": "size",
+  "covers": [
+    "size"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_size.html",
+      "note": "上游自带样例：size=50 应用 50%；30 为下边界（30–200 规则下限）"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "上游 basic_size 样例未直接包含 30；30–200 的渲染范围以显示阶段的夹取行为为准（见 docs/compatibility.md 第 5 节事实 1），30 恰为下边界。"
+}

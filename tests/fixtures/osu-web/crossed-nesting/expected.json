@@ -1,0 +1,152 @@
+{
+  "case": "crossed-nesting",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "交叉嵌套（开始顺序与结束顺序不一致）时，结尾顺序正确的标签照常渲染：`[b]` 与 `[/b]` 配成粗体；中间未闭合的 `[i]` 与结尾多余的 `[/i]` 保留为可见文本。",
+    "上游保存阶段按标签类型各自成对识别，`[i]` 也会与结尾的 `[/i]` 配对并产生相互交叠的 HTML；本项目只输出严格嵌套的安全结构，该近似登记为 D-16。",
+    "本项目诊断为嵌套错误，诊断结果不因渲染近似而改变。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 2,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 2,
+        "to": 3,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 3,
+        "to": 7,
+        "text": "加粗中 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 8,
+        "to": 9,
+        "text": "i",
+        "tagName": "i",
+        "canonicalTagName": "i",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 15,
+        "text": "交叉的斜体"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 15,
+        "to": 16,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 16,
+        "to": 17,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 17,
+        "to": 18,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 18,
+        "to": 19,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 19,
+        "to": 26,
+        "text": " 结束顺序错误"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 27,
+        "to": 28,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 28,
+        "to": 29,
+        "text": "i",
+        "tagName": "i",
+        "canonicalTagName": "i",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 29,
+        "to": 30,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 30,
+        "to": 31,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "CROSSED_NESTING",
+        "from": 17,
+        "to": 18,
+        "line": 1,
+        "column": 18
+      }
+    ],
+    "preview": {
+      "html": "<strong>加粗中 [i]交叉的斜体</strong> 结束顺序错误[/i]<br>",
+      "media": []
+    }
+  }
+}

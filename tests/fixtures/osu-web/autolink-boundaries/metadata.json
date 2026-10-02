@@ -1,0 +1,19 @@
+{
+  "case": "autolink-boundaries",
+  "category": "aux",
+  "covers": [],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/autolink.html",
+      "note": "上游自带样例：裸链接的边界字符（冒号/括号/句号）不并入链接"
+    },
+    {
+      "path": "tests/Libraries/bbcode_examples/multiple_links.html",
+      "note": "上游自带样例：多个裸链接连续出现的形态"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

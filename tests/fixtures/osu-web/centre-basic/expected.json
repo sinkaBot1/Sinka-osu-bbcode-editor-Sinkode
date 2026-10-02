@@ -1,0 +1,81 @@
+{
+  "case": "centre-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[centre]…[/centre] 使内容水平居中渲染。",
+    "开始标签后与结束标签后的各 1 个换行被吸收。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 7,
+        "text": "centre",
+        "tagName": "centre",
+        "canonicalTagName": "centre",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 15,
+        "text": "居中的一行文字"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 15,
+        "to": 16,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 16,
+        "to": 17,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 17,
+        "to": 23,
+        "text": "centre",
+        "tagName": "centre",
+        "canonicalTagName": "centre",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 24,
+        "to": 25,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<div class=\"bbcode-centre\">居中的一行文字</div>",
+      "media": []
+    }
+  }
+}

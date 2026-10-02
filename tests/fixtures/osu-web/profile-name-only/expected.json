@@ -1,0 +1,89 @@
+{
+  "case": "profile-name-only",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "上游对 [profile]名字[/profile] 生成按用户名的用户链接。",
+    "本项目第一版有意差异：无数字 ID 的 profile 保留为普通文本并诊断为错误，不按玩家名猜测链接（D-01，依据 PAR-06/FR-PR-10）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 8,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 8,
+        "to": 9,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 9,
+        "to": 18,
+        "text": "只有名字的简介链接"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 18,
+        "to": 19,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 19,
+        "to": 20,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 20,
+        "to": 27,
+        "text": "profile",
+        "tagName": "profile",
+        "canonicalTagName": "profile",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 27,
+        "to": 28,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 28,
+        "to": 29,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 1,
+        "to": 8,
+        "line": 1,
+        "column": 2
+      }
+    ],
+    "preview": {
+      "html": "[profile]只有名字的简介链接[/profile]<br>",
+      "media": []
+    }
+  }
+}

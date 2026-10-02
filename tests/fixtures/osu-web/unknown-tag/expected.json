@@ -1,0 +1,95 @@
+{
+  "case": "unknown-tag",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "第一版集合之外的标签按未知标签处理，整体原样保留为可见文本；本项目诊断为未知标签错误。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 10,
+        "text": "nosuchtag",
+        "tagName": "nosuchtag",
+        "canonicalTagName": "nosuchtag",
+        "closing": false,
+        "recognized": false
+      },
+      {
+        "kind": "close-bracket",
+        "from": 10,
+        "to": 11,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 11,
+        "to": 17,
+        "text": "这是未知标签"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 17,
+        "to": 18,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 18,
+        "to": 19,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 19,
+        "to": 28,
+        "text": "nosuchtag",
+        "tagName": "nosuchtag",
+        "canonicalTagName": "nosuchtag",
+        "closing": true,
+        "recognized": false
+      },
+      {
+        "kind": "close-bracket",
+        "from": 28,
+        "to": 29,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 29,
+        "to": 30,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "UNKNOWN_TAG",
+        "from": 1,
+        "to": 10,
+        "line": 1,
+        "column": 2
+      },
+      {
+        "code": "UNKNOWN_TAG",
+        "from": 19,
+        "to": 28,
+        "line": 1,
+        "column": 20
+      }
+    ],
+    "preview": {
+      "html": "[nosuchtag]这是未知标签[/nosuchtag]<br>",
+      "media": []
+    }
+  }
+}

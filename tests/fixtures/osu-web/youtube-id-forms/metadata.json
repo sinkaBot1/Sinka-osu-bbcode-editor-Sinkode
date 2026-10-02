@@ -1,0 +1,17 @@
+{
+  "case": "youtube-id-forms",
+  "category": "normal",
+  "covers": [
+    "youtube"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_youtube.html",
+      "note": "上游自带样例：多种 URL 形态归一为 11 位视频 ID 的嵌入框架（固定 rel=0）"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

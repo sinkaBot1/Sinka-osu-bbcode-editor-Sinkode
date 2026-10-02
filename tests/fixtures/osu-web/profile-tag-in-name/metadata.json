@@ -1,0 +1,17 @@
+{
+  "case": "profile-tag-in-name",
+  "category": "edge",
+  "covers": [
+    "profile"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/tag_inside_profile.html",
+      "note": "上游自带样例：名字中的标签字符被转义为字面文本"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

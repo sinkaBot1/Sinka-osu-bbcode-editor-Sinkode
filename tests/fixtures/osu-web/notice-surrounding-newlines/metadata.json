@@ -1,0 +1,17 @@
+{
+  "case": "notice-surrounding-newlines",
+  "category": "edge",
+  "covers": [
+    "notice"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/notice_with_surrounding_newlines.html",
+      "note": "上游自带样例：notice 与周围文字/空行的组合形态"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

@@ -1,0 +1,100 @@
+{
+  "case": "size-over-range-250",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "size=250 超出上限，预览按 200% 渲染；原文保持不变并诊断为越界错误（PAR-02/PAR-03）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 5,
+        "to": 6,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 6,
+        "to": 9,
+        "text": "250"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 17,
+        "text": "超出上限的字号"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 17,
+        "to": 18,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 18,
+        "to": 19,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 19,
+        "to": 23,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 24,
+        "to": 25,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "PARAMETER_OUT_OF_RANGE",
+        "from": 6,
+        "to": 9,
+        "line": 1,
+        "column": 7
+      }
+    ],
+    "preview": {
+      "html": "<span style=\"font-size:200%\">超出上限的字号</span><br>",
+      "media": []
+    }
+  }
+}

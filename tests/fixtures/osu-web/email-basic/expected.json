@@ -1,0 +1,80 @@
+{
+  "case": "email-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[email]地址[/email] 输出 mailto 链接，显示文本为邮箱地址本身。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "email",
+        "tagName": "email",
+        "canonicalTagName": "email",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 6,
+        "to": 7,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 7,
+        "to": 26,
+        "text": "someone@example.com"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 27,
+        "to": 28,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 28,
+        "to": 33,
+        "text": "email",
+        "tagName": "email",
+        "canonicalTagName": "email",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 33,
+        "to": 34,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 34,
+        "to": 35,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<a href=\"mailto:someone@example.com\" target=\"_blank\" rel=\"noopener noreferrer\">someone@example.com</a><br>",
+      "media": []
+    }
+  }
+}

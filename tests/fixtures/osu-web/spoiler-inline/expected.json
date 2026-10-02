@@ -1,0 +1,86 @@
+{
+  "case": "spoiler-inline",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[spoiler]…[/spoiler] 行内内容被遮盖显示，交互后可见。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 7,
+        "text": "提示：答案在 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 8,
+        "to": 15,
+        "text": "spoiler",
+        "tagName": "spoiler",
+        "canonicalTagName": "spoiler",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 15,
+        "to": 16,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 16,
+        "to": 21,
+        "text": "这里被遮住"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 21,
+        "to": 22,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 22,
+        "to": 23,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 23,
+        "to": 30,
+        "text": "spoiler",
+        "tagName": "spoiler",
+        "canonicalTagName": "spoiler",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 30,
+        "to": 31,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 31,
+        "to": 36,
+        "text": " 中间。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "提示：答案在 <span class=\"bbcode-spoiler\">这里被遮住</span> 中间。<br>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "case": "audio-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[audio]地址[/audio] 输出可播放的音频元素，src 为原始地址。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "audio",
+        "tagName": "audio",
+        "canonicalTagName": "audio",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 6,
+        "to": 7,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 7,
+        "to": 40,
+        "text": "https://example.com/audio/bgm.mp3"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 40,
+        "to": 41,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 41,
+        "to": 42,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 42,
+        "to": 47,
+        "text": "audio",
+        "tagName": "audio",
+        "canonicalTagName": "audio",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 47,
+        "to": 48,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 48,
+        "to": 49,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<audio controls=\"\" src=\"https://example.com/audio/bgm.mp3\"></audio><br>",
+      "media": [
+        {
+          "kind": "audio",
+          "url": "https://example.com/audio/bgm.mp3",
+          "allowed": true
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "case": "profile-with-id",
+  "category": "normal",
+  "covers": [
+    "profile"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_profile_with_id.html",
+      "note": "上游自带样例：profile=数字 输出指向 users/{id} 的链接"
+    }
+  ],
+  "intentionalDifferences": [
+    "D-04",
+    "D-07"
+  ],
+  "notes": ""
+}

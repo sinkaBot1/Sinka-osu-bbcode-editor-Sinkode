@@ -1,0 +1,24 @@
+{
+  "case": "crossed-nesting",
+  "category": "error",
+  "covers": [
+    "b",
+    "i"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "app/Libraries/BBCodeForDB.php",
+      "note": "保存阶段按标签类型各自成对识别（每类标签一套成对模式），因此交叉嵌套时各类标签仍会各自配对；上游自带样例库无交叉嵌套专例"
+    },
+    {
+      "path": "app/Libraries/BBCodeFromDB.php",
+      "note": "显示阶段按内部标记逐个替换为对应元素；未配对的标签不带标记，保留为可见文本"
+    }
+  ],
+  "intentionalDifferences": [
+    "D-16"
+  ],
+  "notes": "2026-09-25 按上游配对模型修正：能形成严格嵌套的标签照常渲染，无法安全嵌套的标签自身保留为可见文本（D-16）。诊断规则不变，预览不自动修复原文（DOM-05）。"
+}

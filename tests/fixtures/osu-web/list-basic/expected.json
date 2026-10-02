@@ -1,0 +1,414 @@
+{
+  "case": "list-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[list] 配合 [*] 项输出无序列表语义；[list=1] 输出有序列表语义。",
+    "列表项内可以嵌套子列表：子列表渲染为该列表项内部的嵌套列表结构（对照 basic_list.html）。",
+    "每个 [*] 前的空白与 [/list] 后最多 2 个换行被吸收，列表之间不多出空行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 6,
+        "to": 7,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 8,
+        "to": 9,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 14,
+        "text": "第一项\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 14,
+        "to": 15,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 15,
+        "to": 16,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 16,
+        "to": 17,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 17,
+        "to": 23,
+        "text": "第二项\n  "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 24,
+        "to": 28,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 28,
+        "to": 29,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 29,
+        "to": 32,
+        "text": "\n  "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 32,
+        "to": 33,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 33,
+        "to": 34,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 34,
+        "to": 35,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 35,
+        "to": 42,
+        "text": "嵌套项一\n  "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 42,
+        "to": 43,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 43,
+        "to": 44,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 44,
+        "to": 45,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 45,
+        "to": 52,
+        "text": "嵌套项二\n  "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 52,
+        "to": 53,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 53,
+        "to": 54,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 54,
+        "to": 58,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 58,
+        "to": 59,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 59,
+        "to": 60,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 60,
+        "to": 61,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 61,
+        "to": 62,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 62,
+        "to": 63,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 63,
+        "to": 67,
+        "text": "第三项\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 67,
+        "to": 68,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 68,
+        "to": 69,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 69,
+        "to": 73,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 73,
+        "to": 74,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 74,
+        "to": 76,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 76,
+        "to": 77,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 77,
+        "to": 81,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 81,
+        "to": 82,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 82,
+        "to": 83,
+        "text": "1"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 83,
+        "to": 84,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 84,
+        "to": 85,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 85,
+        "to": 86,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 86,
+        "to": 87,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 87,
+        "to": 88,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 88,
+        "to": 94,
+        "text": "有序第一项\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 94,
+        "to": 95,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 95,
+        "to": 96,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 96,
+        "to": 97,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 97,
+        "to": 103,
+        "text": "有序第二项\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 103,
+        "to": 104,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 104,
+        "to": 105,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 105,
+        "to": 109,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 109,
+        "to": 110,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 110,
+        "to": 111,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<ul><li>第一项</li><li>第二项<br>  <ul><li>嵌套项一</li><li>嵌套项二</li></ul></li><li>第三项</li></ul><ol><li>有序第一项</li><li>有序第二项</li></ol>",
+      "media": []
+    }
+  }
+}

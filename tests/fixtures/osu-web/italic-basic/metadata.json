@@ -1,0 +1,17 @@
+{
+  "case": "italic-basic",
+  "category": "normal",
+  "covers": [
+    "i"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_italic.html",
+      "note": "上游自带样例：i 标签输出为斜体语义元素"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

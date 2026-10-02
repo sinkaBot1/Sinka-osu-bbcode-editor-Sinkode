@@ -1,0 +1,17 @@
+{
+  "case": "size-clamp-low",
+  "category": "size",
+  "covers": [
+    "size"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_size.html",
+      "note": "上游自带样例：size=5 输出为 30%"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

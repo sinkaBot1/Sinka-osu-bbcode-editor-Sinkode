@@ -1,0 +1,17 @@
+{
+  "case": "code-surrounding-newlines",
+  "category": "edge",
+  "covers": [
+    "code"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/code_with_surrounding_newlines.html",
+      "note": "上游自带样例：code 内容前后各一个换行被剥离，内部换行保留"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

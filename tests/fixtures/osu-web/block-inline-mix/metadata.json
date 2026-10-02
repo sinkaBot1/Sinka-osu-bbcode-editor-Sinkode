@@ -1,0 +1,19 @@
+{
+  "case": "block-inline-mix",
+  "category": "edge",
+  "covers": [
+    "b",
+    "notice",
+    "centre"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/box_with_surrounding_newlines.html",
+      "note": "上游自带样例：块级标签紧贴行内文字时的换行形态"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

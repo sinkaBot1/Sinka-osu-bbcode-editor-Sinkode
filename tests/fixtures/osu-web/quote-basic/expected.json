@@ -1,0 +1,156 @@
+{
+  "case": "quote-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[quote]…[/quote] 输出引用块；内部换行保留为换行元素。",
+    "[quote=\"名字\"] 在引用块开头输出 “名字 wrote:” 署名行（与上游一致，英文固定串）；名字非空且不含冒号时才识别。",
+    "结束标签后最多 2 个换行被吸收，引用块之间不产生多余空行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 6,
+        "to": 7,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 7,
+        "to": 18,
+        "text": "第一行引用\n第二行引用"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 18,
+        "to": 19,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 19,
+        "to": 20,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 20,
+        "to": 25,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 25,
+        "to": 26,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 26,
+        "to": 28,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 28,
+        "to": 29,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 29,
+        "to": 34,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 34,
+        "to": 35,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 35,
+        "to": 41,
+        "text": "\"某位玩家\""
+      },
+      {
+        "kind": "close-bracket",
+        "from": 41,
+        "to": 42,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 42,
+        "to": 48,
+        "text": "带署名的引用"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 48,
+        "to": 49,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 49,
+        "to": 50,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 50,
+        "to": 55,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 55,
+        "to": 56,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 56,
+        "to": 57,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<blockquote>第一行引用<br>第二行引用</blockquote><blockquote><h4>某位玩家 wrote:</h4>带署名的引用</blockquote>",
+      "media": []
+    }
+  }
+}

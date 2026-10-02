@@ -1,0 +1,19 @@
+{
+  "case": "img-basic",
+  "category": "normal",
+  "covers": [
+    "img"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_img.html",
+      "note": "上游自带样例：img 输出图片元素并带服务端预取的宽高信息"
+    }
+  ],
+  "intentionalDifferences": [
+    "D-03"
+  ],
+  "notes": ""
+}

@@ -1,0 +1,86 @@
+{
+  "case": "inline-code",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[c]…[/c] 输出行内代码语义，保留在原文行内位置。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 5,
+        "text": "普通文字 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 6,
+        "to": 7,
+        "text": "c",
+        "tagName": "c",
+        "canonicalTagName": "c",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 12,
+        "text": "行内代码"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 12,
+        "to": 13,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 13,
+        "to": 14,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 14,
+        "to": 15,
+        "text": "c",
+        "tagName": "c",
+        "canonicalTagName": "c",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 15,
+        "to": 16,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 16,
+        "to": 25,
+        "text": " 继续普通文字。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "普通文字 <code>行内代码</code> 继续普通文字。<br>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "case": "list-title",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[list] 后紧跟的首行普通文本被提取为独立的列表标题元素，其余项正常渲染。",
+    "[list] 与首个 [*] 之间的空白被吸收，标题文本不额外产生换行元素。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 6,
+        "to": 12,
+        "text": "列表标题行\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 12,
+        "to": 13,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 13,
+        "to": 14,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 14,
+        "to": 15,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 15,
+        "to": 19,
+        "text": "第一项\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 19,
+        "to": 20,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 20,
+        "to": 21,
+        "text": "*",
+        "tagName": "*",
+        "canonicalTagName": "*",
+        "recognized": true,
+        "special": "list-item"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 21,
+        "to": 22,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 22,
+        "to": 26,
+        "text": "第二项\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 27,
+        "to": 28,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 28,
+        "to": 32,
+        "text": "list",
+        "tagName": "list",
+        "canonicalTagName": "list",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 32,
+        "to": 33,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 33,
+        "to": 34,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<ul>列表标题行<li>第一项</li><li>第二项</li></ul>",
+      "media": []
+    }
+  }
+}

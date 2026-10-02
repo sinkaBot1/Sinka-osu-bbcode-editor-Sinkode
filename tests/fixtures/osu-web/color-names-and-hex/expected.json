@@ -1,0 +1,323 @@
+{
+  "case": "color-names-and-hex",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "颜色名称（如 white）与 6 位十六进制（大小写均可）被识别并应用于文字颜色。",
+    "3 位十六进制（#f00）不被识别，整段标签原样保留为可见文本。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 6,
+        "to": 7,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 7,
+        "to": 12,
+        "text": "white"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 12,
+        "to": 13,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 13,
+        "to": 24,
+        "text": "使用颜色名称的白色文字"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 24,
+        "to": 25,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 25,
+        "to": 26,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 26,
+        "to": 31,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 32,
+        "to": 34,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 34,
+        "to": 35,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 35,
+        "to": 40,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 40,
+        "to": 41,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 41,
+        "to": 48,
+        "text": "#ffffff"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 48,
+        "to": 49,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 49,
+        "to": 57,
+        "text": "小写十六进制颜色"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 57,
+        "to": 58,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 58,
+        "to": 59,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 59,
+        "to": 64,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 64,
+        "to": 65,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 65,
+        "to": 67,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 67,
+        "to": 68,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 68,
+        "to": 73,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 73,
+        "to": 74,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 74,
+        "to": 81,
+        "text": "#FF0000"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 81,
+        "to": 82,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 82,
+        "to": 90,
+        "text": "大写十六进制颜色"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 90,
+        "to": 91,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 91,
+        "to": 92,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 92,
+        "to": 97,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 97,
+        "to": 98,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 98,
+        "to": 100,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 100,
+        "to": 101,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 101,
+        "to": 106,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 106,
+        "to": 107,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 107,
+        "to": 111,
+        "text": "#f00"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 111,
+        "to": 112,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 112,
+        "to": 125,
+        "text": "三位十六进制（应原样保留）"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 125,
+        "to": 126,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 126,
+        "to": 127,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 127,
+        "to": 132,
+        "text": "color",
+        "tagName": "color",
+        "canonicalTagName": "color",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 132,
+        "to": 133,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 133,
+        "to": 134,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_PARAMETER",
+        "from": 107,
+        "to": 111,
+        "line": 7,
+        "column": 8
+      }
+    ],
+    "preview": {
+      "html": "<span style=\"color:white\">使用颜色名称的白色文字</span><br><br><span style=\"color:#ffffff\">小写十六进制颜色</span><br><br><span style=\"color:#FF0000\">大写十六进制颜色</span><br><br>[color=#f00]三位十六进制（应原样保留）[/color]<br>",
+      "media": []
+    }
+  }
+}

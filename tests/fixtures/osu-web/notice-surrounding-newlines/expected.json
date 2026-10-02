@@ -1,0 +1,151 @@
+{
+  "case": "notice-surrounding-newlines",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "notice 紧贴文字时不引入额外换行形态之外的变化；块级公告与段落间的换行输出有固定形态。",
+    "公告内部内容按原样保留（首尾换行按上游规则处理）。",
+    "块级公告紧贴文字或被空行包围时换行输出有固定形态：公告前后已有的空行保留为换行元素，结束标签后的首个换行被吸收。",
+    "公告内侧两端换行被全部吸收，框内不会出现空行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 7,
+        "text": "上一行文字。\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 8,
+        "to": 14,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 14,
+        "to": 15,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 15,
+        "to": 22,
+        "text": "紧贴文字的公告"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 22,
+        "to": 23,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 23,
+        "to": 24,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 24,
+        "to": 30,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 30,
+        "to": 31,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 31,
+        "to": 47,
+        "text": "\n下一行文字。\n\n前缀文字。\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 47,
+        "to": 48,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 48,
+        "to": 54,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 54,
+        "to": 55,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 55,
+        "to": 65,
+        "text": "\n前后有空行的公告\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 65,
+        "to": 66,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 66,
+        "to": 67,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 67,
+        "to": 73,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 73,
+        "to": 74,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 74,
+        "to": 82,
+        "text": "\n\n结尾文字。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "上一行文字。<br><div class=\"bbcode-notice\">紧贴文字的公告</div>下一行文字。<br><br>前缀文字。<br><br><div class=\"bbcode-notice\">前后有空行的公告</div><br>结尾文字。<br>",
+      "media": []
+    }
+  }
+}

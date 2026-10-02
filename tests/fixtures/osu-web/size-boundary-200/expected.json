@@ -1,0 +1,92 @@
+{
+  "case": "size-boundary-200",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "size=200 为允许上限，按 200% 渲染，不产生诊断错误。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 5,
+        "to": 6,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 6,
+        "to": 9,
+        "text": "200"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 16,
+        "text": "上边界的字号"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 16,
+        "to": 17,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 17,
+        "to": 18,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 18,
+        "to": 22,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 22,
+        "to": 23,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 23,
+        "to": 24,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<span style=\"font-size:200%\">上边界的字号</span><br>",
+      "media": []
+    }
+  }
+}

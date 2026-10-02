@@ -1,0 +1,80 @@
+{
+  "case": "bold-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[b]…[/b] 内文本以加粗语义渲染（上游输出为 <strong>），文字内容保持不变。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 2,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 2,
+        "to": 3,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 3,
+        "to": 13,
+        "text": "这段文字会以粗体显示"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 13,
+        "to": 14,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 14,
+        "to": 15,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 15,
+        "to": 16,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 16,
+        "to": 17,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 17,
+        "to": 18,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<strong>这段文字会以粗体显示</strong><br>",
+      "media": []
+    }
+  }
+}

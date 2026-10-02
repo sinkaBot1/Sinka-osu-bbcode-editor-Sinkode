@@ -1,0 +1,21 @@
+{
+  "case": "spoiler-inline",
+  "category": "normal",
+  "covers": [
+    "spoiler"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "resources/css/bbcode.less",
+      "note": "锁定提交存在行内剧透的遮盖样式（黑底黑字）"
+    },
+    {
+      "path": "app/Libraries/BBCodeFromDB.php",
+      "note": "spoiler 在可识别标签清单中；上游自带样例库无 spoiler 专例"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "无上游自带样例；样式证据为 bbcode.less 的 spoiler 遮盖样式与标签清单。"
+}

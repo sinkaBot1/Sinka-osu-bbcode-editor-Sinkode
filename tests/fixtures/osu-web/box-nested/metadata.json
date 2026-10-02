@@ -1,0 +1,28 @@
+{
+  "case": "box-nested",
+  "category": "edge",
+  "covers": [
+    "box"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/box_nested.html",
+      "note": "上游自带样例：box 可嵌套，内层盒位于外层盒体内"
+    },
+    {
+      "path": "resources/js/core/spoilerbox.ts",
+      "note": "折叠交互：点击标题后对盒体执行 slideDown/slideUp，未传时长，取 jQuery 默认 400ms 与 swing 缓动"
+    },
+    {
+      "path": "resources/css/bem/bbcode-spoilerbox.less",
+      "note": "盒体初始 display:none，展开状态切换箭头图标"
+    }
+  ],
+  "intentionalDifferences": [
+    "D-14",
+    "D-15"
+  ],
+  "notes": "项目使用自有 bbcode-spoilerbox 结构和语义 button；嵌套盒保持独立状态。"
+}

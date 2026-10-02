@@ -1,0 +1,27 @@
+{
+  "case": "box-bbcode-title",
+  "category": "edge",
+  "covers": [
+    "box"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/box_with_bbcode_title.html",
+      "note": "上游自带样例：标题中 BBCode 被解析、\\[ 转义保留、破损标题整体不解析"
+    },
+    {
+      "path": "resources/js/core/spoilerbox.ts",
+      "note": "折叠交互：点击标题后对盒体执行 slideDown/slideUp，未传时长，取 jQuery 默认 400ms 与 swing 缓动"
+    },
+    {
+      "path": "resources/css/bem/bbcode-spoilerbox.less",
+      "note": "盒体初始 display:none，展开状态切换箭头图标"
+    }
+  ],
+  "intentionalDifferences": [
+    "D-16"
+  ],
+  "notes": "2026-09-25：第三个盒子的标题缺少右括号。上游保存阶段会无条件把 [/box] 改写为内部标记，显示阶段输出 </div></div>；本项目按 D-16 把未配对标签保留为可见文本。"
+}

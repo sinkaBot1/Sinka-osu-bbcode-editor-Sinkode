@@ -1,0 +1,155 @@
+{
+  "case": "quote-newlines",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "引用块内侧首尾空白与结束标签后最多 2 个换行被吸收，引用块与相邻段落之间不多出空行。",
+    "[quote=\"名字\"] 输出 “名字 wrote:” 署名行；带署名的引用块同样吸收贴边空白。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 6,
+        "to": 7,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 7,
+        "to": 17,
+        "text": "\n前面有空行的引用\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 17,
+        "to": 18,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 18,
+        "to": 19,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 19,
+        "to": 24,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 24,
+        "to": 25,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 25,
+        "to": 39,
+        "text": "\n\n夹在中间的普通文字。\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 39,
+        "to": 40,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 40,
+        "to": 45,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 45,
+        "to": 46,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 46,
+        "to": 53,
+        "text": "\"另一位玩家\""
+      },
+      {
+        "kind": "close-bracket",
+        "from": 53,
+        "to": 54,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 54,
+        "to": 65,
+        "text": "\n另一段带署名的引用\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 65,
+        "to": 66,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 66,
+        "to": 67,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 67,
+        "to": 72,
+        "text": "quote",
+        "tagName": "quote",
+        "canonicalTagName": "quote",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 72,
+        "to": 73,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 73,
+        "to": 84,
+        "text": "\n\n结尾的普通文字。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<blockquote>前面有空行的引用</blockquote>夹在中间的普通文字。<br><br><blockquote><h4>另一位玩家 wrote:</h4>另一段带署名的引用</blockquote>结尾的普通文字。<br>",
+      "media": []
+    }
+  }
+}

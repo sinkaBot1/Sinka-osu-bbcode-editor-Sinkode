@@ -1,0 +1,19 @@
+{
+  "case": "profile-non-numeric",
+  "category": "error",
+  "covers": [
+    "profile"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_profile.html",
+      "note": "上游仅数字参数生成 users/{id} 链接（basic_profile 两段对比）"
+    }
+  ],
+  "intentionalDifferences": [
+    "D-01"
+  ],
+  "notes": ""
+}

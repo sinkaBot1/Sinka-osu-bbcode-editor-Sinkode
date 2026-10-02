@@ -1,0 +1,183 @@
+{
+  "case": "box-bbcode-title",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "box 标题中包含的 BBCode（如 color）会被解析并应用于标题文本。",
+    "标题中的转义方括号（\\[）保留为字面文本。",
+    "标题缺少右括号（[box=[破损标题]…）时整段不解析，原样保留为文本。",
+    "折叠盒结束标签后的 1 个换行被吸收；第三个盒子的标题缺少右括号时整段保持为可见文本。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 4,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 4,
+        "to": 5,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 5,
+        "to": 28,
+        "text": "[color=red]红色标题[/color]"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 28,
+        "to": 29,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 29,
+        "to": 32,
+        "text": "内容一"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 32,
+        "to": 33,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 33,
+        "to": 34,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 34,
+        "to": 37,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 37,
+        "to": 38,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 38,
+        "to": 40,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 40,
+        "to": 41,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 41,
+        "to": 44,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 44,
+        "to": 45,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 45,
+        "to": 57,
+        "text": "[\\[] 转义方括号标题"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 57,
+        "to": 58,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 58,
+        "to": 61,
+        "text": "内容二"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 61,
+        "to": 62,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 62,
+        "to": 63,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 63,
+        "to": 66,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 66,
+        "to": 67,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 67,
+        "to": 69,
+        "text": "\n\n"
+      },
+      {
+        "kind": "invalid",
+        "from": 69,
+        "to": 115,
+        "text": "[box=[破损标题]内容三[/box]\n\n[size=50]盒外的字号标签[/size]\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_SYNTAX",
+        "from": 69,
+        "to": 115,
+        "line": 5,
+        "column": 1
+      }
+    ],
+    "preview": {
+      "html": "<div class=\"bbcode-spoilerbox\"><button type=\"button\" class=\"bbcode-spoilerbox__link\" aria-expanded=\"false\"><span class=\"bbcode-spoilerbox__link-icon\" aria-hidden=\"true\"></span><span class=\"bbcode-spoilerbox__link-text\"><span style=\"color:red\">红色标题</span></span></button><div class=\"bbcode-spoilerbox__body\" hidden=\"\">内容一</div></div><br><div class=\"bbcode-spoilerbox\"><button type=\"button\" class=\"bbcode-spoilerbox__link\" aria-expanded=\"false\"><span class=\"bbcode-spoilerbox__link-icon\" aria-hidden=\"true\"></span><span class=\"bbcode-spoilerbox__link-text\">[\\[] 转义方括号标题</span></button><div class=\"bbcode-spoilerbox__body\" hidden=\"\">内容二</div></div><br>[box=[破损标题]内容三[/box]<br><br>[size=50]盒外的字号标签[/size]<br>",
+      "media": []
+    }
+  }
+}

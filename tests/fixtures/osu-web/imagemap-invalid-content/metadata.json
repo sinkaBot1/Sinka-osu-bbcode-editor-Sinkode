@@ -1,0 +1,17 @@
+{
+  "case": "imagemap-invalid-content",
+  "category": "error",
+  "covers": [
+    "imagemap"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/imagemap_invalid_content_escape.html",
+      "note": "上游自带样例：内容含 HTML 片段时先转义、整体不解析"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

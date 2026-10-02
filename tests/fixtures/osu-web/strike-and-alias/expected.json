@@ -1,0 +1,142 @@
+{
+  "case": "strike-and-alias",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[s] 与别名 [strike] 产生相同的删除线效果；两者均被解析器识别。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 2,
+        "text": "s",
+        "tagName": "s",
+        "canonicalTagName": "s",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 2,
+        "to": 3,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 3,
+        "to": 10,
+        "text": "被划掉的旧信息"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 10,
+        "to": 11,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 11,
+        "to": 12,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 12,
+        "to": 13,
+        "text": "s",
+        "tagName": "s",
+        "canonicalTagName": "s",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 13,
+        "to": 14,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 14,
+        "to": 16,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 16,
+        "to": 17,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 17,
+        "to": 23,
+        "text": "strike",
+        "tagName": "strike",
+        "canonicalTagName": "s",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 23,
+        "to": 24,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 24,
+        "to": 32,
+        "text": "用别名写的删除线"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 32,
+        "to": 33,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 33,
+        "to": 34,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 34,
+        "to": 40,
+        "text": "strike",
+        "tagName": "strike",
+        "canonicalTagName": "s",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 40,
+        "to": 41,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 41,
+        "to": 42,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<del>被划掉的旧信息</del><br><br><del>用别名写的删除线</del><br>",
+      "media": []
+    }
+  }
+}

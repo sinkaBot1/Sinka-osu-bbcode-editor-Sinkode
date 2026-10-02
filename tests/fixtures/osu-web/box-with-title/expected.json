@@ -1,0 +1,93 @@
+{
+  "case": "box-with-title",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[box=标题]内容[/box] 输出折叠盒，按钮标题为参数文本；默认折叠，可展开。",
+    "盒内首尾换行与结束标签后的 1 个换行被吸收，盒后文字紧接盒体显示。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 4,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 4,
+        "to": 5,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 5,
+        "to": 11,
+        "text": "第一个折叠盒"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 11,
+        "to": 12,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 12,
+        "to": 19,
+        "text": "\n盒内内容。\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 19,
+        "to": 20,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 20,
+        "to": 21,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 21,
+        "to": 24,
+        "text": "box",
+        "tagName": "box",
+        "canonicalTagName": "box",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 24,
+        "to": 25,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 25,
+        "to": 35,
+        "text": "\n盒子后面的文字。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<div class=\"bbcode-spoilerbox\"><button type=\"button\" class=\"bbcode-spoilerbox__link\" aria-expanded=\"false\"><span class=\"bbcode-spoilerbox__link-icon\" aria-hidden=\"true\"></span><span class=\"bbcode-spoilerbox__link-text\">第一个折叠盒</span></button><div class=\"bbcode-spoilerbox__body\" hidden=\"\">盒内内容。</div></div>盒子后面的文字。<br>",
+      "media": []
+    }
+  }
+}

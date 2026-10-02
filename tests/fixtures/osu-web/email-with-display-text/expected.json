@@ -1,0 +1,92 @@
+{
+  "case": "email-with-display-text",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[email=地址]文字[/email] 输出 mailto 链接，显示文字来自标签内容而非地址。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 6,
+        "text": "email",
+        "tagName": "email",
+        "canonicalTagName": "email",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 6,
+        "to": 7,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 7,
+        "to": 26,
+        "text": "someone@example.com"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 27,
+        "to": 32,
+        "text": "写信给某人"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 32,
+        "to": 33,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 33,
+        "to": 34,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 34,
+        "to": 39,
+        "text": "email",
+        "tagName": "email",
+        "canonicalTagName": "email",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 39,
+        "to": 40,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 40,
+        "to": 41,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<a href=\"mailto:someone@example.com\" target=\"_blank\" rel=\"noopener noreferrer\">写信给某人</a><br>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "case": "imagemap-unclosed-nested",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "imagemap 内容中出现嵌套的未闭合 [imagemap] 时，外层整体不解析，全部文本原样保留（方括号被转义显示）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 9,
+        "text": "imagemap",
+        "tagName": "imagemap",
+        "canonicalTagName": "imagemap",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 84,
+        "text": "\nhttps://example.com/images/outer.png\n10 10 20 20 https://example.com/one\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 84,
+        "to": 85,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 85,
+        "to": 93,
+        "text": "imagemap",
+        "tagName": "imagemap",
+        "canonicalTagName": "imagemap",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 93,
+        "to": 94,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 94,
+        "to": 168,
+        "text": "\nhttps://example.com/images/inner.png\n30 30 20 20 https://example.com/two\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 168,
+        "to": 169,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 169,
+        "to": 170,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 170,
+        "to": 178,
+        "text": "imagemap",
+        "tagName": "imagemap",
+        "canonicalTagName": "imagemap",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 178,
+        "to": 179,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 179,
+        "to": 180,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "UNCLOSED_TAG",
+        "from": 1,
+        "to": 9,
+        "line": 1,
+        "column": 2
+      }
+    ],
+    "preview": {
+      "html": "[imagemap]<br><a href=\"https://example.com/images/outer.png\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/images/outer.png</a><br>10 10 20 20 <a href=\"https://example.com/one\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/one</a><br>[imagemap]<br><a href=\"https://example.com/images/inner.png\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/images/inner.png</a><br>30 30 20 20 <a href=\"https://example.com/two\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com/two</a><br>[/imagemap]<br>",
+      "media": []
+    }
+  }
+}

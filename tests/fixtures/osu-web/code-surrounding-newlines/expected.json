@@ -1,0 +1,87 @@
+{
+  "case": "code-surrounding-newlines",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[code] 内容前后各一个换行被剥离；内部换行原样保留，输出为 pre 语义，前后不产生多余换行元素。",
+    "`[code]` 内容前后所有换行被剥离；开始标签之前的换行不受影响（仍输出为换行元素），结束标签后的 1 个换行被吸收，剩余换行照常输出。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 2,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 2,
+        "to": 3,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 3,
+        "to": 7,
+        "text": "code",
+        "tagName": "code",
+        "canonicalTagName": "code",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 25,
+        "text": "\n内容首尾各有一个换行\n会被剥离\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 25,
+        "to": 26,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 26,
+        "to": 27,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 27,
+        "to": 31,
+        "text": "code",
+        "tagName": "code",
+        "canonicalTagName": "code",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 32,
+        "to": 34,
+        "text": "\n\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<br><br><pre><code>内容首尾各有一个换行\n会被剥离</code></pre><br>",
+      "media": []
+    }
+  }
+}

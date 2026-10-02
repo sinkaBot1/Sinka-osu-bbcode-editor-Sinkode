@@ -1,0 +1,60 @@
+{
+  "case": "unclosed-bold",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "只有开始标记、没有结束标记的标签不被识别为 BBCode，原样保留为可见文本（预览不自动闭合）；本项目诊断为未闭合错误。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 5,
+        "text": "这一段有 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 6,
+        "to": 7,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 18,
+        "text": "没有闭合的粗体标签\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "UNCLOSED_TAG",
+        "from": 6,
+        "to": 7,
+        "line": 1,
+        "column": 7
+      }
+    ],
+    "preview": {
+      "html": "这一段有 [b]没有闭合的粗体标签<br>",
+      "media": []
+    }
+  }
+}

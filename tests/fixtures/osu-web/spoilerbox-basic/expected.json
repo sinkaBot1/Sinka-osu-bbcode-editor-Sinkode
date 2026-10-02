@@ -1,0 +1,81 @@
+{
+  "case": "spoilerbox-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[spoilerbox]…[/spoilerbox] 输出折叠盒，默认按钮标题文本为 SPOILER；支持展开/折叠交互。",
+    "内侧首尾换行与结束标签后的 1 个换行被吸收。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 11,
+        "text": "spoilerbox",
+        "tagName": "spoilerbox",
+        "canonicalTagName": "spoilerbox",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 11,
+        "to": 12,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 12,
+        "to": 29,
+        "text": "\n折叠内容第一行\n折叠内容第二行\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 29,
+        "to": 30,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 30,
+        "to": 31,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 31,
+        "to": 41,
+        "text": "spoilerbox",
+        "tagName": "spoilerbox",
+        "canonicalTagName": "spoilerbox",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 41,
+        "to": 42,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 42,
+        "to": 43,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<div class=\"bbcode-spoilerbox\"><button type=\"button\" class=\"bbcode-spoilerbox__link\" aria-expanded=\"false\"><span class=\"bbcode-spoilerbox__link-icon\" aria-hidden=\"true\"></span><span class=\"bbcode-spoilerbox__link-text\">SPOILER</span></button><div class=\"bbcode-spoilerbox__body\" hidden=\"\">折叠内容第一行<br>折叠内容第二行</div></div>",
+      "media": []
+    }
+  }
+}

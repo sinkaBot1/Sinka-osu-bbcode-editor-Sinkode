@@ -1,0 +1,66 @@
+{
+  "case": "stray-close-tag",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "没有对应开始标记的结束标签不被识别，原样保留为可见文本；本项目诊断为多余结束错误。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 5,
+        "text": "这一段有 "
+      },
+      {
+        "kind": "open-bracket",
+        "from": 5,
+        "to": 6,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 6,
+        "to": 7,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 7,
+        "to": 8,
+        "text": "b",
+        "tagName": "b",
+        "canonicalTagName": "b",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 8,
+        "to": 9,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 9,
+        "to": 17,
+        "text": "多余的结束标签\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "UNOPENED_TAG",
+        "from": 7,
+        "to": 8,
+        "line": 1,
+        "column": 8
+      }
+    ],
+    "preview": {
+      "html": "这一段有 [/b]多余的结束标签<br>",
+      "media": []
+    }
+  }
+}

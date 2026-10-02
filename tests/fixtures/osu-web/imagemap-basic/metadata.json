@@ -1,0 +1,17 @@
+{
+  "case": "imagemap-basic",
+  "category": "normal",
+  "covers": [
+    "imagemap"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/imagemap.html",
+      "note": "上游自带样例：首行图片 + 每行热区；每行前四个数字按百分比解释（不是像素坐标），# 为无链接热区"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

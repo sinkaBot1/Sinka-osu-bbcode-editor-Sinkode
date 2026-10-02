@@ -1,0 +1,100 @@
+{
+  "case": "size-clamp-low",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "size=5 低于下限，预览按 30% 渲染；原文不变，本项目诊断为越界错误（PAR-02）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 5,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 5,
+        "to": 6,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 6,
+        "to": 7,
+        "text": "5"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 13,
+        "text": "过小的字号"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 13,
+        "to": 14,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 14,
+        "to": 15,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 15,
+        "to": 19,
+        "text": "size",
+        "tagName": "size",
+        "canonicalTagName": "size",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 19,
+        "to": 20,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 20,
+        "to": 21,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "PARAMETER_OUT_OF_RANGE",
+        "from": 6,
+        "to": 7,
+        "line": 1,
+        "column": 7
+      }
+    ],
+    "preview": {
+      "html": "<span style=\"font-size:30%\">过小的字号</span><br>",
+      "media": []
+    }
+  }
+}

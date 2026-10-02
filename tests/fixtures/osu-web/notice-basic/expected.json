@@ -1,0 +1,81 @@
+{
+  "case": "notice-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[notice]…[/notice] 输出带边框底色的公告块。",
+    "标签内侧两端换行与结束标签后的 1 个换行被吸收，框内不出现空行、框后不多出空行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 7,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 7,
+        "to": 8,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 8,
+        "to": 18,
+        "text": "\n这是一条公告内容\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 18,
+        "to": 19,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 19,
+        "to": 20,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 20,
+        "to": 26,
+        "text": "notice",
+        "tagName": "notice",
+        "canonicalTagName": "notice",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 26,
+        "to": 27,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 27,
+        "to": 28,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<div class=\"bbcode-notice\">这是一条公告内容</div>",
+      "media": []
+    }
+  }
+}

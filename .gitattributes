@@ -1,0 +1,15 @@
+# 统一换行符：仓库内一律存 LF，检出到工作区也用 LF。
+# 原因：Prettier 的 endOfLine 默认为 lf，而 Windows 上 core.autocrlf=true 会把检出文件写成 CRLF，
+# 导致本地 npm run format:check 无故失败、CI（Linux）却通过。这里固定两端一致，避免“本机失败、CI 正常”的假故障。
+* text=auto eol=lf
+
+# 二进制资源不参与换行符转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.psd binary
+*.pdf binary

@@ -1,0 +1,9 @@
+README.md
+PRIVACY.md
+DRAFT-*.md
+docs/
+tests/check-osu-web-fixtures.mjs
+tests/fixtures/
+*.png
+dist/
+node_modules/

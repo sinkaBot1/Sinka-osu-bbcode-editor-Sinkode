@@ -1,0 +1,24 @@
+{
+  "case": "plain-text-newlines",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "单个换行渲染为一个换行元素；空行分隔的段落之间渲染为两个换行元素；连续多个空行不累积更多换行。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "text",
+        "from": 0,
+        "to": 57,
+        "text": "第一段文字。\n\n第二段文字（前面有一个空行）。\n\n\n第三段文字（前面有两个空行）。\n行末直接换行\n同一行的延续。\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "第一段文字。<br><br>第二段文字（前面有一个空行）。<br><br><br>第三段文字（前面有两个空行）。<br>行末直接换行<br>同一行的延续。<br>",
+      "media": []
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "case": "list-title",
+  "category": "edge",
+  "covers": [
+    "list"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/list_title.html",
+      "note": "上游自带样例：list 首行非 [*] 文本被提取为标题"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": "2026-09-25：首个 [*] 前的空白吸收已对齐；上游把标题包在独立的无符号列表元素中，本项目标题结构仍为待决差异，见 docs/compatibility.md §6.3。"
+}

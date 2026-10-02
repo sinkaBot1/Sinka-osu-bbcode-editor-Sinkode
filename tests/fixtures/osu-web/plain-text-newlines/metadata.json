@@ -1,0 +1,15 @@
+{
+  "case": "plain-text-newlines",
+  "category": "edge",
+  "covers": [],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/autolink.html",
+      "note": "上游自带样例：段落间输出为两个换行元素，单换行为一个换行元素"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

@@ -1,0 +1,17 @@
+{
+  "case": "audio-basic",
+  "category": "normal",
+  "covers": [
+    "audio"
+  ],
+  "basisSha": "61b0a41431395f86ff68fa12744f3266448ec885",
+  "basisDate": "2026-09-04T07:44:14Z",
+  "upstreamEvidence": [
+    {
+      "path": "tests/Libraries/bbcode_examples/basic_audio.html",
+      "note": "上游自带样例：audio 输出音频播放元素（controls、preload=none）"
+    }
+  ],
+  "intentionalDifferences": [],
+  "notes": ""
+}

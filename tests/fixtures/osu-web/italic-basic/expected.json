@@ -1,0 +1,80 @@
+{
+  "case": "italic-basic",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[i]…[/i] 内文本以斜体语义渲染（上游输出为 <em>）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 2,
+        "text": "i",
+        "tagName": "i",
+        "canonicalTagName": "i",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 2,
+        "to": 3,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 3,
+        "to": 11,
+        "text": "这一行应该是斜体"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 11,
+        "to": 12,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 12,
+        "to": 13,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 13,
+        "to": 14,
+        "text": "i",
+        "tagName": "i",
+        "canonicalTagName": "i",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 14,
+        "to": 15,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 15,
+        "to": 16,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [],
+    "preview": {
+      "html": "<em>这一行应该是斜体</em><br>",
+      "media": []
+    }
+  }
+}

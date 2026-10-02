@@ -1,0 +1,88 @@
+{
+  "case": "imagemap-invalid-content",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "内容不符合 imagemap 结构（此处为 HTML 片段）时，内容先做 HTML 转义，随后整个标签原样保留为文本。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 9,
+        "text": "imagemap",
+        "tagName": "imagemap",
+        "canonicalTagName": "imagemap",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 9,
+        "to": 10,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 10,
+        "to": 34,
+        "text": "\n<div>not allowed</div>\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 34,
+        "to": 35,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 35,
+        "to": 36,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 36,
+        "to": 44,
+        "text": "imagemap",
+        "tagName": "imagemap",
+        "canonicalTagName": "imagemap",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 44,
+        "to": 45,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 45,
+        "to": 46,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_URL",
+        "from": 10,
+        "to": 34,
+        "line": 1,
+        "column": 11
+      }
+    ],
+    "preview": {
+      "html": "[imagemap]\n&lt;div&gt;not allowed&lt;/div&gt;\n[/imagemap]<br>",
+      "media": []
+    }
+  }
+}

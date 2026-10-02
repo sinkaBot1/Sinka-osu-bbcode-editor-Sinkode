@@ -1,0 +1,307 @@
+{
+  "case": "url-forms",
+  "status": "asserted",
+  "stage": 2,
+  "observations": [
+    "[url] 与 [url=地址]文字[/url] 两种形式都输出为链接；链接地址与显示文字对应保留。",
+    "上游输出会保留 ftp: 等协议；本项目第一版仅允许 https:/mailto:，其他协议降级为文本并诊断（D-02）。",
+    "本项目外链一律新标签页 + noopener noreferrer 打开（D-07）。"
+  ],
+  "expectedAssertions": {
+    "sourceUnchanged": true,
+    "tokens": [
+      {
+        "kind": "open-bracket",
+        "from": 0,
+        "to": 1,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 1,
+        "to": 4,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 4,
+        "to": 5,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 5,
+        "to": 24,
+        "text": "https://example.com"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 24,
+        "to": 25,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 25,
+        "to": 26,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 26,
+        "to": 29,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 29,
+        "to": 30,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 30,
+        "to": 31,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 31,
+        "to": 32,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 32,
+        "to": 35,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 35,
+        "to": 36,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 36,
+        "to": 60,
+        "text": "https://example.com/page"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 60,
+        "to": 61,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 61,
+        "to": 65,
+        "text": "示例站点"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 65,
+        "to": 66,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 66,
+        "to": 67,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 67,
+        "to": 70,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 70,
+        "to": 71,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 71,
+        "to": 73,
+        "text": "\n\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 73,
+        "to": 74,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 74,
+        "to": 77,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 77,
+        "to": 78,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 78,
+        "to": 102,
+        "text": "http://example.org/plain"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 102,
+        "to": 103,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 103,
+        "to": 104,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 104,
+        "to": 107,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 107,
+        "to": 108,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 108,
+        "to": 109,
+        "text": "\n"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 109,
+        "to": 110,
+        "text": "["
+      },
+      {
+        "kind": "tag-name",
+        "from": 110,
+        "to": 113,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": false,
+        "recognized": true
+      },
+      {
+        "kind": "equals",
+        "from": 113,
+        "to": 114,
+        "text": "="
+      },
+      {
+        "kind": "parameter",
+        "from": 114,
+        "to": 135,
+        "text": "ftp://ftp.example.com"
+      },
+      {
+        "kind": "close-bracket",
+        "from": 135,
+        "to": 136,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 136,
+        "to": 156,
+        "text": "FTP 链接（本项目预览中应降级为文本）"
+      },
+      {
+        "kind": "open-bracket",
+        "from": 156,
+        "to": 157,
+        "text": "["
+      },
+      {
+        "kind": "slash",
+        "from": 157,
+        "to": 158,
+        "text": "/"
+      },
+      {
+        "kind": "tag-name",
+        "from": 158,
+        "to": 161,
+        "text": "url",
+        "tagName": "url",
+        "canonicalTagName": "url",
+        "closing": true,
+        "recognized": true
+      },
+      {
+        "kind": "close-bracket",
+        "from": 161,
+        "to": 162,
+        "text": "]"
+      },
+      {
+        "kind": "text",
+        "from": 162,
+        "to": 163,
+        "text": "\n"
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "INVALID_URL",
+        "from": 73,
+        "to": 108,
+        "line": 4,
+        "column": 1
+      },
+      {
+        "code": "INVALID_URL",
+        "from": 114,
+        "to": 135,
+        "line": 5,
+        "column": 6
+      }
+    ],
+    "preview": {
+      "html": "<a href=\"https://example.com/\" target=\"_blank\" rel=\"noopener noreferrer\">https://example.com</a><br><a href=\"https://example.com/page\" target=\"_blank\" rel=\"noopener noreferrer\">示例站点</a><br><br>[url]http://example.org/plain[/url]<br>[url=ftp://ftp.example.com]FTP 链接（本项目预览中应降级为文本）[/url]<br>",
+      "media": []
+    }
+  }
+}
