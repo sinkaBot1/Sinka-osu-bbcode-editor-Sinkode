@@ -1,7 +1,6 @@
 {
   "case": "list-title",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[list] 后紧跟的首行普通文本被提取为独立的列表标题元素，其余项正常渲染。",
     "[list] 与首个 [*] 之间的空白被吸收，标题文本不额外产生换行元素。"

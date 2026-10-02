@@ -1,7 +1,6 @@
 {
   "case": "size-boundary-30",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "size=30 为允许下限，按 30% 渲染，不产生诊断错误。"
   ],

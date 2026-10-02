@@ -1,7 +1,6 @@
 {
   "case": "size-in-range",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "50/85/150 等范围内的数值按\"数值%\"字号直接应用，原文不变。"
   ],

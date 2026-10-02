@@ -1,7 +1,6 @@
 {
   "case": "profile-with-id",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[profile=数字]名字[/profile] 生成指向 https://osu.ppy.sh/users/{数字} 的链接，显示文字保留。",
     "上游输出附带交互式用户卡片标记；本项目第一版只渲染普通链接（D-04），新标签页打开（D-07）。"

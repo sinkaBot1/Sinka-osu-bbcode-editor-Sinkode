@@ -1,7 +1,6 @@
 {
   "case": "profile-non-numeric",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "参数不是纯数字的 profile 保留为普通文本并诊断为错误，不生成链接（PAR-05/PAR-06）。"
   ],

@@ -1,7 +1,6 @@
 {
   "case": "profile-name-only",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "上游对 [profile]名字[/profile] 生成按用户名的用户链接。",
     "本项目第一版有意差异：无数字 ID 的 profile 保留为普通文本并诊断为错误，不按玩家名猜测链接（D-01，依据 PAR-06/FR-PR-10）。"

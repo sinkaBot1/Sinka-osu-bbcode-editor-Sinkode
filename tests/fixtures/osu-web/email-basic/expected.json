@@ -1,7 +1,6 @@
 {
   "case": "email-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[email]地址[/email] 输出 mailto 链接，显示文本为邮箱地址本身。"
   ],

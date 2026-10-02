@@ -1,7 +1,6 @@
 {
   "case": "img-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[img]地址[/img] 输出图片元素，地址原样保留。",
     "上游输出携带服务端预取的 aspect-ratio 与 width 内联样式；本项目由浏览器加载后按原始宽高比与 max-width:100% 缩放（D-03）。"

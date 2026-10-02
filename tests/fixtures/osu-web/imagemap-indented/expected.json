@@ -1,7 +1,6 @@
 {
   "case": "imagemap-indented",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "行首带缩进的 imagemap 与无缩进时解析结果一致；但整体内容被压成单行时不再解析（对照 basic 形态）。",
     "解析成功时结束标签后的 1 个换行被吸收。"

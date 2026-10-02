@@ -19,7 +19,6 @@ for (const name of readdirSync(root, { withFileTypes: true })
   const scan = scanDocument(source)
   const expected = JSON.parse(readFileSync(join(dir, 'expected.json'), 'utf8'))
   expected.status = 'asserted'
-  expected.stage = 2
   expected.expectedAssertions = {
     sourceUnchanged: true,
     tokens: scan.tokens.map((token) => ({

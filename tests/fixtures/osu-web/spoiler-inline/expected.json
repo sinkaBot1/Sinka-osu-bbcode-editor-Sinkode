@@ -1,7 +1,6 @@
 {
   "case": "spoiler-inline",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[spoiler]…[/spoiler] 行内内容被遮盖显示，交互后可见。"
   ],

@@ -1,7 +1,6 @@
 {
   "case": "color-names-and-hex",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "颜色名称（如 white）与 6 位十六进制（大小写均可）被识别并应用于文字颜色。",
     "3 位十六进制（#f00）不被识别，整段标签原样保留为可见文本。"

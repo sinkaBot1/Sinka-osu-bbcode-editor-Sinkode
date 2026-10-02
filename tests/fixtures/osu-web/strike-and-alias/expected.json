@@ -1,7 +1,6 @@
 {
   "case": "strike-and-alias",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[s] 与别名 [strike] 产生相同的删除线效果；两者均被解析器识别。"
   ],

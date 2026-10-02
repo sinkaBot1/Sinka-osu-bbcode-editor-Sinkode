@@ -1,7 +1,6 @@
 {
   "case": "unknown-tag",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "第一版集合之外的标签按未知标签处理，整体原样保留为可见文本；本项目诊断为未知标签错误。"
   ],

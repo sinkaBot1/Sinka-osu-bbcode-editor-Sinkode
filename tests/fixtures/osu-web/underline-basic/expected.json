@@ -1,7 +1,6 @@
 {
   "case": "underline-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[u]…[/u] 内文本带下划线渲染（上游输出为 <u>）。"
   ],

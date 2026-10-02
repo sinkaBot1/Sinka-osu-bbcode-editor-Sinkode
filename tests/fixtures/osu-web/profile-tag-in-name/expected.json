@@ -1,7 +1,6 @@
 {
   "case": "profile-tag-in-name",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "profile 内容中形似标签的文本（如 [s]…[/s]）按字面文本处理，不解析内部标签；链接目标与显示文本按上游规则编码。"
   ],

@@ -1,7 +1,6 @@
 {
   "case": "imagemap-unclosed-nested",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "imagemap 内容中出现嵌套的未闭合 [imagemap] 时，外层整体不解析，全部文本原样保留（方括号被转义显示）。"
   ],

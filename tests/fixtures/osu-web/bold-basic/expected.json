@@ -1,7 +1,6 @@
 {
   "case": "bold-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[b]…[/b] 内文本以加粗语义渲染（上游输出为 <strong>），文字内容保持不变。"
   ],

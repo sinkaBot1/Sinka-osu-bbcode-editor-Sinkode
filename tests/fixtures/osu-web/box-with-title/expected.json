@@ -1,7 +1,6 @@
 {
   "case": "box-with-title",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[box=标题]内容[/box] 输出折叠盒，按钮标题为参数文本；默认折叠，可展开。",
     "盒内首尾换行与结束标签后的 1 个换行被吸收，盒后文字紧接盒体显示。"

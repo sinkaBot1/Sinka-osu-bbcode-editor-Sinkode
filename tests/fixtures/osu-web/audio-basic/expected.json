@@ -1,7 +1,6 @@
 {
   "case": "audio-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[audio]地址[/audio] 输出可播放的音频元素，src 为原始地址。"
   ],

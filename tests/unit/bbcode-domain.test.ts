@@ -10,7 +10,7 @@ import { countGraphemes } from '../../src/shared/text/graphemes'
 
 const fixtureRoot = join(process.cwd(), 'tests', 'fixtures', 'osu-web')
 
-describe('阶段 2 领域核心', () => {
+describe('BBCode 领域核心', () => {
   it('所有固定样例都能扫描、诊断和生成安全预览', () => {
     const cases = readdirSync(fixtureRoot, { withFileTypes: true }).filter((entry) =>
       entry.isDirectory(),
@@ -26,7 +26,7 @@ describe('阶段 2 领域核心', () => {
     }
   })
 
-  it('逐项执行固定样例的阶段 2 断言', () => {
+  it('逐项执行固定样例的固化断言', () => {
     const cases = readdirSync(fixtureRoot, { withFileTypes: true }).filter((entry) =>
       entry.isDirectory(),
     )

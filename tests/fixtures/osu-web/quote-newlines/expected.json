@@ -1,7 +1,6 @@
 {
   "case": "quote-newlines",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "引用块内侧首尾空白与结束标签后最多 2 个换行被吸收，引用块与相邻段落之间不多出空行。",
     "[quote=\"名字\"] 输出 “名字 wrote:” 署名行；带署名的引用块同样吸收贴边空白。"

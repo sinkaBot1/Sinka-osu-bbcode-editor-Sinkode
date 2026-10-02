@@ -1,7 +1,6 @@
 {
   "case": "email-with-display-text",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[email=地址]文字[/email] 输出 mailto 链接，显示文字来自标签内容而非地址。"
   ],

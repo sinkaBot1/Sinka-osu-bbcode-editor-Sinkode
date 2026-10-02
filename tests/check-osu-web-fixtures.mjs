@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 阶段 2 固定样例完整性检查（零依赖）。
+// osu-web 固定样例完整性检查（零依赖）。
 // 用法：node tests/check-osu-web-fixtures.mjs
 // 退出码 0 = 通过；1 = 存在问题。
 
@@ -13,7 +13,7 @@ const fixturesDir = join(repoRoot, 'tests', 'fixtures', 'osu-web');
 const BASIS_SHA = '61b0a41431395f86ff68fa12744f3266448ec885';
 const BASIS_DATE = '2026-09-04T07:44:14Z';
 
-// 第一版标签集合（REQUIREMENTS.md 5.1）。registry 实现后应改为从 src/bbcode/registry/ 读取。
+// 第一版标签集合（与 src/bbcode/registry/ 保持一致）。registry 实现后应改为直接从 registry 读取，避免两处规则不一致。
 const V1_TAGS = [
   'b', 'i', 'u', 's', 'strike', 'color', 'size', 'url', 'img', 'email',
   'youtube', 'audio', 'imagemap', 'centre', 'code', 'c', 'quote', 'list',
@@ -149,7 +149,7 @@ for (const name of caseDirs) {
     continue;
   }
   if (exp.case !== name) problem(`${name}: expected.case (${exp.case}) 与目录名不一致`);
-  if (exp.status !== 'asserted') problem(`${name}: 阶段 2 要求 expected.status 为 asserted（现为 ${exp.status}）`);
+  if (exp.status !== 'asserted') problem(`${name}: 样例格式要求 expected.status 为 asserted（现为 ${exp.status}）`);
   if (!exp.expectedAssertions || typeof exp.expectedAssertions !== 'object') {
     problem(`${name}: expectedAssertions 必须是对象`);
   } else {

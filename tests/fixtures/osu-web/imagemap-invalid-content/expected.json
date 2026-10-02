@@ -1,7 +1,6 @@
 {
   "case": "imagemap-invalid-content",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "内容不符合 imagemap 结构（此处为 HTML 片段）时，内容先做 HTML 转义，随后整个标签原样保留为文本。"
   ],

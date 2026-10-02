@@ -1,7 +1,6 @@
 {
   "case": "notice-surrounding-newlines",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "notice 紧贴文字时不引入额外换行形态之外的变化；块级公告与段落间的换行输出有固定形态。",
     "公告内部内容按原样保留（首尾换行按上游规则处理）。",

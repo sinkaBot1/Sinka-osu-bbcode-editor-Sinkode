@@ -1,7 +1,6 @@
 {
   "case": "unclosed-bold",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "只有开始标记、没有结束标记的标签不被识别为 BBCode，原样保留为可见文本（预览不自动闭合）；本项目诊断为未闭合错误。"
   ],

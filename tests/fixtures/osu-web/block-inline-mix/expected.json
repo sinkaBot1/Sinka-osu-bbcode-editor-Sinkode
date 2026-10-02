@@ -1,7 +1,6 @@
 {
   "case": "block-inline-mix",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "块级标签（notice/box 等）出现在行内文字中间时，输出仍保持块级元素的换行特性，周围文字换行形态按上游规则。",
     "行内标签（b/i 等）在块级标签内正常解析；混合组合的换行结果以 *_with_surrounding_newlines 系列为准。",

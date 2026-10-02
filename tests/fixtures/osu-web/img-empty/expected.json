@@ -1,7 +1,6 @@
 {
   "case": "img-empty",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[img][/img] 不产生任何图片元素，标签原样保留为可见文本；本项目另将其诊断为错误。"
   ],

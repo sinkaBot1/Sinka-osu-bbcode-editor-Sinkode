@@ -1,7 +1,6 @@
 {
   "case": "code-block",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[code]…[/code] 输出为代码块语义；内部的 [b] 等标签不被解析，按字面文本显示。",
     "代码块内侧首尾换行被吸收，结束标签后的 1 个换行也被吸收。"

@@ -1,7 +1,6 @@
 {
   "case": "invalid-email-url",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "参数为空或内容为空的 url/email 标签不被解析，整体原样保留为可见文本；本项目诊断为参数无效。"
   ],

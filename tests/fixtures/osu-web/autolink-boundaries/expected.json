@@ -1,7 +1,6 @@
 {
   "case": "autolink-boundaries",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "裸 URL、www. 前缀与邮箱自动成为链接；紧随的冒号、包裹括号、结尾句号不并入链接文本。",
     "autolink 不属于第一版标签集合，但属于普通文本显示行为，预览需对齐。"

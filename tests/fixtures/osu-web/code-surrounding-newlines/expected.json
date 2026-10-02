@@ -1,7 +1,6 @@
 {
   "case": "code-surrounding-newlines",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[code] 内容前后各一个换行被剥离；内部换行原样保留，输出为 pre 语义，前后不产生多余换行元素。",
     "`[code]` 内容前后所有换行被剥离；开始标签之前的换行不受影响（仍输出为换行元素），结束标签后的 1 个换行被吸收，剩余换行照常输出。"

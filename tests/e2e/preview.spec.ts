@@ -214,7 +214,7 @@ test.describe('安全实时预览', () => {
     expect(clickTarget).toBe('A')
   })
 
-  test('预览字体、媒体对齐和 size=200 使用阶段 4 视觉规则', async ({ page }) => {
+  test('预览字体、媒体对齐和 size=200 对齐锁定基准的视觉规则', async ({ page }) => {
     await openEmptyEditor(page)
     await page.locator('.cm-content').click()
     await page.keyboard.insertText(

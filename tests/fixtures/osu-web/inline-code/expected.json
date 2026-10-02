@@ -1,7 +1,6 @@
 {
   "case": "inline-code",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[c]…[/c] 输出行内代码语义，保留在原文行内位置。"
   ],

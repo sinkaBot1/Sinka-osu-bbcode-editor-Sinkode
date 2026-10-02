@@ -1,7 +1,6 @@
 {
   "case": "heading-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[heading]…[/heading] 渲染为大号加粗标题样式。",
     "结束标签后的 1 个换行被吸收。"

@@ -10,7 +10,7 @@
 ```text
 <case-name>/
   input.bbcode      本项目独立编写的输入（不依赖实时网络即可断言；仅使用 example.com 等示例地址）
-  expected.json     阶段 0：可观察行为记录；阶段 2：固化为机器可校验断言
+  expected.json     可观察行为记录与机器可校验断言
   metadata.json     基准 SHA、上游证据、覆盖标签、类别、有意差异
 ```
 
@@ -26,10 +26,10 @@
 | `intentionalDifferences` | 差异编号（`docs/compatibility.md` 第 6 节的 D-XX），无则空数组 |
 | `notes` | 补充说明 |
 
-### expected.json 的两个阶段
+### expected.json 的两种形态
 
-- **阶段 0**：`"status": "observation-record"`、`"expectedAssertions": null`。`observations` 记录锁定基准下的可观察行为事实（人读）。
-- **阶段 2 及以后（当前）**：`status` 为 `asserted`，`expectedAssertions` 固化扫描 token、诊断位置、预览 HTML 和媒体结果；旧观察记录保留为 `observations`，便于审阅 diff。
+- **观察记录形态**：`"status": "observation-record"`、`"expectedAssertions": null`。`observations` 记录锁定基准下的可观察行为事实（人读）。
+- **固化断言形态（当前）**：`status` 为 `asserted`，`expectedAssertions` 固化扫描 token、诊断位置、预览 HTML 和媒体结果；旧观察记录保留为 `observations`，便于审阅 diff。
 
 ## 完整性检查
 

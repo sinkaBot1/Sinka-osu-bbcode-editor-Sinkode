@@ -1,7 +1,6 @@
 {
   "case": "size-over-range-250",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "size=250 超出上限，预览按 200% 渲染；原文保持不变并诊断为越界错误（PAR-02/PAR-03）。"
   ],

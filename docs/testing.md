@@ -96,7 +96,7 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 - 其中 `tokens`、`diagnostics`、`preview` 三块可以按下面方式由当前实现生成，再**人工逐项审阅**：基线不能被一条命令无条件覆盖。
 
 ```bash
-node --experimental-strip-types scripts/generate-phase2-assertions.mts
+node --experimental-strip-types scripts/generate-fixture-assertions.mts
 ```
 
 > 说明：该脚本会重写所有样例的 `expectedAssertions` 字段，用于在实现与样例对齐后固化断言。运行前先提交当前状态，运行后用 `git diff` 逐条审阅差异，确认每条变化都能用上游证据解释；不能解释的差异必须回到代码或样例修正，不允许「批量接受」。

@@ -1,7 +1,6 @@
 {
   "case": "spoilerbox-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[spoilerbox]…[/spoilerbox] 输出折叠盒，默认按钮标题文本为 SPOILER；支持展开/折叠交互。",
     "内侧首尾换行与结束标签后的 1 个换行被吸收。"

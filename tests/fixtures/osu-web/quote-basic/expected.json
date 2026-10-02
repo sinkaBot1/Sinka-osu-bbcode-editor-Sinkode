@@ -1,7 +1,6 @@
 {
   "case": "quote-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[quote]…[/quote] 输出引用块；内部换行保留为换行元素。",
     "[quote=\"名字\"] 在引用块开头输出 “名字 wrote:” 署名行（与上游一致，英文固定串）；名字非空且不含冒号时才识别。",

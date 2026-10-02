@@ -1,7 +1,6 @@
 {
   "case": "youtube-id-forms",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "watch、youtu.be、移动端域名与裸 ID 等形态都归一为同一个 11 位视频 ID。",
     "输出为统一宽度嵌入框架，src 固定为 YouTube embed 地址并带 rel=0。"

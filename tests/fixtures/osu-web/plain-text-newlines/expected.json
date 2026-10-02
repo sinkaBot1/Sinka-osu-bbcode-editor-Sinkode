@@ -1,7 +1,6 @@
 {
   "case": "plain-text-newlines",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "单个换行渲染为一个换行元素；空行分隔的段落之间渲染为两个换行元素；连续多个空行不累积更多换行。"
   ],

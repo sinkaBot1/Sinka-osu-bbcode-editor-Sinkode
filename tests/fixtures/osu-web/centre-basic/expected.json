@@ -1,7 +1,6 @@
 {
   "case": "centre-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[centre]…[/centre] 使内容水平居中渲染。",
     "开始标签后与结束标签后的各 1 个换行被吸收。"

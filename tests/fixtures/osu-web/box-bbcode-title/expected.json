@@ -1,7 +1,6 @@
 {
   "case": "box-bbcode-title",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "box 标题中包含的 BBCode（如 color）会被解析并应用于标题文本。",
     "标题中的转义方括号（\\[）保留为字面文本。",

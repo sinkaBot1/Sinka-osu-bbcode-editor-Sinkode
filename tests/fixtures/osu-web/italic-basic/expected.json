@@ -1,7 +1,6 @@
 {
   "case": "italic-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[i]…[/i] 内文本以斜体语义渲染（上游输出为 <em>）。"
   ],

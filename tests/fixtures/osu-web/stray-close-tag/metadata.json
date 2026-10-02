@@ -13,5 +13,5 @@
     }
   ],
   "intentionalDifferences": [],
-  "notes": "阶段 2 固化断言时以固定样例实跑结果校准。"
+  "notes": "固化断言时以固定样例实跑结果校准。"
 }

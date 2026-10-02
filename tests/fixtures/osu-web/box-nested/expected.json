@@ -1,7 +1,6 @@
 {
   "case": "box-nested",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "box 可以嵌套；内层折叠盒渲染在外层折叠盒的内容区内，各自独立展开/折叠。",
     "内层盒结束标签后的 1 个换行被吸收，盒内后续文字不再多出空行。"

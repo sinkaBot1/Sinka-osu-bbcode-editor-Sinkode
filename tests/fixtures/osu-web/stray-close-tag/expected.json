@@ -1,7 +1,6 @@
 {
   "case": "stray-close-tag",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "没有对应开始标记的结束标签不被识别，原样保留为可见文本；本项目诊断为多余结束错误。"
   ],

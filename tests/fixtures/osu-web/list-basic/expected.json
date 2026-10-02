@@ -1,7 +1,6 @@
 {
   "case": "list-basic",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[list] 配合 [*] 项输出无序列表语义；[list=1] 输出有序列表语义。",
     "列表项内可以嵌套子列表：子列表渲染为该列表项内部的嵌套列表结构（对照 basic_list.html）。",

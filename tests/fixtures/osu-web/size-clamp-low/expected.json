@@ -1,7 +1,6 @@
 {
   "case": "size-clamp-low",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "size=5 低于下限，预览按 30% 渲染；原文不变，本项目诊断为越界错误（PAR-02）。"
   ],

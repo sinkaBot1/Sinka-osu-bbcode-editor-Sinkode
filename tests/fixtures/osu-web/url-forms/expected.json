@@ -1,7 +1,6 @@
 {
   "case": "url-forms",
   "status": "asserted",
-  "stage": 2,
   "observations": [
     "[url] 与 [url=地址]文字[/url] 两种形式都输出为链接；链接地址与显示文字对应保留。",
     "上游输出会保留 ftp: 等协议；本项目第一版仅允许 https:/mailto:，其他协议降级为文本并诊断（D-02）。",
