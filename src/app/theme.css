@@ -1574,16 +1574,20 @@ h2 {
   border-left: 1px solid var(--color-border);
   background: var(--color-surface);
   transform-origin: top right;
+  /* 顶栏开合时帮助面板随顶栏下边缘一起移动，避免瞬间跳位 */
+  transition: top 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .help-panel-enter-active {
   transition:
+    top 260ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .help-panel-leave-active {
   transition:
+    top 260ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
     transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }

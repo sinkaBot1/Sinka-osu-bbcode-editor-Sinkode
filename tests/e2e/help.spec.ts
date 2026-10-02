@@ -205,6 +205,89 @@ test.describe('BBCode 参考面板', () => {
     await expect(helpButton).toBeFocused()
   })
 
+  test('顶栏收起时帮助面板跟随同一曲线移动，不再瞬间跳位', async ({ page }) => {
+    await page.getByRole('button', { name: '打开帮助', exact: true }).click()
+    const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
+    await expect(panel).toBeVisible()
+    await expect.poll(() => panel.evaluate((element) => element.getAnimations().length)).toBe(0)
+
+    const motion = await page.evaluate(async () => {
+      const dock = document.querySelector<HTMLElement>('.header-dock')!
+      const panelElement = document.querySelector<HTMLElement>('#help-panel')!
+      const toggle = document.querySelector<HTMLButtonElement>('.header-toggle')!
+      const sidebarEasing = getComputedStyle(
+        document.querySelector('.workspace')!,
+      ).transitionTimingFunction
+      const expandedTop = panelElement.getBoundingClientRect().top
+      const expandedDockBottom = dock.getBoundingClientRect().bottom
+      toggle.click()
+      await Promise.resolve()
+      const dockMotion = dock
+        .getAnimations()
+        .find((item) => item instanceof CSSTransition && item.transitionProperty === 'height')
+      const panelMotion = panelElement
+        .getAnimations()
+        .find((item) => item instanceof CSSTransition && item.transitionProperty === 'top')
+      if (!dockMotion || !panelMotion) throw new Error('顶栏收起时帮助面板没有跟随过渡')
+      dockMotion.pause()
+      panelMotion.pause()
+      // 两个过渡可能不在同一帧启动，按各自 startTime 对齐后再采样同一时刻
+      const startOffset = Number(panelMotion.startTime ?? 0) - Number(dockMotion.startTime ?? 0)
+      const gapAt = (time: number) => {
+        dockMotion.currentTime = time
+        panelMotion.currentTime = time + startOffset
+        return Math.abs(
+          panelElement.getBoundingClientRect().top - dock.getBoundingClientRect().bottom,
+        )
+      }
+      const gaps = [0, 65, 130, 195, 260].map(gapAt)
+      panelMotion.currentTime = 130 + startOffset
+      const middleTop = panelElement.getBoundingClientRect().top
+      dockMotion.play()
+      panelMotion.play()
+      return {
+        duration: panelMotion.effect?.getTiming().duration,
+        easing: getComputedStyle(panelElement).transitionTimingFunction,
+        sidebarEasing,
+        expandedTop,
+        expandedDockBottom,
+        maxGap: Math.max(...gaps),
+        middleTop,
+      }
+    })
+
+    expect(motion.expandedTop).toBeCloseTo(motion.expandedDockBottom, 0)
+    expect(motion.duration).toBe(260)
+    expect(motion.easing).toBe(motion.sidebarEasing)
+    expect(motion.maxGap).toBeLessThan(1)
+    expect(motion.middleTop).toBeGreaterThan(2)
+    expect(motion.middleTop).toBeLessThan(motion.expandedTop - 2)
+    await expect
+      .poll(() => panel.evaluate((element) => element.getBoundingClientRect().top))
+      .toBeLessThan(1)
+  })
+
+  test('进入动画未结束就收起顶栏时，帮助面板仍然跟随移动', async ({ page }) => {
+    const followsMotion = await page.evaluate(async () => {
+      document.querySelector<HTMLButtonElement>('[aria-controls="help-panel"]')!.click()
+      await Promise.resolve()
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      )
+      const panelElement = document.querySelector<HTMLElement>('#help-panel')!
+      const entering = panelElement.classList.contains('help-panel-enter-active')
+      document.querySelector<HTMLButtonElement>('.header-toggle')!.click()
+      await Promise.resolve()
+      const followed = panelElement
+        .getAnimations()
+        .some((item) => item instanceof CSSTransition && item.transitionProperty === 'top')
+      return { entering, followed }
+    })
+
+    expect(followsMotion.entering).toBe(true)
+    expect(followsMotion.followed).toBe(true)
+  })
+
   test('效果示意显示实际文字样式、列表和可交互折叠', async ({ page }) => {
     const sourceBefore = await page.locator('.cm-content').textContent()
     await page.getByRole('button', { name: '打开帮助', exact: true }).click()
