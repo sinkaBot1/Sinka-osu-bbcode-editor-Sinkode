@@ -3,6 +3,8 @@ import { clearEditor, openEditor, openEmptyEditor } from './helpers'
 
 // DOM 矩形在平移期间可能舍入为 43.99998474121094；仅容许 0.001px 数值误差。
 const geometryEpsilon = 0.001
+// 工作台统一的中性悬停浮层：正文色 9%，见 src/app/theme.css 的 --control-hover-background。
+const HOVER_OVERLAY = 'rgba(215, 222, 232, 0.09)'
 
 async function measureDeleteActions(confirm: Locator) {
   return confirm.evaluate((element) => {
@@ -23,6 +25,109 @@ async function chooseTemplateAction(page: Page, name: string, action: '重命名
 }
 
 test.describe('模板、保存与复制', () => {
+  test('工作台悬停只用中性浮层，不回退到强调色描边或蓝底', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const editor = await openEmptyEditor(page)
+
+    // 本次改动的规则：悬停不得用强调色"描边"（rgb(98, 181, 255) = --color-accent），
+    // 静止为中性描边的控件在悬停时必须保持中性。
+    // 说明：模板行与错误诊断行的浅蓝"背景"是这两处的既有语言（表示当前行/活动行），
+    // 不属于本次消除的"蓝框"，保持现状。
+    const accentBorder = 'rgb(98, 181, 255)'
+    // 中性色来自 rgb(215, 222, 232) 与 --color-border #353c47 这类三通道接近的取值，
+    // 通道差不超过 17；强调色蓝 #62b5ff 的差为 157，足以把蓝色描边挡在外面。
+    const isNeutral = (color: string) => {
+      const [red, green, blue] = color.match(/\d+(\.\d+)?/g)?.map(Number) ?? []
+      return Math.max(red, green, blue) - Math.min(red, green, blue) <= 17
+    }
+    const expectNeutralHover = async (selector: string, label: string) => {
+      const control = page.locator(selector).first()
+      await expect(control, `${label}（${selector}）应可见`).toBeVisible()
+      const className = (await control.getAttribute('class')) ?? ''
+      const resting = await control.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return {
+          border: style.borderTopColor,
+          // 未渲染描边的控件（宽度 0，如编辑器工具栏按钮）悬停时
+          // borderTopColor 只会跟随文字色变化，不构成"框"，不参与描边断言。
+          borderVisible: style.borderTopStyle !== 'none' && parseFloat(style.borderTopWidth) > 0,
+        }
+      })
+      await control.hover()
+      // 颜色/背景过渡是 120ms；等待必须短于菜单的"滚动即关闭"响应，
+      // 否则 Playwright 的自动滚动会把刚打开的模板操作菜单关掉。
+      await page.waitForTimeout(150)
+      const hover = await control.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return { background: style.backgroundColor, border: style.borderTopColor }
+      })
+      expect(hover.border, `${label} 悬停不得出现强调色描边`).not.toBe(accentBorder)
+      if (resting.borderVisible && isNeutral(resting.border)) {
+        expect(
+          isNeutral(hover.border),
+          `${label} 静止为中性描边（${resting.border}），悬停不得改成 ${hover.border}`,
+        ).toBe(true)
+      }
+      // 还原被断言改写过的高亮类（错误诊断行的 is-active、模板行的 is-active）
+      await control.evaluate((element, name) => void (element.className = name), className)
+    }
+
+    // 帮助面板只在打开时渲染列表与复制按钮，先在这里完成它的三项
+    await page.getByRole('button', { name: '打开帮助' }).click()
+    await expect(page.locator('.help-panel')).toBeVisible()
+    await expectNeutralHover('.help-panel-close', '帮助面板关闭')
+    // 当前选中的分类用强调色描边表示"选中"，属于允许的用法，
+    // 因此这里验证未选中的分类：悬停只加中性浮层，描边保持静止值。
+    await expectNeutralHover('.help-panel-filter:not(.is-active)', '帮助面板未选中分类')
+    await expectNeutralHover('.help-panel-entry', '帮助面板条目')
+    // 复制按钮只在该条目展开后的详情里渲染
+    await page.locator('.help-panel-entry').first().click()
+    await expectNeutralHover('.help-panel-copy button', '帮助面板复制示例')
+    // 反向断言：强调色描边必须留给"选中"，不能被这次改动一并抹掉
+    await expect(page.locator('.help-panel-filter.is-active')).toHaveCSS(
+      'border-top-color',
+      'rgb(98, 181, 255)',
+    )
+
+    await expectNeutralHover('.header-action', '顶栏动作入口')
+    await expectNeutralHover('.editor-toolbar-button', '编辑器工具栏按钮')
+    await expectNeutralHover('.copy-button', '复制 BBCode')
+
+    // 伪造一条诊断，让诊断行进入可悬停状态
+    await editor.click()
+    await page.keyboard.insertText('[b]')
+    await expect(page.locator('.diagnostic-count')).toContainText('个问题')
+    await page.locator('.diagnostic-count').click()
+    await expect(page.locator('.diagnostic-row').first()).toBeVisible()
+    await expectNeutralHover('.diagnostic-row', '错误诊断行')
+    // 本次消除的是"蓝框"而不是行的浅蓝底色：诊断行的描边以前是透明的，
+    // 这里锁住它不会被强调色描边取代（行自身的强调色左条由 ::before 绘制）。
+    await page.locator('.diagnostic-row').first().hover()
+    await expect(page.locator('.diagnostic-row').first()).not.toHaveCSS(
+      'border-top-color',
+      'rgb(98, 181, 255)',
+    )
+
+    await expectNeutralHover('.template-sidebar-toggle', '模板栏开合')
+    await expectNeutralHover('.section-heading button', '模板栏新建')
+    await expectNeutralHover('.template-select', '模板行')
+    await expectNeutralHover('.template-footer button', '恢复默认示例')
+
+    // 操作菜单与重命名表单互斥，必须按顺序分别展开
+    await expectNeutralHover('.template-more', '模板行更多操作')
+    await page.locator('.template-more').click()
+    // 菜单是 Teleport 到 body 的浮层，"滚动即关闭"，所以先确认它确实打开了
+    await expect(page.locator('.template-more')).toHaveAttribute('aria-expanded', 'true')
+    await page.getByRole('button', { name: '重命名模板：默认示例' }).click()
+    await expect(page.locator('.template-rename')).toBeVisible()
+    await expectNeutralHover('.template-rename button', '重命名保存')
+    await page.locator('.template-rename button[type="button"]').click()
+    await page.getByRole('button', { name: '更多操作：默认示例' }).click()
+    await page.getByRole('button', { name: '删除模板：默认示例' }).click()
+    await expect(page.locator('.template-delete-confirm')).toBeVisible()
+    await expectNeutralHover('.template-delete-confirm-surface button:not(.danger)', '删除确认取消')
+  })
+
   test('模板栏按钮同尺寸并控制曲线展开与收起，新建按钮只在展开时显示', async ({ page }) => {
     await openEditor(page)
 
@@ -32,20 +137,24 @@ test.describe('模板、保存与复制', () => {
     const createButton = page.getByTitle('新建模板')
     await expect(createButton).toBeVisible()
 
+    // 悬停不再改描边颜色（2026-10-03 项目所有者要求消除悬停蓝框）：
+    // 描边保持静止值 --color-border，反馈只来自背景浮层，不引入强调色。
     await createButton.hover()
     const hoverColors = await createButton.evaluate((element) => {
       const styles = getComputedStyle(element)
+      const tokens = getComputedStyle(document.documentElement)
       return {
-        border: styles.borderColor,
-        accent: getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-accent')
-          .trim(),
+        border: styles.borderTopColor,
+        restBorder: tokens.getPropertyValue('--color-border').trim(),
+        accent: tokens.getPropertyValue('--color-accent').trim(),
         background: styles.backgroundColor,
       }
     })
-    expect(hoverColors.border).toBe('rgb(98, 181, 255)')
+    expect(hoverColors.restBorder).toBe('#353c47')
+    expect(hoverColors.border).toBe('rgb(53, 60, 71)')
     expect(hoverColors.accent).toBe('#62b5ff')
-    expect(hoverColors.background).toBe('rgb(39, 44, 52)')
+    expect(hoverColors.border).not.toBe('rgb(98, 181, 255)')
+    expect(hoverColors.background).toBe(HOVER_OVERLAY)
 
     const toggleBox = await toggle.boundingBox()
     const createBox = await createButton.boundingBox()
