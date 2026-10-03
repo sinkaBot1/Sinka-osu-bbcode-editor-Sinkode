@@ -5,3 +5,5 @@ test-results/
 coverage/
 .vite/
 *.local
+# 开发期临时产物：探测脚本、无头浏览器用户配置与调试截图
+.tmp/
