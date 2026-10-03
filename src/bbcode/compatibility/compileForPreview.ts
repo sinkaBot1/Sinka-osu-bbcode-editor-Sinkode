@@ -384,13 +384,15 @@ function renderImagemap(
   const hotspots = regions
     .map(([, x, y, width, height, target, title]) => {
       const style = `left:${x}%;top:${y}%;width:${width}%;height:${height}%`
-      const escapedTitle = escapeHtml(title ?? '')
+      // 热区说明文字用 aria-label 承载：浏览器不再弹出原生提示框，
+      // 悬停气泡由预览容器读取该属性自行渲染（见 docs/compatibility.md 的 D-17）。
+      const label = title ? ` aria-label="${escapeHtml(title)}"` : ''
       if (target === '#')
-        return `<span class="preview-imagemap-region" title="${escapedTitle}" style="${style}"></span>`
+        return `<span class="preview-imagemap-region"${label} style="${style}"></span>`
       const safeTarget = validateUrl(target, 'link')
       return safeTarget.allowed
-        ? `<a class="preview-imagemap-region" href="${escapeHtml(safeTarget.value)}" target="_blank" rel="noopener noreferrer" title="${escapedTitle}" style="${style}"></a>`
-        : `<span class="preview-imagemap-region" title="${escapedTitle}" style="${style}"></span>`
+        ? `<a class="preview-imagemap-region" href="${escapeHtml(safeTarget.value)}" target="_blank" rel="noopener noreferrer"${label} style="${style}"></a>`
+        : `<span class="preview-imagemap-region"${label} style="${style}"></span>`
     })
     .join('')
   return `<div class="preview-imagemap"><img src="${escapeHtml(image.value)}" alt="" loading="lazy">${hotspots}</div>`

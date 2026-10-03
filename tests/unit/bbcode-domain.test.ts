@@ -133,14 +133,18 @@ describe('BBCode 领域核心', () => {
     expect(imagemap.sanitizedHtml).toContain('style="left:10%;top:20%;width:30%;height:40%"')
     expect(imagemap.sanitizedHtml).toContain('style="left:1.5%;top:2.5%;width:3.5%;height:4.5%"')
     expect(imagemap.sanitizedHtml).toContain('href="https://example.com/area"')
+    expect(imagemap.sanitizedHtml).toContain('aria-label="热区"')
     expect(imagemap.sanitizedHtml).not.toContain('<area')
     expect(imagemap.sanitizedHtml).not.toContain('<map')
+    // 不再输出 title：浏览器原生提示框会让悬停表现与本项目的气泡重复（见 D-17）。
+    expect(imagemap.sanitizedHtml).not.toContain('title=')
+    // 没有说明文字的热区不写入空的可访问名称。
     expect(imagemap.sanitizedHtml).toContain(
-      '<span class="preview-imagemap-region" title="" style="left:5%;top:5%;width:10%;height:10%"></span>',
+      '<span class="preview-imagemap-region" style="left:5%;top:5%;width:10%;height:10%"></span>',
     )
     expect(dangerous.sanitizedHtml).not.toContain('<a ')
     expect(dangerous.sanitizedHtml).toContain(
-      '<span class="preview-imagemap-region" title="危险" style="left:10%;top:10%;width:10%;height:10%"></span>',
+      '<span class="preview-imagemap-region" aria-label="危险" style="left:10%;top:10%;width:10%;height:10%"></span>',
     )
     expect(box.sanitizedHtml).toContain('style="color:red"')
     expect(box.sanitizedHtml).toContain('标题')

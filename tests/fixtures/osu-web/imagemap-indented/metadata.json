@@ -12,6 +12,6 @@
       "note": "上游自带样例：行首缩进的 imagemap 各行仍可解析"
     }
   ],
-  "intentionalDifferences": [],
-  "notes": ""
+  "intentionalDifferences": ["D-17"],
+  "notes": "与 basic 同一条差异：热区说明文字输出为 aria-label，悬停气泡由预览容器渲染。"
 }

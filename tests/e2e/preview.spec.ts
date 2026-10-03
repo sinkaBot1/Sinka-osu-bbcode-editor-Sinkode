@@ -1,6 +1,50 @@
 import { expect, test } from '@playwright/test'
 import { openEmptyEditor } from './helpers'
 
+// 气泡与箭头由父容器的 opacity 统一淡入淡出（visibility 全程 visible），
+// 所以"隐藏"要按计算透明度判断，不能用 toBeHidden。
+async function expectBubbleHidden(bubble: import('@playwright/test').Locator) {
+  await expect.poll(() => bubble.evaluate((element) => getComputedStyle(element).opacity)).toBe('0')
+}
+
+async function expectTooltipPixels(
+  page: import('@playwright/test').Page,
+  bubble: import('@playwright/test').Locator,
+) {
+  const points = await bubble.evaluate((element) => {
+    const bounds = element.getBoundingClientRect()
+    const arrow = element.querySelector('.preview-tooltip__arrow')!.getBoundingClientRect()
+    return [
+      { x: arrow.left + arrow.width / 2, y: arrow.top + 3 },
+      { x: bounds.left + 2, y: arrow.top + 3 },
+      { x: bounds.right - 2, y: arrow.top + 3 },
+    ]
+  })
+  const screenshot = await page.screenshot()
+  const pixels = await page.evaluate(
+    async ({ imageData, points }) => {
+      const image = new Image()
+      image.src = `data:image/png;base64,${imageData}`
+      await image.decode()
+      const canvas = document.createElement('canvas')
+      canvas.width = image.naturalWidth
+      canvas.height = image.naturalHeight
+      const context = canvas.getContext('2d')!
+      context.drawImage(image, 0, 0)
+      return points.map((point) =>
+        Array.from(context.getImageData(Math.floor(point.x), Math.floor(point.y), 1, 1).data).slice(
+          0,
+          3,
+        ),
+      )
+    },
+    { imageData: screenshot.toString('base64'), points },
+  )
+  expect(pixels[0]).toEqual([0, 0, 0])
+  expect(pixels[1]).not.toEqual([0, 0, 0])
+  expect(pixels[2]).not.toEqual([0, 0, 0])
+}
+
 test.describe('安全实时预览', () => {
   test('编辑器输入后更新安全预览', async ({ page }) => {
     const editor = await openEmptyEditor(page)
@@ -293,6 +337,217 @@ test.describe('安全实时预览', () => {
       return hit?.tagName ?? ''
     })
     expect(clickTarget).toBe('A')
+  })
+
+  test('imagemap 热区悬停显示黑底气泡，移出后淡出且不触发原生提示', async ({ page }) => {
+    const editor = await openEmptyEditor(page)
+    await page.route('https://example.com/map.png', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#444" /></svg>',
+      }),
+    )
+    await editor.click()
+    await page.keyboard.insertText(
+      '[imagemap]\nhttps://example.com/map.png\n45 40 10 10 https://example.com/area 左侧热区\n[/imagemap]',
+    )
+
+    const region = page.locator('.preview-imagemap-region')
+    const bubble = page.locator('.preview-tooltip')
+    await expect(region).toHaveCount(1)
+    // 说明文字改由 aria-label 承载：有 title 就会出现浏览器原生提示框（D-17）。
+    await expect(region).toHaveAttribute('aria-label', '左侧热区')
+    await expect(region).not.toHaveAttribute('title', /.*/)
+    await expectBubbleHidden(bubble)
+
+    await region.hover()
+    // 停顿 200ms 后才淡入；淡出结束时气泡被清空并隐藏。
+    await expect(bubble).toBeVisible()
+    await expect(bubble).toHaveText('左侧热区')
+    await expect(bubble).toHaveCSS('opacity', '1')
+
+    // 透明外层保留箭头两侧的空白，仅文字框和三角箭头绘制黑底。
+    await expect(bubble).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(bubble.locator('.preview-tooltip__text')).toHaveCSS(
+      'background-color',
+      'rgb(0, 0, 0)',
+    )
+    await expect(bubble).toHaveCSS('color', 'rgb(255, 255, 255)')
+    await expect(bubble).toHaveCSS('font-size', '12px')
+    await expect(bubble).toHaveCSS('max-width', '280px')
+    await expect(bubble).toHaveCSS('pointer-events', 'none')
+
+    // 定位：默认落在热区上方，箭头是气泡内的独立元素、与框体同色。
+    await expect(bubble).toHaveAttribute('data-placement', 'top')
+    const placement = await page.evaluate(() => {
+      const anchor = document.querySelector('.preview-imagemap-region')
+      const tooltip = document.querySelector('.preview-tooltip')
+      const arrow = tooltip?.querySelector('.preview-tooltip__arrow') ?? null
+      if (!anchor || !tooltip || !arrow) return null
+      const anchorRect = anchor.getBoundingClientRect()
+      const tooltipRect = tooltip.getBoundingClientRect()
+      const arrowRect = arrow.getBoundingClientRect()
+      return {
+        // 箭头在文字盒子之外：元素下边缘 = 箭头尖端，正好停在热区上边缘。
+        above: tooltipRect.bottom <= anchorRect.top + 1,
+        centered: Math.abs(
+          tooltipRect.left + tooltipRect.width / 2 - (anchorRect.left + anchorRect.width / 2),
+        ),
+        rightOverflow: tooltipRect.right - window.innerWidth,
+        // 箭头颜色等于框体背景，与文字色相反；尺寸 16×8。
+        arrowColor: getComputedStyle(arrow).backgroundColor,
+        arrowOpacity: getComputedStyle(arrow).opacity,
+        arrowWidth: arrowRect.width,
+        arrowHeight: arrowRect.height,
+        background: getComputedStyle(tooltip.querySelector('.preview-tooltip__text')!)
+          .backgroundColor,
+        textColor: getComputedStyle(tooltip).color,
+        // 箭头水平居中：气泡居中于热区，箭头居中于气泡，两者中心因此重合。
+        arrowCenter: arrowRect.left + arrowRect.width / 2,
+        anchorCenter: anchorRect.left + anchorRect.width / 2,
+      }
+    })
+    expect(placement).not.toBeNull()
+    expect(placement!.above).toBe(true)
+    // 居中允许 1px 的取整误差；同时不允许横向溢出视口。
+    expect(placement!.centered).toBeLessThanOrEqual(2)
+    expect(placement!.rightOverflow).toBeLessThanOrEqual(0)
+    // 箭头与框体同色、与文字色相反，尺寸 16×8，可见时与气泡同为不透明，并且对准热区中心。
+    expect(placement!.arrowColor).toBe(placement!.background)
+    expect(placement!.arrowColor).not.toBe(placement!.textColor)
+    expect(placement!.arrowOpacity).toBe('1')
+    expect(placement!.arrowWidth).toBeCloseTo(16, 0)
+    expect(placement!.arrowHeight).toBeCloseTo(8, 0)
+    expect(Math.abs(placement!.arrowCenter - placement!.anchorCenter)).toBeLessThanOrEqual(2)
+    await expectTooltipPixels(page, bubble)
+
+    await page.mouse.move(0, 0)
+    await expectBubbleHidden(bubble)
+    await expect.poll(() => bubble.textContent()).toBe('')
+  })
+
+  test('气泡翻转和横向避让后箭头仍可见并指向热区', async ({ page }) => {
+    const editor = await openEmptyEditor(page)
+    await page.route('https://example.com/map.png', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#444" /></svg>',
+      }),
+    )
+    await editor.click()
+    await page.keyboard.insertText(
+      '[imagemap]\nhttps://example.com/map.png\n45 40 10 10 https://example.com/area 左侧热区\n[/imagemap]',
+    )
+    const region = page.locator('.preview-imagemap-region')
+    const bubble = page.locator('.preview-tooltip')
+    for (const placement of ['bottom', 'top']) {
+      await region.evaluate((element, placement) => {
+        Object.assign((element as HTMLElement).style, {
+          position: 'fixed',
+          top: placement === 'bottom' ? '10px' : '150px',
+          left: `${window.innerWidth - 50}px`,
+          width: '30px',
+          height: '30px',
+        })
+      }, placement)
+      await region.dispatchEvent('focusin')
+      await expect(bubble).toHaveCSS('opacity', '1')
+      await expect(bubble).toHaveAttribute('data-placement', placement)
+      const geometry = await bubble.evaluate((element) => {
+        const bounds = element.getBoundingClientRect()
+        const arrow = element.querySelector('.preview-tooltip__arrow')!.getBoundingClientRect()
+        const label = element.querySelector('.preview-tooltip__text')!.getBoundingClientRect()
+        const anchor = document.querySelector('.preview-imagemap-region')!.getBoundingClientRect()
+        const below = (element as HTMLElement).dataset.placement === 'bottom'
+        return {
+          right: bounds.right,
+          viewportWidth: window.innerWidth,
+          centerError: Math.abs(arrow.left + arrow.width / 2 - (anchor.left + anchor.width / 2)),
+          tipError: Math.abs(below ? arrow.top - anchor.bottom : arrow.bottom - anchor.top),
+          seamError: Math.abs(below ? arrow.bottom - label.top : arrow.top - label.bottom),
+        }
+      })
+      expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth - 8)
+      expect(geometry.centerError).toBeLessThanOrEqual(1)
+      expect(geometry.tipError).toBeLessThanOrEqual(1)
+      expect(geometry.seamError).toBeLessThanOrEqual(0.001)
+      await expectTooltipPixels(page, bubble)
+      await region.dispatchEvent('focusout')
+      await expectBubbleHidden(bubble)
+    }
+  })
+
+  test('气泡与箭头在退场时逐帧同步淡出', async ({ page }) => {
+    const editor = await openEmptyEditor(page)
+    await page.route('https://example.com/map.png', async (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#444" /></svg>',
+      }),
+    )
+    await editor.click()
+    await page.keyboard.insertText(
+      '[imagemap]\nhttps://example.com/map.png\n20 40 60 12 https://example.com/area 同步热区\n[/imagemap]',
+    )
+    const region = page.locator('.preview-imagemap-region')
+    await expect(region).toHaveCount(1)
+    await region.scrollIntoViewIfNeeded()
+    await region.hover()
+
+    const result = await page.evaluate(async () => {
+      const tooltip = document.querySelector<HTMLElement>('.preview-tooltip')!
+      const arrowOf = () => tooltip.querySelector<HTMLElement>('.preview-tooltip__arrow')
+      // 等气泡与箭头都完全可见
+      for (let index = 0; index < 120; index++) {
+        const arrow = arrowOf()
+        if (
+          getComputedStyle(tooltip).opacity === '1' &&
+          arrow &&
+          getComputedStyle(arrow).opacity === '1'
+        ) {
+          break
+        }
+        await new Promise((resolve) => requestAnimationFrame(resolve))
+      }
+      const arrow = arrowOf()
+      if (!arrow) return { error: '箭头元素不在气泡里（可能被 textContent 清空了）', samples: [] }
+
+      // 触发退场，逐帧记录两者透明度
+      tooltip.classList.remove('is-visible')
+      const samples: Array<{ t: number; box: number; arrow: number }> = []
+      const start = performance.now()
+      await new Promise<void>((resolve) => {
+        const tick = () => {
+          const elapsed = performance.now() - start
+          samples.push({
+            t: Math.round(elapsed),
+            box:
+              Number(getComputedStyle(tooltip).opacity) *
+              Number(getComputedStyle(tooltip.querySelector('.preview-tooltip__text')!).opacity),
+            arrow:
+              Number(getComputedStyle(tooltip).opacity) * Number(getComputedStyle(arrow).opacity),
+          })
+          if (elapsed < 180) requestAnimationFrame(tick)
+          else resolve()
+        }
+        requestAnimationFrame(tick)
+      })
+      return { error: null, samples }
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.samples.length).toBeGreaterThan(4)
+    // 退场过程中每一帧两者透明度一致；末尾必须完全消失。
+    const deltas = result.samples.map((sample) => Math.abs(sample.box - sample.arrow))
+    expect(Math.max(...deltas)).toBeLessThan(0.02)
+    expect(result.samples.at(-1)!.box).toBe(0)
+    expect(result.samples.at(-1)!.arrow).toBe(0)
+
+    await page.mouse.move(0, 0)
+    await expectBubbleHidden(page.locator('.preview-tooltip'))
   })
 
   test('预览字体、媒体对齐和 size=200 对齐锁定基准的视觉规则', async ({ page }) => {

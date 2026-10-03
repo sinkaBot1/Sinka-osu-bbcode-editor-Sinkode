@@ -35,9 +35,9 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 1 | `npm run format:check` | 输出 `All matched files use Prettier code style!` |
 | 2 | `npm run lint` | 无 error 输出，退出码 0 |
 | 3 | `npm run typecheck` | 无类型错误，退出码 0 |
-| 4 | `npm run test` | 所有文件与用例通过（当前 16 文件 / 95 用例） |
+| 4 | `npm run test` | 所有文件与用例通过（当前 16 文件 / 99 用例） |
 | 5 | `npm run build` | 生成 `dist/`，退出码 0 |
-| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 86 条） |
+| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 90 条） |
 
 另外两条与本仓库证据链直接相关：
 
@@ -142,6 +142,7 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
 
 - 几何断言（宽度、间距）请**在同一帧内**读取相关矩形，并明确容差来源；仓库对 DOM 几何比较使用 `0.001px` 容差，用于抵消亚像素舍入（依据：2026-10-02 复现的亚像素测量偏差记录，该过程记录不随本仓库发布）。真实布局回归必须仍能被抓到，不允许用大容差掩盖问题。
 - 失败时先看 `test-results/` 里的失败截图与 trace（配置为首次重试时记录 trace），再决定是修实现还是修测试。
+- imagemap 气泡还要读取截图像素确认尖端实际可见、两侧没有矩形背景。动效比较父子透明度相乘后的最终有效值；固定输入与所有者截图见[气泡修复证据](evidence/imagemap-tooltip-2026-10-03/README.md)。
 
 ## 7. 测试失败怎么定位
 

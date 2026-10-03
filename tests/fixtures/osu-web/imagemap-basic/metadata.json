@@ -10,8 +10,12 @@
     {
       "path": "tests/Libraries/bbcode_examples/imagemap.html",
       "note": "上游自带样例：首行图片 + 每行热区；每行前四个数字按百分比解释（不是像素坐标），# 为无链接热区"
+    },
+    {
+      "path": "resources/js/components/time-with-tooltip.tsx",
+      "note": "说明文字由节点自身的 title 属性承载；冻结提交下该类提示由网页统一浮层组件渲染，表现为停顿后的黑底白字气泡"
     }
   ],
-  "intentionalDifferences": [],
-  "notes": ""
+  "intentionalDifferences": ["D-17"],
+  "notes": "热区说明文字在本项目输出为 aria-label（DOM 属性不同），悬停气泡由预览容器读取该属性渲染。"
 }

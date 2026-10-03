@@ -26,6 +26,9 @@
   /* 预览语义色：预览组件只引用这一组，不直接写死颜色 */
   --preview-code-background: #15181d;
   --preview-heading: #f1f5fa;
+  /* 悬停气泡的最大宽度：与说明文字长度无关的排版上限，尺寸类令牌集中在这里声明，
+     避免在元素上写内联样式（帮助面板的效果示意用 `span[style]` 定位示例元素）。 */
+  --preview-tooltip-max-width: 280px;
   /* 折叠盒（[box]、[spoilerbox]）标题：2026-10-03 所有者授权由固定粉色
      改为主题蓝，与 [notice] 的授权口径一致，取值可被后续主题整体替换。 */
   --preview-box-title: var(--color-accent);
@@ -35,6 +38,11 @@
   --preview-spoiler-selection-text: #fff;
   --preview-imagemap-region-border: rgb(255 111 178 / 80%);
   --preview-imagemap-region-background: rgb(255 111 178 / 50%);
+  /* imagemap 热区悬停气泡：2026-10-03 所有者授权按 osu! 浮层提示的纯黑底 + 白字外观落地
+     （见 docs/compatibility.md 的 D-17）。取值来自锁定基准网页里通用浮层的默认样式，
+     与预览深色主题的层次色无关，因此单独成对令牌、不随主题色相变化。 */
+  --preview-tooltip-background: #000;
+  --preview-tooltip-text: #fff;
   --preview-error-text: #f48771;
 
   --osu-profile-content-max-width: 890px;
@@ -59,6 +67,7 @@
   /* 预览语义色（本主题的实际取值） */
   --preview-code-background: #15181d;
   --preview-heading: #f1f5fa;
+  --preview-tooltip-max-width: 280px;
   --preview-box-title: var(--color-accent);
   --preview-spoiler-cover: #000;
   --preview-spoiler-cover-text: #000;
@@ -66,6 +75,9 @@
   --preview-spoiler-selection-text: #fff;
   --preview-imagemap-region-border: rgb(255 111 178 / 80%);
   --preview-imagemap-region-background: rgb(255 111 178 / 50%);
+  /* 与兜底块同值：气泡外观是锁定基准的浮层默认样式，不参与主题色相。 */
+  --preview-tooltip-background: #000;
+  --preview-tooltip-text: #fff;
   --preview-error-text: #f48771;
 }
 
@@ -1311,6 +1323,62 @@ h2 {
   display: block;
   border: 1px solid var(--preview-imagemap-region-border);
   background: var(--preview-imagemap-region-background);
+}
+.preview-tooltip {
+  position: fixed;
+  z-index: 40;
+  display: block;
+  top: 0;
+  left: 0;
+  padding: 0 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--preview-tooltip-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: var(--preview-tooltip-max-width);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  /* 只用 opacity 驱动淡入淡出，visibility 全程保持 visible：hidden 会让整个元素
+     （连同里面的箭头）立刻停止渲染、与 opacity 过渡不同步。不可见时 opacity 为 0，
+     配合 pointer-events: none 不会挡住任何操作；可访问性由 PreviewPane 的 aria-hidden 负责。 */
+  visibility: visible;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.preview-tooltip__text {
+  display: block;
+  padding: 5px 9px;
+  border-radius: 4px;
+  background: var(--preview-tooltip-background);
+}
+.preview-tooltip__arrow {
+  position: absolute;
+  bottom: 0;
+  left: var(--preview-tooltip-arrow-left, 50%);
+  width: 16px;
+  height: 8px;
+  background-color: var(--preview-tooltip-background);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform: translateX(-50%);
+}
+.preview-tooltip.is-below {
+  padding: 8px 0 0;
+}
+.preview-tooltip.is-below .preview-tooltip__arrow {
+  top: 0;
+  bottom: auto;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.preview-tooltip.is-visible {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-tooltip {
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
+  }
 }
 .preview-content .preview-media-failed {
   opacity: 0.35;

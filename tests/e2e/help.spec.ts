@@ -416,4 +416,34 @@ test.describe('BBCode 参考面板', () => {
     expect(geometry.scrollable).toBe(true)
     expect(geometry.pageOverflow).toBe(false)
   })
+
+  test('帮助里的热区示意也能弹出气泡', async ({ page }) => {
+    await page.getByRole('button', { name: '打开帮助', exact: true }).click()
+    const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
+    await panel.locator('#help-entry-imagemap').click()
+    const effect = panel.locator('#help-detail-imagemap .help-panel-effect')
+    const region = effect.locator('.preview-imagemap-region')
+    const bubble = effect.locator('.preview-tooltip')
+
+    await expect(region).toBeVisible()
+    // 气泡与箭头由父容器的 opacity 统一淡入淡出（visibility 全程 visible）。
+    await expect
+      .poll(() => bubble.evaluate((element) => getComputedStyle(element).opacity))
+      .toBe('0')
+    // 帮助详情较长，热区可能在折叠区之外；先滚进视口再悬停。
+    await region.scrollIntoViewIfNeeded()
+    await region.hover()
+    await expect(bubble).toBeVisible()
+    await expect(bubble).toHaveText('打开网站')
+    await expect(bubble.locator('.preview-tooltip__text')).toHaveCSS(
+      'background-color',
+      'rgb(0, 0, 0)',
+    )
+
+    // 面板内滚动后气泡立即收起，不会停在错位的位置上。
+    await effect.evaluate((element) => element.closest('.help-panel-scroll')?.scrollBy(0, 40))
+    await expect
+      .poll(() => bubble.evaluate((element) => getComputedStyle(element).opacity))
+      .toBe('0')
+  })
 })

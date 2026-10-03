@@ -70,11 +70,156 @@ describe('预览面板', () => {
     expect(link.attributes('href')).toBe('https://example.com/area')
     expect(link.attributes('target')).toBe('_blank')
     expect(link.attributes('rel')).toBe('noopener noreferrer')
-    expect(link.attributes('title')).toBe('热区')
+    expect(link.attributes('aria-label')).toBe('热区')
+    // 有说明文字时不再写 title，避免浏览器原生提示框与本项目气泡并存。
+    expect(link.attributes('title')).toBeUndefined()
 
     const span = container.get('span.preview-imagemap-region')
     expect(span.attributes('style')).toBe('left:5%;top:5%;width:10%;height:10%')
     expect(span.attributes('href')).toBeUndefined()
+  })
+
+  it('热区悬停停顿后显示黑底气泡，移出后淡出并清空文字', async () => {
+    vi.useFakeTimers()
+    try {
+      const result = compileForPreview(
+        '[imagemap]\nhttps://example.com/map.png\n10 20 30 40 https://example.com/area 热区说明\n[/imagemap]',
+      )
+      const wrapper = mount(PreviewPane, { props: { result } })
+      const bubble = wrapper.get('.preview-tooltip')
+      const region = wrapper.get('a.preview-imagemap-region')
+
+      expect(bubble.attributes('aria-hidden')).toBe('true')
+      expect(bubble.classes()).not.toContain('is-visible')
+
+      region.element.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
+      vi.advanceTimersByTime(199)
+      expect(bubble.classes()).not.toContain('is-visible')
+
+      vi.advanceTimersByTime(1)
+      vi.advanceTimersByTime(16)
+      expect(bubble.text()).toBe('热区说明')
+      expect(bubble.classes()).toContain('is-visible')
+      expect(bubble.attributes('aria-hidden')).toBe('false')
+      expect(bubble.attributes('role')).toBe('tooltip')
+      // 位置由锚点矩形推出（jsdom 中矩形为 0，这里只验证写入的是像素值而不是百分比）。
+      expect(bubble.element.style.top).toMatch(/px$/)
+      expect(bubble.element.style.left).toMatch(/px$/)
+      // 朝向由脚本写入；上下翻转（真实尺寸相关）在端到端用例里锁定。
+      expect(bubble.attributes('data-placement')).toMatch(/^(top|bottom)$/)
+
+      region.element.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }))
+      expect(bubble.classes()).not.toContain('is-visible')
+      expect(bubble.attributes('aria-hidden')).toBe('true')
+      // 淡出期间保留文字，过渡结束才清空。
+      expect(bubble.text()).toBe('热区说明')
+      vi.advanceTimersByTime(150)
+      expect(bubble.text()).toBe('')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('延迟期间移开指针不会留下气泡，键盘聚焦则立即显示', async () => {
+    vi.useFakeTimers()
+    try {
+      const result = compileForPreview(
+        '[imagemap]\nhttps://example.com/map.png\n10 20 30 40 https://example.com/area 热区说明\n[/imagemap]',
+      )
+      const wrapper = mount(PreviewPane, { props: { result } })
+      const bubble = wrapper.get('.preview-tooltip')
+      const region = wrapper.get('a.preview-imagemap-region')
+
+      region.element.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
+      vi.advanceTimersByTime(100)
+      region.element.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }))
+      vi.advanceTimersByTime(500)
+      expect(bubble.classes()).not.toContain('is-visible')
+      expect(bubble.text()).toBe('')
+
+      region.element.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      vi.advanceTimersByTime(16)
+      expect(bubble.classes()).toContain('is-visible')
+      expect(bubble.text()).toBe('热区说明')
+
+      wrapper.unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('上方空间不足时气泡翻到热区下方，箭头改为朝上', async () => {
+    vi.useFakeTimers()
+    // jsdom 不做布局，这里按测量值精确给出几何：热区顶部贴近视口顶部，上方放不下气泡。
+    const rect = (top: number, left: number, width: number, height: number) =>
+      ({
+        top,
+        left,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+        x: left,
+        y: top,
+      }) as DOMRect
+    // jsdom 不做布局，这里按真实几何给出矩形：元素整体 = 文字盒子 26px + 箭头 8px。
+    const bubbleRect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.classList.contains('preview-tooltip')) return rect(0, 0, 66, 34)
+        if (this.classList.contains('preview-imagemap-region')) return rect(10, 100, 120, 30)
+        return rect(0, 0, 0, 0)
+      })
+    try {
+      const result = compileForPreview(
+        '[imagemap]\nhttps://example.com/map.png\n10 1 30 10 https://example.com/area 热区说明\n[/imagemap]',
+      )
+      const wrapper = mount(PreviewPane, { props: { result } })
+      const bubble = wrapper.get('.preview-tooltip')
+      const region = wrapper.get('a.preview-imagemap-region')
+
+      region.element.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      vi.advanceTimersByTime(16)
+
+      expect(bubble.attributes('data-placement')).toBe('bottom')
+      expect(bubble.classes()).toContain('is-visible')
+      // 元素整体（文字盒子 + 箭头）落在热区下方：元素高度 34、盒高 26，
+      // 盒子下边缘停在热区上边缘之外，箭头尖端正好落在热区边缘。
+      expect(bubble.element.style.top).toBe('40px')
+      // jsdom 不做布局，箭头位置由 CSS 按 data-placement 决定（margin 0 auto 水平居中）。
+      expect(bubble.element.style.left).toMatch(/px$/)
+      bubbleRect.mockRestore()
+    } finally {
+      vi.restoreAllMocks()
+      vi.useRealTimers()
+    }
+  })
+
+  it('预览内容重渲染后收起气泡', async () => {
+    vi.useFakeTimers()
+    try {
+      const wrapper = mount(PreviewPane, {
+        props: {
+          result: compileForPreview(
+            '[imagemap]\nhttps://example.com/map.png\n10 20 30 40 https://example.com/area 旧说明\n[/imagemap]',
+          ),
+        },
+      })
+      const region = wrapper.get('a.preview-imagemap-region')
+      region.element.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+      vi.advanceTimersByTime(16)
+      expect(wrapper.get('.preview-tooltip').classes()).toContain('is-visible')
+
+      await wrapper.setProps({
+        result: compileForPreview(
+          '[imagemap]\nhttps://example.com/map.png\n10 20 30 40 https://example.com/area 新说明\n[/imagemap]',
+        ),
+      })
+      await wrapper.vm.$nextTick()
+      expect(wrapper.get('.preview-tooltip').classes()).not.toContain('is-visible')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('通过事件委托切换折叠盒，并保持嵌套盒独立', async () => {
