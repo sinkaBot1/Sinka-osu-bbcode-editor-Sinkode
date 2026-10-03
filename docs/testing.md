@@ -35,9 +35,9 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 1 | `npm run format:check` | 输出 `All matched files use Prettier code style!` |
 | 2 | `npm run lint` | 无 error 输出，退出码 0 |
 | 3 | `npm run typecheck` | 无类型错误，退出码 0 |
-| 4 | `npm run test` | 所有文件与用例通过（当前 16 文件 / 94 用例） |
+| 4 | `npm run test` | 所有文件与用例通过（当前 16 文件 / 95 用例） |
 | 5 | `npm run build` | 生成 `dist/`，退出码 0 |
-| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 76 条） |
+| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 86 条） |
 
 另外两条与本仓库证据链直接相关：
 
@@ -126,7 +126,10 @@ npm run test:e2e                         # 端到端未受影响
 ## 6. 增加端到端测试
 
 - 文件放在 `tests/e2e/`，命名 `*.spec.ts`；浏览器矩阵当前只有 Chromium（配置见 `playwright.config.ts`）。
-- 用 `tests/e2e/helpers.ts` 的 `openEditor()` / `openEmptyEditor()` 打开页面：它们会自动安装站外请求拦截，避免用例意外依赖真实图床或 YouTube。
+- 执行前遵守[协作规则 §5.1](../AGENTS.md#51-网络访问默认关闭)：默认不访问真实外网，确认测试入口已隔离；依赖或浏览器缺失时不能自动下载，确需联网须先取得所有者明确同意。
+- 用 `tests/e2e/helpers.ts` 的 `openEditor()` / `openEmptyEditor()` 打开页面：在导航前安装浏览器上下文级站外请求拦截，覆盖主页面、iframe 和新窗口的首次导航。仅精确匹配 `127.0.0.1`、`localhost`、`[::1]` 的本机服务允许真实连接；站外导航由本地空 HTML 响应接管，其它站外资源返回空响应。站外 WebSocket 直接关闭、不连接服务器，测试配置禁止 Service Worker 绕过拦截。媒体专项样例仍使用本地替身内容，整个验收不访问真实图床、YouTube、osu! 或 GitHub。
+- `tests/e2e/network-isolation.spec.ts` 用第二层阻断保护验证新窗口首次导航与伪装本机域名：隔离失效时由保护层中止请求并让断言失败，不发出真实站外连接。这次调整只用于离线验收，不改变软件实际外链与媒体行为，也不调整 TLS、签名或依赖完整性检查。
+- 顶栏外链用例统一依赖上述上下文级隔离，不再单独注册不能覆盖新窗口首次请求的 `page.route()`。固定目标为项目所有者的 osu! 主页与项目 GitHub 仓库；验证链接属性、打开后的目标 URL、当前页面不被替换，以及新窗口显示统一隔离提供的空白页面。这些断言验证软件的外链行为，不验证站外网站是否在线。当前隔离不是系统级断网，新增测试必须在导航前调用统一隔离入口。
 - 常用命令：
 
 ```bash

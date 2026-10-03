@@ -1,8 +1,24 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
 export async function installNetworkIsolation(page: Page) {
-  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (route) =>
-    route.fulfill({ status: 204 }),
+  const context = page.context()
+  const localHosts = ['127.0.0.1', 'localhost', '[::1]']
+  await context.route('**/*', (route) => {
+    const hostname = new URL(route.request().url()).hostname
+    if (localHosts.includes(hostname)) return route.continue()
+    return route.fulfill(
+      route.request().isNavigationRequest()
+        ? {
+            status: 200,
+            contentType: 'text/html',
+            body: '<!doctype html><html><body></body></html>',
+          }
+        : { status: 204 },
+    )
+  })
+  await context.routeWebSocket(
+    (url) => !localHosts.includes(url.hostname),
+    (socket) => socket.close(),
   )
 }
 

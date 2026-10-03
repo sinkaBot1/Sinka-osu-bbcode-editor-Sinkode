@@ -137,10 +137,10 @@ test('顶栏品牌标志链接到项目所有者的 osu! 主页', async ({ page,
   const restingWidth = await brandLink.evaluate((element) => element.getBoundingClientRect().width)
   expect(restingWidth).toBe(layoutShift)
 
-  await page.route(osProfileUrl, (route) => route.fulfill({ status: 204 }))
   const [opened] = await Promise.all([context.waitForEvent('page'), brandLink.click()])
   await opened.waitForLoadState()
   expect(opened.url()).toBe(osProfileUrl)
+  await expect(opened.locator('body')).toBeEmpty()
   await opened.close()
   expect(await page.evaluate(() => window.location.href)).toContain('127.0.0.1')
 })
@@ -291,10 +291,10 @@ test('顶栏提供 GitHub 仓库入口，图标与上游客标志一致', async 
   await page.mouse.move(0, 0)
   await expect(repoLink).toHaveCSS('background-color', RESTING_SURFACE)
 
-  await page.route(repositoryUrl, (route) => route.fulfill({ status: 204 }))
   const [opened] = await Promise.all([context.waitForEvent('page'), repoLink.click()])
   await opened.waitForLoadState()
   expect(opened.url()).toBe(repositoryUrl)
+  await expect(opened.locator('body')).toBeEmpty()
   await opened.close()
   expect(await page.evaluate(() => window.location.href)).toContain('127.0.0.1')
 })
