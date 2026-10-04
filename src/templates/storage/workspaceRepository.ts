@@ -3,6 +3,8 @@ import { DEFAULT_EXAMPLE_CONTENT, DEFAULT_EXAMPLE_NAME } from '../defaultExample
 import { NEW_TEMPLATE_NAME, uniqueName } from './naming'
 import {
   DEFAULT_THEME_ID,
+  DEFAULT_THEME_REVEAL_DURATION,
+  normalizeThemeRevealDuration,
   WORKSPACE_RECORD_KEY,
   type EditorDatabase,
   type LocalWorkspace,
@@ -91,6 +93,7 @@ export function createWorkspaceRepository(
       schemaVersion: version,
       activeTemplateId,
       selectedThemeId: DEFAULT_THEME_ID,
+      themeRevealDuration: DEFAULT_THEME_REVEAL_DURATION,
       lastMobileView: null,
     }
   }
@@ -104,6 +107,9 @@ export function createWorkspaceRepository(
       templates: sortTemplates(templates),
       activeTemplateId: workspace.activeTemplateId,
       selectedThemeId: workspace.selectedThemeId,
+      // 旧数据没有该字段，必须在这里收敛：load() 只在整条记录缺失时才套默认值，
+      // 字段级缺失会原样透出 undefined。
+      themeRevealDuration: normalizeThemeRevealDuration(workspace.themeRevealDuration),
       lastMobileView: workspace.lastMobileView,
     }
   }
@@ -195,6 +201,9 @@ export function createWorkspaceRepository(
         schemaVersion: version,
         activeTemplateId: settings.activeTemplateId ?? fallbackActiveId,
         selectedThemeId: settings.selectedThemeId ?? current?.selectedThemeId ?? DEFAULT_THEME_ID,
+        themeRevealDuration: normalizeThemeRevealDuration(
+          settings.themeRevealDuration ?? current?.themeRevealDuration,
+        ),
         lastMobileView:
           settings.lastMobileView !== undefined
             ? settings.lastMobileView

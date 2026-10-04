@@ -3,6 +3,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import {
   DEFAULT_EXAMPLE_NAME,
   DEFAULT_THEME_ID,
+  DEFAULT_THEME_REVEAL_DURATION,
+  MAX_THEME_REVEAL_DURATION,
   useWorkspaceStore,
   type LocalWorkspace,
   type TemplateRecord,
@@ -29,6 +31,7 @@ function createStubRepository(
     schemaVersion: 1,
     templates: [makeRecord({ name: DEFAULT_EXAMPLE_NAME, content: '示例内容' })],
     selectedThemeId: DEFAULT_THEME_ID,
+    themeRevealDuration: DEFAULT_THEME_REVEAL_DURATION,
     lastMobileView: null,
     activeTemplateId: '',
     ...initial,
@@ -209,6 +212,34 @@ describe('工作区 Pinia store', () => {
 
     expect(store.selectedThemeId).toBe(DEFAULT_THEME_ID)
     expect(savedSettings.at(-1)).toEqual({ selectedThemeId: DEFAULT_THEME_ID })
+  })
+
+  it('setThemeRevealDuration 初始化时读取持久化值，写入时收敛并持久化', async () => {
+    const { repository, savedSettings } = createStubRepository({ themeRevealDuration: 700 })
+    const store = makeStore()
+    await store.initialize(repository)
+    expect(store.themeRevealDuration).toBe(700)
+
+    await store.setThemeRevealDuration(1200)
+    expect(store.themeRevealDuration).toBe(1200)
+    expect(savedSettings.at(-1)).toEqual({ themeRevealDuration: 1200 })
+
+    await store.setThemeRevealDuration(99999)
+    expect(store.themeRevealDuration).toBe(MAX_THEME_REVEAL_DURATION)
+
+    const writes = savedSettings.length
+    await store.setThemeRevealDuration(MAX_THEME_REVEAL_DURATION)
+    expect(savedSettings.length).toBe(writes)
+  })
+
+  it('旧数据缺少动画时长字段时回落到默认值（失败路径）', async () => {
+    const { repository } = createStubRepository({
+      themeRevealDuration: undefined as unknown as number,
+    })
+    const store = makeStore()
+    await store.initialize(repository)
+
+    expect(store.themeRevealDuration).toBe(DEFAULT_THEME_REVEAL_DURATION)
   })
 
   it('本地存储不可用时进入内存工作区并拒绝写入（失败路径）', async () => {

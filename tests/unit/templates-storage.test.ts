@@ -3,7 +3,11 @@ import {
   DATABASE_VERSION,
   DEFAULT_EXAMPLE_CONTENT,
   DEFAULT_EXAMPLE_NAME,
+  DEFAULT_THEME_REVEAL_DURATION,
+  MAX_THEME_REVEAL_DURATION,
+  MIN_THEME_REVEAL_DURATION,
   createWorkspaceRepository,
+  normalizeThemeRevealDuration,
   type TemplateRecord,
   type WorkspaceRepository,
   type WorkspaceRepositoryOptions,
@@ -133,13 +137,43 @@ describe('本地工作区存储（schema v1）', () => {
     await repository.saveSettings({
       activeTemplateId: second.id,
       selectedThemeId: 'darkode',
+      themeRevealDuration: 1200,
       lastMobileView: 'preview',
     })
 
     const workspace = await repository.load()
     expect(workspace.activeTemplateId).toBe(second.id)
     expect(workspace.selectedThemeId).toBe('darkode')
+    expect(workspace.themeRevealDuration).toBe(1200)
     expect(workspace.lastMobileView).toBe('preview')
+  })
+
+  it('normalizeThemeRevealDuration 把非法输入收敛到默认值与上下限', () => {
+    expect(normalizeThemeRevealDuration(undefined)).toBe(DEFAULT_THEME_REVEAL_DURATION)
+    expect(normalizeThemeRevealDuration(null)).toBe(DEFAULT_THEME_REVEAL_DURATION)
+    expect(normalizeThemeRevealDuration(Number.NaN)).toBe(DEFAULT_THEME_REVEAL_DURATION)
+    expect(normalizeThemeRevealDuration('900')).toBe(DEFAULT_THEME_REVEAL_DURATION)
+    expect(normalizeThemeRevealDuration(420.4)).toBe(420)
+    expect(normalizeThemeRevealDuration(-1)).toBe(MIN_THEME_REVEAL_DURATION)
+    expect(normalizeThemeRevealDuration(99999)).toBe(MAX_THEME_REVEAL_DURATION)
+    expect(normalizeThemeRevealDuration(MAX_THEME_REVEAL_DURATION)).toBe(MAX_THEME_REVEAL_DURATION)
+  })
+
+  it('未传动画时长时保留现值，只改主题不会把它重置回默认值', async () => {
+    const { repository } = makeRepository()
+    await repository.load()
+    expect((await repository.load()).themeRevealDuration).toBe(DEFAULT_THEME_REVEAL_DURATION)
+
+    await repository.saveSettings({ themeRevealDuration: 420 })
+    expect((await repository.load()).themeRevealDuration).toBe(420)
+
+    await repository.saveSettings({ selectedThemeId: 'claucode' })
+    const kept = await repository.load()
+    expect(kept.selectedThemeId).toBe('claucode')
+    expect(kept.themeRevealDuration).toBe(420)
+
+    await repository.saveSettings({ themeRevealDuration: 99999 })
+    expect((await repository.load()).themeRevealDuration).toBe(MAX_THEME_REVEAL_DURATION)
   })
 
   it('迁移入口在 v1 建立两个对象仓库并可重复调用', async () => {

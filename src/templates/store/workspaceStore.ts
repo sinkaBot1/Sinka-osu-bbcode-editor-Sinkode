@@ -8,7 +8,11 @@ import {
   type WorkspaceRepository,
 } from '../storage/workspaceRepository'
 import type { LocalWorkspace, MobileView, TemplateRecord } from '../storage/types'
-import { DEFAULT_THEME_ID } from '../storage/types'
+import {
+  DEFAULT_THEME_ID,
+  DEFAULT_THEME_REVEAL_DURATION,
+  normalizeThemeRevealDuration,
+} from '../storage/types'
 import {
   createSaveScheduler,
   type SaveScheduler,
@@ -31,6 +35,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const templates = ref<TemplateRecord[]>([])
   const activeTemplateId = ref<string | null>(null)
   const selectedThemeId = ref(DEFAULT_THEME_ID)
+  const themeRevealDuration = ref(DEFAULT_THEME_REVEAL_DURATION)
   const lastMobileView = ref<MobileView | null>(null)
   const loadState = ref<WorkspaceLoadState>('loading')
   const storageAvailable = ref(true)
@@ -105,6 +110,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     templates.value = [...workspace.templates]
     activeTemplateId.value = workspace.activeTemplateId
     selectedThemeId.value = workspace.selectedThemeId
+    // 这里再收敛一次，不依赖 repository 已经规范化过：自定义 repository
+    // 或旧数据可能给出 undefined / 越界值，直接赋值会让动画时长失控。
+    themeRevealDuration.value = normalizeThemeRevealDuration(workspace.themeRevealDuration)
     lastMobileView.value = workspace.lastMobileView
   }
 
@@ -242,6 +250,15 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await runManagementWrite(() => repository.value.saveSettings({ selectedThemeId: id }))
   }
 
+  // 主题切换圆揭示的时长。设置界面属于后续版本，本次只落数据层与动画读取；
+  // 写入前统一收敛到合法区间，见 src/templates/storage/types.ts。
+  async function setThemeRevealDuration(value: number) {
+    const next = normalizeThemeRevealDuration(value)
+    if (next === themeRevealDuration.value) return
+    themeRevealDuration.value = next
+    await runManagementWrite(() => repository.value.saveSettings({ themeRevealDuration: next }))
+  }
+
   async function restoreDefaultExample(): Promise<TemplateRecord> {
     return addTemplate(DEFAULT_EXAMPLE_NAME, DEFAULT_EXAMPLE_CONTENT)
   }
@@ -260,6 +277,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     templates,
     activeTemplateId,
     selectedThemeId,
+    themeRevealDuration,
     lastMobileView,
     loadState,
     storageAvailable,
@@ -275,6 +293,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     deleteTemplate,
     selectTemplate,
     selectTheme,
+    setThemeRevealDuration,
     restoreDefaultExample,
     flushPendingSave,
     dispose,

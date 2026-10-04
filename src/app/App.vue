@@ -49,7 +49,7 @@ import {
   useWorkspaceStore,
 } from '../templates'
 import { HelpPanel } from '../help'
-import { DEFAULT_THEME_ID } from '../templates/storage/types'
+import { THEMES } from '../templates/storage/types'
 
 // GitHub 仓库标志的遮罩地址写进样式表，而不是用行内样式对象：
 // Vue 解析含冒号的行内样式值时会把整个绑定丢掉，`url(data:…)` 正好会命中这一点。
@@ -388,7 +388,14 @@ function openThemePicker() {
   themeDialogOpen.value = true
   void nextTick(() => {
     updateThemePopoverPlacement()
-    themePopoverElement.value?.querySelector<HTMLInputElement>('input[type="radio"]')?.focus()
+    // 焦点落在当前选中的主题上，而不是清单里的第一个：焦点环是强调色描边，
+    // 落在未选中的选项上会让人误以为选中的就是它。只有一个主题时这个问题不会显现。
+    // 取不到选中项时退回第一个，保证键盘仍能进入菜单。
+    const inputs =
+      themePopoverElement.value?.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+    if (!inputs?.length) return
+    const selected = [...inputs].find((input) => input.checked) ?? inputs[0]
+    selected.focus()
   })
 }
 
@@ -442,8 +449,72 @@ function toggleHeader() {
   if (!headerOpen.value && themeDialogOpen.value) closeThemePicker(false)
 }
 
+// ---- 主题切换的圆揭示动画 ----
+// 新配色以顶栏「主题」按钮为圆心向四周扩散，圆形覆盖到哪里、哪里才换色。
+// 规则、时序约束与降级条件见 docs/theme.md §4。
+// 过渡抑制类用计数管理：连续切换时最后一个结束才摘掉。
+let themeRevealCount = 0
+
 async function selectTheme(id: string) {
-  await workspace.selectTheme(id)
+  if (id === workspace.selectedThemeId) return
+
+  const rect = themeButtonElement.value?.getBoundingClientRect()
+  const reduceMotion =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const duration = workspace.themeRevealDuration
+
+  // 降级：浏览器不支持该 API、低动态效果、时长为 0、拿不到触发按钮的位置。
+  // 降级只影响动画，主题切换本身在任何情况下都必须正确生效。
+  if (
+    typeof document.startViewTransition !== 'function' ||
+    !rect ||
+    reduceMotion ||
+    duration <= 0
+  ) {
+    await workspace.selectTheme(id)
+    return
+  }
+
+  const x = rect.left + rect.width / 2
+  const y = rect.top + rect.height / 2
+  // 半径取圆心到视口最远角的距离，保证圆最终完全覆盖视口
+  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+  const root = document.documentElement
+  root.style.setProperty('--theme-reveal-x', `${x}px`)
+  root.style.setProperty('--theme-reveal-y', `${y}px`)
+  root.style.setProperty('--theme-reveal-r', `${radius}px`)
+  root.style.setProperty('--theme-reveal-duration', `${duration}ms`)
+
+  // 抑制类必须早于写入 data-theme 生效，否则新快照会拍到"颜色过渡到一半"的状态。
+  themeRevealCount += 1
+  root.classList.add('is-theme-revealing')
+  let released = false
+  const release = () => {
+    if (released) return
+    released = true
+    themeRevealCount -= 1
+    if (themeRevealCount <= 0) {
+      themeRevealCount = 0
+      root.classList.remove('is-theme-revealing')
+    }
+  }
+  // 兜底：该类用 !important 全局禁用过渡，一旦因异常路径没被摘掉，
+  // 全站的悬停与面板动画都会永久失效。
+  const fallbackTimer = window.setTimeout(release, duration + 500)
+
+  const transition = document.startViewTransition(async () => {
+    await workspace.selectTheme(id)
+    await nextTick()
+  })
+  try {
+    await transition.finished
+  } catch {
+    // 动画被跳过（例如期间又切了一次）时 finished 会 reject，忽略即可
+  } finally {
+    window.clearTimeout(fallbackTimer)
+    release()
+  }
 }
 
 onMounted(async () => {
@@ -979,22 +1050,26 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
         </div>
         <div class="theme-options" role="radiogroup" aria-label="主题选项">
           <label
+            v-for="theme in THEMES"
+            :key="theme.id"
             class="theme-option"
-            :class="{ 'is-selected': workspace.selectedThemeId === DEFAULT_THEME_ID }"
+            :class="{ 'is-selected': workspace.selectedThemeId === theme.id }"
           >
             <input
               class="visually-hidden"
               type="radio"
               name="workspace-theme"
-              :value="DEFAULT_THEME_ID"
-              :checked="workspace.selectedThemeId === DEFAULT_THEME_ID"
-              @change="selectTheme(DEFAULT_THEME_ID)"
+              :value="theme.id"
+              :checked="workspace.selectedThemeId === theme.id"
+              @change="selectTheme(theme.id)"
             />
             <span class="theme-option-copy">
-              <span class="theme-option-title">Darkode</span>
-              <span class="theme-option-description">深色主题：编辑器、预览与工作台统一配色</span>
+              <span class="theme-option-title">{{ theme.name }}</span>
+              <span class="theme-option-description">{{ theme.description }}</span>
             </span>
-            <span class="theme-preview" aria-hidden="true">
+            <!-- 色板带 data-theme-sample，从同名主题块取色，因此显示的是
+                 该选项自己的配色，与当前生效主题无关（见 docs/theme.md §3）。 -->
+            <span class="theme-preview" :data-theme-sample="theme.id" aria-hidden="true">
               <span></span>
               <span></span>
               <span></span>
@@ -1002,7 +1077,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
             <Check class="theme-option-check" :size="17" :stroke-width="2.4" aria-hidden="true" />
           </label>
         </div>
-        <p class="theme-note">更多主题将在后续版本提供。</p>
+        <p class="theme-note">主题会记住你的选择，下次打开自动恢复。</p>
       </section>
     </Transition>
 

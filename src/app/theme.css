@@ -1,12 +1,15 @@
 :root {
   font-family: 'Cascadia Code', 'Microsoft YaHei UI', sans-serif;
-  color: #d7dee8;
-  background: #181b20;
+  color: var(--color-text);
+  background: var(--color-background);
   font-synthesis: none;
   /* 颜色令牌的权威来源是下面的主题块：每个主题在 [data-theme='…'] 里
      声明一整套 shell 配色与预览语义色。这里的取值是 Darkode 的兜底副本——
-     主题属性缺失时（首帧、组件脱离主题挂载）仍要有正确颜色，
-     代价是新增主题必须同时提供自己那套兜底值，取舍见 docs/workbench.md。 */
+     主题属性缺失时（首帧、组件脱离主题挂载）仍要有正确颜色。
+     兜底副本必须与主题块保持**同样的令牌集合**：任何只在这里声明、没有进
+     主题块的令牌，在浅色主题下都会露出深色取值。清单见 docs/theme.md。 */
+
+  /* 工作台外壳 */
   --color-background: #181b20;
   --color-header: #1e2228;
   --color-surface: #20242b;
@@ -17,40 +20,91 @@
   --color-accent: #62b5ff;
   --color-success: #78d6a3;
 
-  /* 悬停语义（2026-10-03 所有者要求消除悬停蓝框后统一）：
+  /* 语义令牌 */
+  --color-accent-text: #62b5ff;
+  --color-on-accent: #181b20;
+  --color-danger: #f48771;
+  --color-danger-hover: #ffad98;
+  --color-danger-surface: #703a30;
+  --color-danger-surface-text: #ffe6e0;
+  --color-diagnostic-location: #c6cfdb;
+
+  /* 中性层（2026-10-03 所有者要求消除悬停蓝框后统一）：
      悬停只提高背景亮度，不改描边颜色；强调色只表示"选中/活动"和键盘焦点环。
-     取值是正文色 9% 的中性浮层，与顶栏动作区、编辑器工具栏、模板行原有做法同一口径，
-     不新增色值；主题块不重复声明，新增主题自动继承。 */
+     各处浮层的透明度差异用 color-mix 从语义色派生，不按百分比逐个建令牌。 */
   --control-hover-background: rgb(215 222 232 / 9%);
+  --color-divider-strong: rgb(215 222 232 / 16%);
+  --color-resize-indicator: rgb(98 181 255 / 35%);
+
+  /* 外壳内嵌面 */
+  --shell-sidebar-background: #1b1f25;
+  --shell-inset-background: #15181d;
+  --shell-gutter-active: #252b33;
+  --shell-toolbar-group: rgb(32 36 43 / 74%);
+  --shell-divider-background: #171b21;
 
   /* 预览语义色：预览组件只引用这一组，不直接写死颜色 */
+  --preview-canvas-background: #111318;
+  --preview-card-background: #20242b;
+  --preview-card-border: #2d333c;
+  --preview-iframe-background: #0b0d10;
+  --preview-quote-text: #bdc8d6;
   --preview-code-background: #15181d;
+  --preview-code-text: #d7dee8;
   --preview-heading: #f1f5fa;
+  --preview-error-text: #f48771;
   /* 悬停气泡的最大宽度：与说明文字长度无关的排版上限，尺寸类令牌集中在这里声明，
      避免在元素上写内联样式（帮助面板的效果示意用 `span[style]` 定位示例元素）。 */
   --preview-tooltip-max-width: 280px;
   /* 折叠盒（[box]、[spoilerbox]）标题：2026-10-03 所有者授权由固定粉色
-     改为主题蓝，与 [notice] 的授权口径一致，取值可被后续主题整体替换。 */
+     改为主题强调色，与 [notice] 的授权口径一致，取值可被后续主题整体替换。 */
   --preview-box-title: var(--color-accent);
+  /* 以下六项按既有裁决**不随主题变化**：spoiler 遮盖（D-13）、热区粉色（D-09）、
+     悬停气泡外观（D-17）。取值在所有主题下相同，依据见 docs/theme.md §2.8。 */
   --preview-spoiler-cover: #000;
   --preview-spoiler-cover-text: #000;
   --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
   --preview-spoiler-selection-text: #fff;
   --preview-imagemap-region-border: rgb(255 111 178 / 80%);
   --preview-imagemap-region-background: rgb(255 111 178 / 50%);
-  /* imagemap 热区悬停气泡：2026-10-03 所有者授权按 osu! 浮层提示的纯黑底 + 白字外观落地
-     （见 docs/compatibility.md 的 D-17）。取值来自锁定基准网页里通用浮层的默认样式，
-     与预览深色主题的层次色无关，因此单独成对令牌、不随主题色相变化。 */
   --preview-tooltip-background: #000;
   --preview-tooltip-text: #fff;
-  --preview-error-text: #f48771;
+
+  /* 编辑器与语法高亮：原先散落在 editorExtensions.ts 里的字面值，
+     浅色主题下六个语法色全部需要重新取值，见 docs/theme.md §2.6。 */
+  --editor-caret: #ffffff;
+  --editor-active-line: #202832;
+  --editor-tooltip-background: #20242b;
+  --editor-tooltip-border: #4a5565;
+  --editor-tooltip-text: #d7dee8;
+  --editor-tooltip-selected-background: #1769aa;
+  --editor-tooltip-selected-text: #ffffff;
+  --editor-completion-detail: #9fb0c3;
+  --editor-completion-icon: #8ab4f8;
+  --syntax-bracket: #c586c0;
+  --syntax-slash: #d7ba7d;
+  --syntax-tag: #4ec9b0;
+  --syntax-equals: #ffcc66;
+  --syntax-parameter: #ce9178;
+  --syntax-invalid: #f44747;
+
+  /* 滚动条与阴影：原先写在主题块之外，浅色主题下会露出深色滚动条 */
+  --scrollbar-track: #171b21;
+  --scrollbar-thumb: #586273;
+  --scrollbar-thumb-hover: #738198;
+  --shadow-overlay: 0 8px 20px rgb(0 0 0 / 35%);
+  --shadow-drawer: 12px 0 28px rgb(0 0 0 / 28%);
+  --color-drawer-scrim: rgb(0 0 0 / 48%);
 
   --osu-profile-content-max-width: 890px;
 }
 
-/* 主题块：Darkode（深色）。新增主题复制这一块、换 id 与取值即可，
-   预览组件不需要改动——它们只引用 --preview-* 语义令牌。 */
-[data-theme='darkode'] {
+/* 主题块：Darkode（深色）。新增主题复制这一块、换 id 与取值即可。
+   但不能留空：主题块必须声明全部令牌——浅色主题下任何遗漏都会退回下面 :root
+   兜底副本的深色取值，形成"深色补丁"；主题菜单的三格色板也直接从主题块取色，
+   缺令牌会让色板显示错误。完整清单、新增主题步骤与切换动效见 docs/theme.md。 */
+[data-theme='darkode'],
+[data-theme-sample='darkode'] {
   color-scheme: dark;
 
   /* 工作台外壳 */
@@ -64,28 +118,215 @@
   --color-accent: #62b5ff;
   --color-success: #78d6a3;
 
+  /* 语义令牌 */
+  --color-accent-text: #62b5ff;
+  --color-on-accent: #181b20;
+  --color-danger: #f48771;
+  --color-danger-hover: #ffad98;
+  --color-danger-surface: #703a30;
+  --color-danger-surface-text: #ffe6e0;
+  --color-diagnostic-location: #c6cfdb;
+
+  /* 中性层 */
+  --control-hover-background: rgb(215 222 232 / 9%);
+  --color-divider-strong: rgb(215 222 232 / 16%);
+  --color-resize-indicator: rgb(98 181 255 / 35%);
+
+  /* 外壳内嵌面 */
+  --shell-sidebar-background: #1b1f25;
+  --shell-inset-background: #15181d;
+  --shell-gutter-active: #252b33;
+  --shell-toolbar-group: rgb(32 36 43 / 74%);
+  --shell-divider-background: #171b21;
+
   /* 预览语义色（本主题的实际取值） */
+  --preview-canvas-background: #111318;
+  --preview-card-background: #20242b;
+  --preview-card-border: #2d333c;
+  --preview-iframe-background: #0b0d10;
+  --preview-quote-text: #bdc8d6;
   --preview-code-background: #15181d;
+  --preview-code-text: #d7dee8;
   --preview-heading: #f1f5fa;
+  --preview-error-text: #f48771;
   --preview-tooltip-max-width: 280px;
   --preview-box-title: var(--color-accent);
+  /* 与兜底块同值：这三组外观是锁定基准的可观察行为，不参与主题色相。 */
   --preview-spoiler-cover: #000;
   --preview-spoiler-cover-text: #000;
   --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
   --preview-spoiler-selection-text: #fff;
   --preview-imagemap-region-border: rgb(255 111 178 / 80%);
   --preview-imagemap-region-background: rgb(255 111 178 / 50%);
-  /* 与兜底块同值：气泡外观是锁定基准的浮层默认样式，不参与主题色相。 */
   --preview-tooltip-background: #000;
   --preview-tooltip-text: #fff;
-  --preview-error-text: #f48771;
+
+  /* 编辑器与语法高亮 */
+  --editor-caret: #ffffff;
+  --editor-active-line: #202832;
+  --editor-tooltip-background: #20242b;
+  --editor-tooltip-border: #4a5565;
+  --editor-tooltip-text: #d7dee8;
+  --editor-tooltip-selected-background: #1769aa;
+  --editor-tooltip-selected-text: #ffffff;
+  --editor-completion-detail: #9fb0c3;
+  --editor-completion-icon: #8ab4f8;
+  --syntax-bracket: #c586c0;
+  --syntax-slash: #d7ba7d;
+  --syntax-tag: #4ec9b0;
+  --syntax-equals: #ffcc66;
+  --syntax-parameter: #ce9178;
+  --syntax-invalid: #f44747;
+
+  /* 滚动条与阴影 */
+  --scrollbar-track: #171b21;
+  --scrollbar-thumb: #586273;
+  --scrollbar-thumb-hover: #738198;
+  --shadow-overlay: 0 8px 20px rgb(0 0 0 / 35%);
+  --shadow-drawer: 12px 0 28px rgb(0 0 0 / 28%);
+  --color-drawer-scrim: rgb(0 0 0 / 48%);
+}
+
+/* 主题块：Claucode（浅色）。取自 Claude 设计系统的暖奶油底色 + 珊瑚强调色 +
+   暖黑正文，色值经 WCAG 对比度实测派生（证据见 docs/theme.md §6）。
+   与 Darkode 一样必须声明全部令牌——本块与 Darkode 块的令牌集合由
+   自动化断言锁定，缺项会让主题菜单的色板显示错误。 */
+[data-theme='claucode'],
+[data-theme-sample='claucode'] {
+  color-scheme: light;
+
+  /* 工作台外壳 */
+  --color-background: #f5f0e8;
+  --color-header: #faf9f5;
+  --color-surface: #faf9f5;
+  --color-surface-raised: #ffffff;
+  --color-border: #d5cab8;
+  --color-text: #141413;
+  --color-muted: #6c6a64;
+  --color-accent: #cc785c;
+  --color-success: #357a44;
+
+  /* 语义令牌。珊瑚色本体只有 3.11:1，够做焦点环与选中条（图形），
+     不够做正文级文字，因此文字口径单独取加深值。 */
+  --color-accent-text: #a9583e;
+  --color-on-accent: #ffffff;
+  --color-danger: #b93b3b;
+  --color-danger-hover: #8f2f2f;
+  --color-danger-surface: #f7e4e0;
+  --color-danger-surface-text: #8f2f2f;
+  --color-diagnostic-location: #3d3d3a;
+
+  /* 中性层：深色下的"正文色 9% 浅浮层"在奶油底上不可见，
+     浅色主题必须换成暖黑的低透明度浮层，取值见 docs/theme.md §2.3。 */
+  --control-hover-background: rgb(20 20 19 / 6%);
+  --color-divider-strong: rgb(20 20 19 / 16%);
+  --color-resize-indicator: rgb(204 120 92 / 35%);
+
+  /* 外壳内嵌面 */
+  --shell-sidebar-background: #efe9de;
+  --shell-inset-background: #faf9f5;
+  --shell-gutter-active: #e8e0d2;
+  --shell-toolbar-group: rgb(250 249 245 / 74%);
+  --shell-divider-background: #e8e0d2;
+
+  /* 预览语义色。代码块保持深色：奶油纸上的深色卡片是 Claude 设计系统
+     最强的识别特征，代价是代码文字不能继续继承正文色。 */
+  --preview-canvas-background: #e8e0d2;
+  --preview-card-background: #faf9f5;
+  --preview-card-border: #d5cab8;
+  --preview-iframe-background: #efe9de;
+  --preview-quote-text: #3d3d3a;
+  --preview-code-background: #181715;
+  --preview-code-text: #e8e0d2;
+  --preview-heading: #141413;
+  --preview-error-text: #b93b3b;
+  --preview-tooltip-max-width: 280px;
+  --preview-box-title: var(--color-accent);
+  /* 与 Darkode 同值：这三组外观是锁定基准的可观察行为，不参与主题色相。 */
+  --preview-spoiler-cover: #000;
+  --preview-spoiler-cover-text: #000;
+  --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  --preview-spoiler-selection-text: #fff;
+  --preview-imagemap-region-border: rgb(255 111 178 / 80%);
+  --preview-imagemap-region-background: rgb(255 111 178 / 50%);
+  --preview-tooltip-background: #000;
+  --preview-tooltip-text: #fff;
+
+  /* 编辑器与语法高亮。六个语法色的深色取值在浅色底上只有 1.42:1 ~ 3.41:1
+     （最差的等号黄几乎不可见），因此按浅色底整体重新取色，均 ≥ 4.5:1。 */
+  --editor-caret: #141413;
+  --editor-active-line: #efe9de;
+  --editor-tooltip-background: #ffffff;
+  --editor-tooltip-border: #d5cab8;
+  --editor-tooltip-text: #141413;
+  --editor-tooltip-selected-background: #efe9de;
+  --editor-tooltip-selected-text: #141413;
+  --editor-completion-detail: #6c6a64;
+  --editor-completion-icon: #a9583e;
+  --syntax-bracket: #8a4a86;
+  --syntax-slash: #8a6d1f;
+  --syntax-tag: #2f6b5f;
+  --syntax-equals: #8a5a00;
+  --syntax-parameter: #a05236;
+  --syntax-invalid: #b93b3b;
+
+  /* 滚动条与阴影：浅色下阴影从纯黑改为暖黑并大幅降低不透明度，否则显脏 */
+  --scrollbar-track: #efe9de;
+  --scrollbar-thumb: #c0b4a0;
+  --scrollbar-thumb-hover: #a89880;
+  --shadow-overlay: 0 8px 20px rgb(20 20 19 / 12%);
+  --shadow-drawer: 12px 0 28px rgb(20 20 19 / 10%);
+  --color-drawer-scrim: rgb(20 20 19 / 32%);
+}
+
+/* 主题切换的圆揭示：新配色以顶栏「主题」按钮为圆心向四周扩散，
+   圆形覆盖到哪里、哪里才换色。规则与降级条件见 docs/theme.md §4。
+
+   先关掉 View Transitions 默认的整页交叉淡入，只给新快照挂圆揭示动画；
+   圆心与半径由 App.vue 写成运行时变量（--theme-reveal-x/y/r），
+   时长取设置项，都带兜底值以便 CSS 单独可用。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  animation: theme-reveal var(--theme-reveal-duration, 900ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0px at var(--theme-reveal-x, 50%) var(--theme-reveal-y, 50%));
+  }
+  to {
+    clip-path: circle(
+      var(--theme-reveal-r, 150vmax) at var(--theme-reveal-x, 50%) var(--theme-reveal-y, 50%)
+    );
+  }
+}
+
+/* 切换期间停掉全部 CSS 过渡。View Transitions 捕捉"新"快照时不会等待过渡结束，
+   而工作台里几乎每个交互元素都有 120ms ~ 260ms 过渡，若不停用，新快照会拍到
+   "颜色过渡到一半"的状态，圆揭示播完后页面还会自己再抖一下。
+   该类必须早于写入 data-theme 生效；因为用 !important 全局禁用过渡，
+   App.vue 另外准备了超时兜底，避免异常路径下类没被摘掉、全站动画永久失效。 */
+html.is-theme-revealing,
+html.is-theme-revealing * {
+  transition: none !important;
+}
+
+/* 低动态效果模式下退化为直接切换（App.vue 已提前判断，这里作为 CSS 侧兜底） */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
 
 * {
   box-sizing: border-box;
 }
 * {
-  scrollbar-color: #586273 #171b21;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
 }
 *::-webkit-scrollbar {
@@ -93,15 +334,15 @@
   height: 10px;
 }
 *::-webkit-scrollbar-track {
-  background: #171b21;
+  background: var(--scrollbar-track);
 }
 *::-webkit-scrollbar-thumb {
-  border: 2px solid #171b21;
+  border: 2px solid var(--scrollbar-track);
   border-radius: 5px;
-  background: #586273;
+  background: var(--scrollbar-thumb);
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #738198;
+  background: var(--scrollbar-thumb-hover);
 }
 body {
   margin: 0;
@@ -289,7 +530,7 @@ h2 {
   flex: 0 0 1px;
   width: 1px;
   height: 26px;
-  background: rgb(215 222 232 / 16%);
+  background: var(--color-divider-strong);
 }
 /* 顶栏动作入口沿用工作台既有的无框语言（编辑器工具栏、模板行同款）：
    静止时只有图形和文字，悬停才浮出一层 9% 中性浮层，不做描边、不加底色。
@@ -319,7 +560,7 @@ h2 {
   flex-shrink: 0;
 }
 .header-action:hover:not(:disabled) {
-  background: rgb(215 222 232 / 9%);
+  background: var(--control-hover-background);
 }
 .header-action:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -378,7 +619,7 @@ h2 {
 }
 .resize-handle:hover,
 .resize-handle:focus-visible {
-  background: rgb(98 181 255 / 35%);
+  background: var(--color-resize-indicator);
   outline: 0;
 }
 .resize-handle-vertical {
@@ -391,7 +632,7 @@ h2 {
   cursor: row-resize;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
-  background: #171b21;
+  background: var(--shell-divider-background);
 }
 .diagnostic-resizer {
   margin-top: 0;
@@ -405,7 +646,7 @@ h2 {
   min-height: 0;
   overflow-y: auto;
   border-right: 1px solid var(--color-border);
-  background: #1b1f25;
+  background: var(--shell-sidebar-background);
   padding: 16px 12px;
   transition: padding 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -605,10 +846,10 @@ h2 {
   transition: background 120ms ease;
 }
 .template-row:hover {
-  background: rgb(215 222 232 / 5%);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 .template-row.is-active {
-  background: rgb(98 181 255 / 7%);
+  background: color-mix(in srgb, var(--color-accent) 7%, transparent);
 }
 .template-row.is-active::before {
   position: absolute;
@@ -660,7 +901,7 @@ h2 {
 .template-more:hover,
 .template-more[aria-expanded='true'] {
   color: var(--color-text);
-  background: rgb(215 222 232 / 8%);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 .template-action-menu {
   position: fixed;
@@ -671,7 +912,7 @@ h2 {
   border: 1px solid var(--color-border);
   border-radius: 7px;
   background: var(--color-surface-raised);
-  box-shadow: 0 8px 20px rgb(0 0 0 / 35%);
+  box-shadow: 0 8px 20px var(--shadow-overlay);
   transform-origin: top right;
 }
 .template-action-menu-enter-active {
@@ -718,7 +959,7 @@ h2 {
 }
 .template-action-menu button.danger,
 .template-action-menu button.danger svg {
-  color: #f48771;
+  color: var(--color-danger);
 }
 .template-action-menu-separator {
   height: 1px;
@@ -756,7 +997,7 @@ h2 {
   border: 1px solid var(--color-accent);
   border-radius: 3px;
   color: var(--color-text);
-  background: #15181d;
+  background: var(--shell-inset-background);
 }
 .template-rename-actions,
 .template-delete-actions {
@@ -796,7 +1037,7 @@ h2 {
   gap: 8px;
   margin: 0 4px;
   padding: 8px 0 8px 6px;
-  border-left: 2px solid #f48771;
+  border-left: 2px solid var(--color-danger);
 }
 .template-delete-confirm-surface p {
   margin: 0;
@@ -810,7 +1051,7 @@ h2 {
   white-space: nowrap;
 }
 .template-delete-confirm-surface button.danger {
-  color: #f48771;
+  color: var(--color-danger);
 }
 .template-footer {
   margin-top: 16px;
@@ -859,7 +1100,7 @@ h2 {
   font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 35%);
+  box-shadow: 0 8px 20px var(--shadow-overlay);
   transform-origin: top right;
 }
 .copy-toast-enter-active {
@@ -883,8 +1124,8 @@ h2 {
   background: var(--color-accent);
 }
 .copy-toast--failure {
-  color: #ffe6e0;
-  background: #703a30;
+  color: var(--color-danger-surface-text);
+  background: var(--color-danger-surface);
 }
 .save-status--saved {
   color: var(--color-success);
@@ -893,7 +1134,7 @@ h2 {
   color: var(--color-accent);
 }
 .save-status--error {
-  color: #f48771;
+  color: var(--color-danger);
 }
 .editor-panel {
   display: flex;
@@ -922,7 +1163,7 @@ h2 {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: #15181d;
+  background: var(--shell-inset-background);
 }
 .editor-toolbar {
   display: flex;
@@ -934,7 +1175,7 @@ h2 {
   overflow-y: hidden;
   padding: 7px 10px;
   border-bottom: 1px solid var(--color-border);
-  background: #1b1f25;
+  background: var(--shell-sidebar-background);
   scrollbar-width: thin;
 }
 .editor-toolbar-group {
@@ -945,7 +1186,7 @@ h2 {
   padding: 2px;
   border: 1px solid var(--color-border);
   border-radius: 7px;
-  background: rgb(32 36 43 / 74%);
+  background: var(--shell-toolbar-group);
 }
 .editor-toolbar-divider {
   flex: 0 0 1px;
@@ -976,7 +1217,7 @@ h2 {
 }
 .editor-toolbar-button:hover {
   color: var(--color-text);
-  background: rgb(215 222 232 / 9%);
+  background: var(--control-hover-background);
 }
 .editor-toolbar-button:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -998,10 +1239,10 @@ h2 {
   cursor: pointer;
 }
 .diagnostic-count.has-errors {
-  color: #f48771;
+  color: var(--color-danger);
 }
 .diagnostic-count:hover:not(:disabled) {
-  color: #ffad98;
+  color: var(--color-danger-hover);
 }
 .diagnostic-count:disabled {
   cursor: default;
@@ -1016,7 +1257,7 @@ h2 {
   min-height: 0;
   overflow: hidden;
   border-top: 1px solid var(--color-border);
-  background: #1b1f25;
+  background: var(--shell-sidebar-background);
   transform: translateY(0);
 }
 .diagnostic-panel-inner {
@@ -1076,7 +1317,7 @@ h2 {
 }
 .diagnostic-row:hover,
 .diagnostic-row.is-active {
-  background: rgb(98 181 255 / 8%);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
 }
 .diagnostic-row.is-active::before {
   background: var(--color-accent);
@@ -1086,10 +1327,10 @@ h2 {
   outline-offset: 2px;
 }
 .diagnostic-row svg {
-  color: #f48771;
+  color: var(--color-danger);
 }
 .diagnostic-location {
-  color: #c6cfdb;
+  color: var(--color-diagnostic-location);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1113,11 +1354,11 @@ h2 {
 .editor-host .cm-gutters {
   border-right: 1px solid var(--color-border);
   color: var(--color-muted);
-  background: #1b1f25;
+  background: var(--shell-sidebar-background);
 }
 .editor-host .cm-activeLineGutter {
   color: var(--color-text);
-  background: #252b33;
+  background: var(--shell-gutter-active);
 }
 .editor-host .cm-lineNumbers .cm-gutterElement {
   min-width: 36px;
@@ -1141,7 +1382,7 @@ h2 {
   flex: 1;
   overflow: auto;
   padding: 24px;
-  background: #111318;
+  background: var(--preview-canvas-background);
 }
 .preview-content {
   --preview-frame-inset: 42px;
@@ -1149,8 +1390,8 @@ h2 {
   min-height: 260px;
   margin: 0 auto;
   padding: 20px;
-  border: 1px solid #2d333c;
-  background: #20242b;
+  border: 1px solid var(--preview-card-border);
+  background: var(--preview-card-background);
 }
 .preview-content > div {
   line-height: 1.5;
@@ -1187,14 +1428,14 @@ h2 {
   height: auto;
   margin: 16px 0;
   border: 1px solid var(--color-border);
-  background: #0b0d10;
+  background: var(--preview-iframe-background);
 }
 .preview-content blockquote {
   position: relative;
   margin: 16px 0;
   padding: 0 0 0 20px;
   border: none;
-  color: #bdc8d6;
+  color: var(--preview-quote-text);
   font-size: inherit;
 }
 .preview-content blockquote::before {
@@ -1408,7 +1649,7 @@ h2 {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface-raised);
-  box-shadow: 0 8px 20px rgb(0 0 0 / 35%);
+  box-shadow: 0 8px 20px var(--shadow-overlay);
   transform-origin: top right;
 }
 .theme-popover .section-heading {
@@ -1486,7 +1727,7 @@ h2 {
   outline-offset: 2px;
 }
 .theme-option.is-selected {
-  background: rgb(98 181 255 / 6%);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
 }
 .theme-option.is-selected::before {
   background: var(--color-accent);
@@ -1525,8 +1766,12 @@ h2 {
 .theme-preview span:nth-child(1) {
   background: var(--color-background);
 }
+/* 第二格取正文色而不是面板色：Claucode 的 --color-surface 与 --color-background
+   只差 1.09:1，用面板色会让两格看起来几乎一样；换成正文色后深浅反转一眼可辨。
+   三格都从下方同名主题块取色（色板元素带 data-theme-sample），
+   所以显示的是该选项自己的配色，与当前生效主题无关。 */
 .theme-preview span:nth-child(2) {
-  background: var(--color-surface);
+  background: var(--color-text);
 }
 .theme-preview span:nth-child(3) {
   background: var(--color-accent);
@@ -1542,7 +1787,7 @@ h2 {
 .theme-note {
   margin: 10px 8px 0;
   padding-top: 10px;
-  border-top: 1px solid rgb(215 222 232 / 9%);
+  border-top: 1px solid color-mix(in srgb, var(--color-text) 9%, transparent);
   color: var(--color-muted);
   font-size: 12px;
   line-height: 1.4;
@@ -1554,7 +1799,7 @@ h2 {
   inset: 0;
   display: flex;
   align-items: stretch;
-  background: rgb(0 0 0 / 48%);
+  background: var(--color-drawer-scrim);
 }
 .template-drawer {
   display: flex;
@@ -1564,8 +1809,8 @@ h2 {
   flex-direction: column;
   overflow-y: auto;
   border-right: 1px solid var(--color-border);
-  background: #1b1f25;
-  box-shadow: 12px 0 28px rgb(0 0 0 / 28%);
+  background: var(--shell-sidebar-background);
+  box-shadow: 12px 0 28px var(--shadow-drawer);
 }
 .template-drawer-header {
   display: flex;
@@ -1867,7 +2112,7 @@ h2 {
   border: 1px solid var(--color-border);
   border-radius: 4px;
   color: var(--color-text);
-  background: #15181d;
+  background: var(--shell-inset-background);
   font: inherit;
   font-size: 12px;
 }
@@ -2007,11 +2252,11 @@ h2 {
 }
 
 .help-panel-entry:hover {
-  background: rgb(215 222 232 / 5%);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 
 .help-panel-entry.is-active {
-  background: rgb(98 181 255 / 8%);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
 }
 
 .help-panel-entry.is-active::before {
@@ -2161,7 +2406,7 @@ h2 {
   border: 1px solid var(--color-border);
   border-radius: 4px;
   color: var(--color-text);
-  background: #15181d;
+  background: var(--shell-inset-background);
   font:
     11px/1.55 'Cascadia Code',
     'Microsoft YaHei UI',
@@ -2232,7 +2477,7 @@ h2 {
   grid-template-columns: 16px minmax(0, 1fr);
   gap: 7px;
   margin: 0;
-  color: #f48771;
+  color: var(--color-danger);
   font-size: 11px;
   line-height: 1.55;
 }
@@ -2271,7 +2516,7 @@ h2 {
 }
 
 .help-panel-copy-error {
-  color: #f48771;
+  color: var(--color-danger);
   font-size: 11px;
 }
 

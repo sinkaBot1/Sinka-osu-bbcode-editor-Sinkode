@@ -61,11 +61,24 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   const dialog = page.getByRole('dialog', { name: '选择主题' })
   await expect(dialog).toBeVisible()
   await expect(theme).toHaveAttribute('aria-expanded', 'true')
-  const themeOption = dialog.locator('.theme-option')
-  await expect(themeOption).toHaveCount(1)
-  await expect(themeOption).toHaveClass(/is-selected/)
-  await expect(themeOption.locator('.theme-option-check')).toBeVisible()
-  const optionStyle = await themeOption.evaluate((element) => {
+  const themeOptions = dialog.locator('.theme-option')
+  await expect(themeOptions).toHaveCount(2)
+  const selectedOption = themeOptions.filter({ hasText: 'Darkode' })
+  await expect(selectedOption).toHaveClass(/is-selected/)
+  await expect(selectedOption.locator('.theme-option-check')).toBeVisible()
+  await expect(themeOptions.filter({ hasText: 'Claucode' })).not.toHaveClass(/is-selected/)
+  // 色板显示各选项自己的配色，与当前生效主题无关（见 docs/theme.md §3）：
+  // 修复前这里三格引用的是"当前主题"的令牌，两个选项会长得一模一样。
+  const swatches = await dialog.evaluate((element) => {
+    const read = (id: string) =>
+      [...element.querySelectorAll(`.theme-preview[data-theme-sample="${id}"] span`)].map(
+        (cell) => getComputedStyle(cell).backgroundColor,
+      )
+    return { darkode: read('darkode'), claucode: read('claucode') }
+  })
+  expect(swatches.darkode).toEqual(['rgb(24, 27, 32)', 'rgb(215, 222, 232)', 'rgb(98, 181, 255)'])
+  expect(swatches.claucode).toEqual(['rgb(245, 240, 232)', 'rgb(20, 20, 19)', 'rgb(204, 120, 92)'])
+  const optionStyle = await selectedOption.evaluate((element) => {
     const style = getComputedStyle(element)
     return { borderStyle: style.borderStyle, boxShadow: style.boxShadow }
   })

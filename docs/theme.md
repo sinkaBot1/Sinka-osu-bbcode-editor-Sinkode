@@ -1,0 +1,256 @@
+# 主题与切换动效
+
+> 本文是**主题令牌、主题色板与主题切换动效**的规则来源。
+> 配色授权的裁决记录见[兼容性说明 §6.4](compatibility.md#64-预览配色裁决与块级外边距待决项2026-09-25)；
+> 工作台交互规则见[桌面工作台说明](workbench.md)；测试与命令见[测试说明](testing.md)；协作流程见[协作规则](../AGENTS.md)。
+
+## 1. 主题机制
+
+主题只有一个生效入口：文档根上的 `data-theme` 属性。
+
+- 每个主题是 `theme.css` 里的一个 `[data-theme='…']` 块，声明**整套** shell 配色与 `--preview-*` 预览语义色。
+- `App.vue` 用 `watch` 把 `workspace.selectedThemeId` 写到文档根，切换主题不改任何组件。
+- `theme.css` 的 `:root` 保留一份**兜底副本**，供主题属性缺失的首帧与脱离主题挂载的组件使用。兜底取值当前等于 Darkode。
+- 主题 ID 与 `theme.css` 的块一一对应，常量在 `src/templates/storage/types.ts` 的 `DEFAULT_THEME_ID` 与 `THEMES`。
+
+**当前主题**：`Darkode`（深色，默认）与 `Claucode`（浅色）。
+
+### 1.1 令牌必须完整
+
+**每个主题块必须声明全部令牌，不允许有令牌只活在 `:root` 里。**
+
+这条不是风格要求，有两个硬理由：
+
+1. 主题色板（§3）从主题块取色，缺一个令牌就会让色板显示错误。
+2. 浅色主题下，任何遗漏的令牌会退回兜底副本的深色取值，形成"深色补丁"。
+
+已发现并修正的历史问题：`--control-hover-background` 原先只声明在 `:root`，并在注释里假设"新增主题自动继承"。该假设不成立——浅色主题下这个浅色浮层会完全不可见，导致全工作台的悬停反馈消失。
+
+## 2. 令牌清单
+
+标注 **◆** 的是本次为主题化新增的令牌；其余是原本就存在、本次补齐取值的令牌。
+Darkode 列一律填写**改动前的原值**，因此令牌化本身不产生任何视觉变化。
+
+### 2.1 工作台外壳
+
+| 令牌 | 作用 | Darkode | Claucode |
+| --- | --- | --- | --- |
+| `--color-background` | 工作区底色 | `#181b20` | `#f5f0e8` |
+| `--color-header` | 顶栏底色 | `#1e2228` | `#faf9f5` |
+| `--color-surface` | 面板底色 | `#20242b` | `#faf9f5` |
+| `--color-surface-raised` | 弹层/菜单底色 | `#272c34` | `#ffffff` |
+| `--color-border` | 描边 | `#353c47` | `#d5cab8` |
+| `--color-text` | 正文 | `#d7dee8` | `#141413` |
+| `--color-muted` | 次级文字 | `#8e9aaa` | `#6c6a64` |
+| `--color-accent` | 强调色（选中/活动/焦点环） | `#62b5ff` | `#cc785c` |
+| `--color-success` | 成功状态 | `#78d6a3` | `#357a44` |
+
+### 2.2 语义令牌
+
+| 令牌 | 作用 | Darkode | Claucode |
+| --- | --- | --- | --- |
+| ◆ `--color-accent-text` | 强调色作**文字**的口径（预览链接） | `#62b5ff` | `#a9583e` |
+| ◆ `--color-on-accent` | 强调色底上的文字 | `#181b20` | `#ffffff` |
+| ◆ `--color-danger` | 错误状态 | `#f48771` | `#b93b3b` |
+| ◆ `--color-danger-hover` | 错误状态悬停 | `#ffad98` | `#8f2f2f` |
+| ◆ `--color-danger-surface` | 复制失败提示底色 | `#703a30` | `#f7e4e0` |
+| ◆ `--color-danger-surface-text` | 复制失败提示文字 | `#ffe6e0` | `#8f2f2f` |
+| ◆ `--color-diagnostic-location` | 诊断行的位置列 | `#c6cfdb` | `#3d3d3a` |
+
+`--color-accent` 与 `--color-accent-text` 必须分开：Claude 的珊瑚色 `#cc785c` 在浅色纸面上只有 `3.11:1`，够做焦点环与选中条（图形 3:1），不够做正文级文字（文字需 4.5:1）。`--color-accent-text` 取加深值 `#a9583e`（`4.80:1`）。
+
+同理 `--color-success` 不能直接用 Claude 原色 `#5db872`（`2.33:1`）——本项目的成功色是**当文字用**的（状态栏、诊断计数、保存状态、帮助提示左边框），必须派生到 `#357a44`（`4.96:1`）。
+
+### 2.3 中性层
+
+| 令牌 | 作用 | Darkode | Claucode |
+| --- | --- | --- | --- |
+| `--control-hover-background` | 统一悬停浮层 | `rgb(215 222 232 / 9%)` | `rgb(20 20 19 / 6%)` |
+| ◆ `--color-selection-background` | 选中态浮层 | `rgb(98 181 255 / 7%)` | `rgb(204 120 92 / 10%)` |
+| ◆ `--color-divider-strong` | 顶栏功能分隔线 | `rgb(215 222 232 / 16%)` | `rgb(20 20 19 / 16%)` |
+| ◆ `--color-resize-indicator` | 拖拽把手悬停 | `rgb(98 181 255 / 35%)` | `rgb(204 120 92 / 35%)` |
+
+悬停仍然只提高背景亮度、不改描边颜色；强调色只用于"选中/活动"和键盘焦点环（口径见[图标规范 §8](ui-icon-system.md#8-工作台悬停与状态色2026-10-03-所有者要求)）。
+
+### 2.4 外壳内嵌面
+
+| 令牌 | 作用 | Darkode | Claucode |
+| --- | --- | --- | --- |
+| ◆ `--shell-sidebar-background` | 模板栏、编辑器工具栏、诊断面板、行号栏、模板抽屉 | `#1b1f25` | `#efe9de` |
+| ◆ `--shell-inset-background` | 编辑器正文区、各输入框 | `#15181d` | `#faf9f5` |
+| ◆ `--shell-gutter-active` | 当前行行号 | `#252b33` | `#e8e0d2` |
+| ◆ `--shell-toolbar-group` | 工具栏分组底 | `rgb(32 36 43 / 74%)` | `rgb(250 249 245 / 74%)` |
+
+浅色下各层之间的对比度天然很弱（画布与模板栏仅 `1.065:1`，编辑器与弹层仅 `1.053:1`）。分层由 1px 描边与阴影承担，**不要靠加深背景色来拉开层次**。
+
+### 2.5 预览层
+
+| 令牌 | 作用 | Darkode | Claucode |
+| --- | --- | --- | --- |
+| ◆ `--preview-canvas-background` | 预览画布底 | `#111318` | `#e8e0d2` |
+| ◆ `--preview-card-background` | 预览内容卡片底 | `#20242b` | `#faf9f5` |
+| ◆ `--preview-card-border` | 预览内容卡片描边 | `#2d333c` | `#d5cab8` |
+| ◆ `--preview-iframe-background` | iframe 占位底 | `#0b0d10` | `#efe9de` |
+| ◆ `--preview-quote-text` | 引用块正文 | `#bdc8d6` | `#3d3d3a` |
+| ◆ `--preview-code-text` | 代码块文字 | `#d7dee8` | `#e8e0d2` |
+| `--preview-code-background` | 代码块底 | `#15181d` | `#181715` |
+| `--preview-heading` | 预览标题 | `#f1f5fa` | `#141413` |
+| `--preview-error-text` | 媒体失败提示 | `#f48771` | `#b93b3b` |
+| `--preview-box-title` | 折叠盒标题 | `var(--color-accent)` | `var(--color-accent)` |
+
+Claucode 的代码块**保持深色**（`#181715`）：这是 Claude 设计系统里最强的识别特征——奶油纸面上的一张深色卡片。代价是代码文字不能继续继承正文色，因此新增 `--preview-code-text`（在深底上 `13.67:1`）。
+
+### 2.6 编辑器与语法高亮
+
+语法高亮原本是 `editorExtensions.ts` 里的字面值。六个颜色在浅色底上**全部不可用**（`1.42:1` ~ `3.41:1`），必须整体重新取色。
+
+| 令牌 | 作用 | Darkode | Claucode | Claucode 实测 |
+| --- | --- | --- | --- | --- |
+| ◆ `--editor-caret` | 光标 | `#ffffff` | `#141413` | — |
+| ◆ `--editor-active-line` | 当前行底色 | `#202832` | `#efe9de` | — |
+| ◆ `--editor-tooltip-background` | 补全菜单底 | `#20242b` | `#ffffff` | — |
+| ◆ `--editor-tooltip-border` | 补全菜单描边 | `#4a5565` | `#d5cab8` | — |
+| ◆ `--editor-tooltip-text` | 补全菜单文字 | `#d7dee8` | `#141413` | — |
+| ◆ `--editor-tooltip-selected-background` | 补全选中项底 | `#1769aa` | `#efe9de` | — |
+| ◆ `--editor-tooltip-selected-text` | 补全选中项文字 | `#ffffff` | `#141413` | — |
+| ◆ `--editor-completion-detail` | 补全说明文字 | `#9fb0c3` | `#6c6a64` | — |
+| ◆ `--editor-completion-icon` | 补全图标 | `#8ab4f8` | `#a9583e` | — |
+| ◆ `--syntax-bracket` | 方括号 | `#c586c0` | `#8a4a86` | `5.86:1` |
+| ◆ `--syntax-slash` | 结束标签的斜杠 | `#d7ba7d` | `#8a6d1f` | `4.65:1` |
+| ◆ `--syntax-tag` | 标签名 | `#4ec9b0` | `#2f6b5f` | `5.88:1` |
+| ◆ `--syntax-equals` | 等号 | `#ffcc66` | `#8a5a00` | `5.63:1` |
+| ◆ `--syntax-parameter` | 参数值 | `#ce9178` | `#a05236` | `5.31:1` |
+| ◆ `--syntax-invalid` | 无效标签 | `#f44747` | `#b93b3b` | `5.31:1` |
+
+补全菜单的选中项在浅色下**不使用蓝色**：Claude 体系里没有蓝，选中态由奶油色浮层承担。
+
+### 2.7 滚动条与阴影
+
+| 令牌 | 作用 | Darkode | Claucode |
+| --- | --- | --- | --- |
+| ◆ `--scrollbar-track` | 滚动条轨道 | `#171b21` | `#efe9de` |
+| ◆ `--scrollbar-thumb` | 滚动条滑块 | `#586273` | `#c0b4a0` |
+| ◆ `--scrollbar-thumb-hover` | 滑块悬停 | `#738198` | `#a89880` |
+| ◆ `--shadow-overlay` | 弹层阴影 | `0 8px 20px rgb(0 0 0 / 35%)` | `0 8px 20px rgb(20 20 19 / 12%)` |
+| ◆ `--shadow-drawer` | 模板抽屉阴影 | `12px 0 28px rgb(0 0 0 / 28%)` | `12px 0 28px rgb(20 20 19 / 10%)` |
+| ◆ `--color-drawer-scrim` | 抽屉遮罩 | `rgb(0 0 0 / 48%)` | `rgb(20 20 19 / 32%)` |
+
+滚动条此前是 `*` 上的全局字面值，不属于任何主题块；浅色主题下会出现一根突兀的深色滚动条，因此一并纳入令牌。阴影在浅色下从纯黑改为暖黑并大幅降低不透明度，否则会显脏。
+
+### 2.8 不随主题变化的令牌
+
+以下令牌**在所有主题下取同一值**，因为它们对齐的是锁定基准的可观察行为，不是本项目的层次色：
+
+| 令牌 | 取值 | 依据 |
+| --- | --- | --- |
+| `--preview-spoiler-cover` | `#000` | D-13：spoiler 默认黑色遮盖 |
+| `--preview-spoiler-cover-text` | `#000` | 同上 |
+| `--preview-tooltip-background` | `#000` | D-17：imagemap 悬停气泡对齐上游浮层默认外观 |
+| `--preview-tooltip-text` | `#fff` | 同上 |
+| `--preview-imagemap-region-border` | `rgb(255 111 178 / 80%)` | D-09：热区粉色指示常驻显示 |
+| `--preview-imagemap-region-background` | `rgb(255 111 178 / 50%)` | 同上 |
+| `--preview-spoiler-selection-background` | `color-mix(in srgb, var(--color-accent) 60%, transparent)` | 2026-10-03 授权：由固定粉色改为跟随主题强调色 |
+| `--preview-spoiler-selection-text` | `#fff` | 同上 |
+| `--preview-tooltip-max-width` | `280px` | 排版上限，与颜色无关 |
+
+## 3. 主题色板取色
+
+主题菜单里每个选项右侧的三格色板**显示该选项自己的配色**，与当前生效主题无关。
+
+实现方式是让同一个主题块服务两种用途：
+
+```css
+[data-theme='darkode'],
+[data-theme-sample='darkode'] {
+  /* 整套令牌 */
+}
+```
+
+色板元素带 `data-theme-sample` 属性，于是色值仍然只在 `theme.css` 维护一份，TS 不需要抄第二份。
+
+三格依次取 `--color-background`、`--color-text`、`--color-accent`。第二格用**正文色**而非面板色：Claucode 的 `--color-surface`（`#faf9f5`）与 `--color-background`（`#f5f0e8`）只差 `1.09:1`，两格会几乎一样；换成正文色后，Darkode 是「深蓝黑 / 浅灰 / 亮蓝」、Claucode 是「米白 / 暖黑 / 珊瑚」，深浅反转一眼可辨。
+
+> 历史缺陷：色板此前引用 `var(--color-background)` 等**主题令牌**，而 `var()` 在元素自身上下文解析，所以取的是"当前生效主题"的值。只有一个主题时无法发现；加入第二个主题后，菜单里所有选项的色板会长得一模一样，用户只能靠读文字选主题。
+
+## 4. 切换动效（圆揭示）
+
+切换主题时，新配色以**顶栏「主题」按钮为圆心**向四周扩散，圆形覆盖到哪里，哪里才换色。
+
+### 4.1 实现方式
+
+使用 `document.startViewTransition()`（View Transitions API），在回调中写入 `data-theme`，再用 `clip-path: circle()` 动画扩展新快照：
+
+- 圆心取触发按钮的中心；半径取圆心到视口最远角的距离，保证圆最终完全覆盖视口。
+- 关闭默认的整页交叉淡入（`animation: none; mix-blend-mode: normal`），只给新快照挂圆揭示动画。
+- 缓动沿用工作台统一曲线 `cubic-bezier(0.22, 1, 0.36, 1)`。
+
+### 4.2 切色期间必须停用 CSS 过渡
+
+切换期间给文档根加临时类，配合 `transition: none` 抑制全部过渡：
+
+```css
+html.is-theme-revealing,
+html.is-theme-revealing * {
+  transition: none !important;
+}
+```
+
+**原因**：View Transitions 捕捉"新"快照时不会等待 CSS 过渡结束。工作台里几乎每个交互元素都有 120ms ~ 260ms 过渡，若不停用，新快照会拍到"颜色过渡到一半"的状态，圆揭示播完后页面还会自己再抖一下。该类的挂载必须**早于**写入 `data-theme`。
+
+因为该类用 `!important` 全局禁用过渡，一旦因异常路径没被摘掉，全站的悬停与面板动画都会永久失效，所以除 `transition.finished` 之外还有一道超时兜底（时长 + 500ms）与一次性释放保护；连续切换用计数管理，最后一个结束才摘掉类。
+
+### 4.3 时长可配置
+
+动画时长**不写死**，由设置项 `themeRevealDuration` 提供，单位毫秒，默认 `900`，持久化在 IndexedDB 的 workspace 记录里（与 `selectedThemeId` 同一处）。
+
+| 常量 | 值 | 说明 |
+| --- | --- | --- |
+| `DEFAULT_THEME_REVEAL_DURATION` | `900` | 首次使用与旧数据缺字段时的取值 |
+| `MIN_THEME_REVEAL_DURATION` | `0` | `0` 表示不做动画，直接切换 |
+| `MAX_THEME_REVEAL_DURATION` | `5000` | 上限，避免异常值让界面长时间停留在快照上 |
+
+读取时对非法值（负数、非有限数、超上限）按上下限收敛。设置界面属于后续版本，本次只落数据层与动画读取。
+
+### 4.4 降级路径
+
+出现以下任一情况时**不做动画**，直接写入 `data-theme`：
+
+1. 浏览器不支持 `document.startViewTransition`；
+2. 用户开启低动态效果（`prefers-reduced-motion: reduce`）；
+3. 时长为 `0`；
+4. 拿不到触发元素的几何位置。
+
+降级只影响动画，**主题切换本身在任何情况下都必须正确生效**。
+
+> 浏览器支持：Chromium 与 Safari 已支持 View Transitions；Firefox 的支持情况以项目所有者的实机验收为准（2026-10-04 所有者报告 Firefox 下功能可用）。是否播放动画不属于兼容性差异，两种表现都符合本节规则。
+
+## 5. 新增一个主题的步骤
+
+1. 在 `theme.css` 追加一个 `[data-theme='<id>'], [data-theme-sample='<id>']` 块，**声明全部令牌**（照抄 §2 的清单逐项填值，不要留空）。
+2. 在 `src/templates/storage/types.ts` 的 `THEMES` 里追加一项：`id`、显示名、说明文字。
+3. 兜底问题：`:root` 的兜底副本仍等于 Darkode，因此**非默认主题在刷新首帧会先显示 Darkode**。这是已知取舍，是否处理由所有者裁决。
+4. 补齐对比度实测记录（写进本节 §6 或该主题的验收记录）。
+5. 更新[桌面工作台说明](workbench.md)的主题小节与[路线与已知限制](roadmap.md)。
+
+## 6. 对比度证据
+
+全部为 WCAG 相对亮度计算值，可用同一色值与底色复算。文字口径要求 ≥ `4.5:1`。
+
+| 用途 | 取值 | 底色 | 对比度 |
+| --- | --- | --- | --- |
+| 正文 | `#141413` | `#faf9f5` | `17.50:1` |
+| 次级文字 | `#6c6a64` | `#faf9f5` | `5.13:1` |
+| 链接/强调文字 | `#a9583e` | `#faf9f5` | `4.80:1` |
+| 成功状态 | `#357a44` | `#faf9f5` | `4.96:1` |
+| 错误状态 | `#b93b3b` | `#faf9f5` | `5.31:1` |
+| 深色代码块文字 | `#e8e0d2` | `#181715` | `13.67:1` |
+| 强调色本体（仅图形） | `#cc785c` | `#faf9f5` | `3.11:1` |
+
+被否决的原始取值（保留作为派生依据）：
+
+| 用途 | 原始取值 | 底色 | 对比度 | 处置 |
+| --- | --- | --- | --- | --- |
+| Claude 成功色 | `#5db872` | `#faf9f5` | `2.33:1` | 派生为 `#357a44` |
+| Claude 警告色 | `#d4a017` | `#faf9f5` | `2.25:1` | 项目未使用 |
+| Claude 弱化文字色 | `#8e8b82` | `#faf9f5` | `3.23:1` | 不作正文 |
+| 边框色 | `#e6dfd8` | `#faf9f5` | `1.25:1` | 加深为 `#d5cab8`（`1.54:1`），与 Darkode 原描边 `1.55:1` 同口径 |
