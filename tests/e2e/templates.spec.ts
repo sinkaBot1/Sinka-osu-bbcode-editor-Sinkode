@@ -498,21 +498,15 @@ test.describe('模板、保存与复制', () => {
     })
 
     await expect(page.locator('.status-bar .render-status')).toContainText('已更新')
-    await page.getByRole('button', { name: '复制 BBCode' }).click()
-    const copyToast = page.locator('.copy-toast')
-    await expect(copyToast).toHaveText('已复制')
-    await expect(copyToast).toHaveClass(/copy-toast--success/)
-    const feedbackStyle = await copyToast.evaluate((element) => {
-      const style = getComputedStyle(element)
-      const control = element.parentElement!.getBoundingClientRect()
-      const toast = element.getBoundingClientRect()
-      return {
-        backgroundColor: style.backgroundColor,
-        rightGap: Math.abs(control.right - toast.right),
-      }
-    })
-    expect(feedbackStyle.backgroundColor).toBe('rgb(98, 181, 255)')
-    expect(feedbackStyle.rightGap).toBeLessThanOrEqual(1)
+    const copyButton = page.getByRole('button', { name: '复制 BBCode' })
+    await copyButton.click()
+    // 成功反馈落在按钮自身：换成对勾与「已复制」，不再出现浮窗（2026-10-04 所有者裁定）
+    await expect(copyButton).toHaveClass(/is-copied/)
+    await expect(page.locator('.copy-toast')).toHaveCount(0)
+    const copiedLabel = await copyButton.evaluate(
+      (element) => element.querySelector('.copy-button-label > span:not(.is-hidden)')?.textContent,
+    )
+    expect(copiedLabel).toBe('已复制')
 
     const copied = await page.evaluate(
       () => (window as unknown as { __copiedText?: string }).__copiedText,
@@ -522,6 +516,87 @@ test.describe('模板、保存与复制', () => {
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     // Chromium 在 Windows 读取系统剪贴板时会把换行规范化为 CRLF；写入内容本身逐字节一致。
     expect(clipboardText.replace(/\r\n/g, '\n')).toBe(expected)
+  })
+
+  test('复制按钮并入工作台悬停语言，成功就地反馈、失败保留浮窗', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await openEditor(page)
+    const button = page.getByRole('button', { name: '复制 BBCode' })
+    await expect(button).toBeVisible()
+
+    // 静止：不描边、不铺底、取中性 --color-muted
+    // （改造前是 1px --color-border 描边 + --color-surface 实心底，而实心底与面板头底
+    //   完全相同 1.00:1、描边只有 1.40:1，那个"框"在视觉上并不成立）
+    const resting = await button.evaluate((element) => {
+      const style = getComputedStyle(element)
+      return {
+        borderWidth: style.borderTopWidth,
+        background: style.backgroundColor,
+        color: style.color,
+      }
+    })
+    expect(resting.borderWidth).toBe('0px')
+    expect(resting.background).toBe('rgba(0, 0, 0, 0)')
+    expect(resting.color).toBe('rgb(142, 154, 170)')
+
+    // 视觉高度 32px，触控热区用 ::after 负数 inset 外扩到 44px；
+    // 面板头 min-height 同步为 44px，热区才真正落在可点范围内而不是被容器截断
+    const touchTarget = await button.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      const after = getComputedStyle(element, '::after')
+      const x = box.left + box.width / 2
+      return {
+        height: box.height - parseFloat(after.top) - parseFloat(after.bottom),
+        // 行为层证据：按钮视觉边界之外 5px 仍应命中它本身
+        above: document.elementFromPoint(x, box.top - 5)?.closest('.copy-button') !== null,
+        below: document.elementFromPoint(x, box.bottom + 5)?.closest('.copy-button') !== null,
+      }
+    })
+    expect(touchTarget.height).toBeGreaterThanOrEqual(44 - geometryEpsilon)
+    expect(touchTarget.above).toBe(true)
+    expect(touchTarget.below).toBe(true)
+
+    // 悬停：只加中性浮层，文字转为 --color-text，全程不出现强调色
+    await button.hover()
+    await page.waitForTimeout(150)
+    const hover = await button.evaluate((element) => {
+      const style = getComputedStyle(element)
+      return { background: style.backgroundColor, color: style.color }
+    })
+    expect(hover.background).toBe(HOVER_OVERLAY)
+    expect(hover.color).toBe('rgb(215, 222, 232)')
+
+    // 成功：按钮就地变绿勾「已复制」，不弹浮窗，约 2 秒后自行回到静止态
+    await button.click()
+    await expect(button).toHaveClass(/is-copied/)
+    await expect(page.locator('.copy-toast')).toHaveCount(0)
+    // 颜色有 120ms 过渡：用 toHaveCSS 自动重试到终值，避免读到过渡中间色
+    await expect(button).toHaveCSS('color', 'rgb(120, 214, 163)')
+    const copiedLabel = await button.evaluate(
+      (element) => element.querySelector('.copy-button-label > span:not(.is-hidden)')?.textContent,
+    )
+    expect(copiedLabel).toBe('已复制')
+    await expect(button).not.toHaveClass(/is-copied/, { timeout: 4000 })
+
+    // 失败：按钮不进"已复制"，浮窗仍在并贴合按钮右缘
+    await page.evaluate(() => {
+      navigator.clipboard.writeText = () => Promise.reject(new Error('测试用拒绝'))
+    })
+    await button.click()
+    const toast = page.locator('.copy-toast')
+    await expect(toast).toContainText('复制失败')
+    const failureVisual = await toast.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const control = element.parentElement!.getBoundingClientRect()
+      const box = element.getBoundingClientRect()
+      return {
+        background: style.backgroundColor,
+        rightGap: Math.abs(control.right - box.right),
+      }
+    })
+    expect(failureVisual.background).toBe('rgb(112, 58, 48)')
+    expect(failureVisual.rightGap).toBeLessThanOrEqual(1)
+    await expect(button).not.toHaveClass(/is-copied/)
   })
 
   test('停止输入约 500ms 后显示保存时间（AC-TPL-05、FR-SAVE-03/04）', async ({ page }) => {
@@ -562,8 +637,9 @@ test.describe('模板、保存与复制', () => {
 
     await page.getByTitle('新建模板').click()
     await page.getByRole('button', { name: '恢复默认示例' }).click()
-    await page.getByRole('button', { name: '复制 BBCode' }).click()
-    await expect(page.locator('.copy-toast')).toHaveText('已复制')
+    const copyButton = page.getByRole('button', { name: '复制 BBCode' })
+    await copyButton.click()
+    await expect(copyButton).toHaveClass(/is-copied/)
     await page.waitForTimeout(300)
 
     for (const request of externalRequests) {

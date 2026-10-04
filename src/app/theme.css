@@ -1075,18 +1075,70 @@ h2 {
   position: relative;
   display: inline-flex;
 }
+/* 复制 BBCode：无框图标按钮。并入全工作台统一的悬停语言
+   （docs/ui-icon-system.md §8）：静止不描边、不铺底，悬停只加中性浮层，
+   强调色留给"选中 / 活动"和键盘焦点。
+   原先是 1px `--color-border` 描边 + `--color-surface` 实心底，但该实心底与所在
+   面板头底完全相同（2026-10-04 实测 1.00:1），描边只有 1.40:1（深色）/
+   1.54:1（浅色）——那个"框"在视觉上并不成立，只把面板头点成一个孤立方块。 */
 .copy-button {
-  padding: 4px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  color: var(--color-text);
-  background: var(--color-surface);
-  font-size: 12px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  color: var(--color-muted);
+  background: transparent;
+  font-size: 13px;
   cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+/* 触控目标补到 44px：视觉高度保持 32px，热区用伪元素外扩，不撑高 42px 的面板头
+   （docs/ui-icon-system.md §4.1）。 */
+.copy-button::after {
+  content: '';
+  position: absolute;
+  inset: -6px -4px;
 }
 .copy-button:hover {
-  background: var(--color-surface-raised);
+  color: var(--color-text);
+  background: var(--control-hover-background);
 }
+/* 按下用比悬停更强的一层中性浮层，文字色不变：既与工具栏的按压反馈同级，
+   又避开"强调色实心 + 浅色文字"在浅色主题下 3.28:1 的不达标组合。 */
+.copy-button:active {
+  background: var(--color-divider-strong);
+}
+.copy-button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.copy-button.is-copied {
+  color: var(--color-success);
+}
+/* 两种状态的文字叠在同一格里：按钮宽度由较长的一条决定，
+   「复制 BBCode」与「已复制」互相切换时不产生位移。 */
+.copy-button-label {
+  display: inline-grid;
+  justify-items: center;
+  white-space: nowrap;
+}
+.copy-button-label > span {
+  grid-area: 1 / 1;
+}
+.copy-button-label .is-hidden {
+  visibility: hidden;
+}
+/* 失败提示浮窗。成功反馈已改成按钮就地显示，这里只承载失败原因：按钮内放不下
+   完整说明。配色沿用 `--color-danger-surface(-text)`，实测 7.55:1（深色）/
+   6.55:1（浅色）。 */
 .copy-toast {
   position: absolute;
   top: calc(100% + 8px);
@@ -1097,6 +1149,8 @@ h2 {
   padding: 8px 12px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
+  color: var(--color-danger-surface-text);
+  background: var(--color-danger-surface);
   font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
@@ -1117,15 +1171,6 @@ h2 {
 .copy-toast-leave-to {
   opacity: 0;
   transform: translateY(-6px) scale(0.96);
-}
-.copy-toast--success {
-  border-color: var(--color-accent);
-  color: var(--color-background);
-  background: var(--color-accent);
-}
-.copy-toast--failure {
-  color: var(--color-danger-surface-text);
-  background: var(--color-danger-surface);
 }
 .save-status--saved {
   color: var(--color-success);
@@ -1148,7 +1193,10 @@ h2 {
   min-height: 0;
 }
 .panel-header {
-  min-height: 42px;
+  /* 44px 而非 42px：与窄屏 .mobile-template-trigger 的 44×44 取齐（此前窄屏被它撑到
+     44px、桌面端只有 42px，本身就不一致），并让面板头里的复制按钮能把触控热区补满
+     44px——见 docs/ui-icon-system.md §9。 */
+  min-height: 44px;
   padding: 0 14px;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);

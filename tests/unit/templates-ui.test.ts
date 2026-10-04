@@ -227,42 +227,76 @@ describe('复制按钮组件', () => {
     Object.defineProperty(navigator, 'clipboard', { value, configurable: true })
   }
 
+  /** 按钮里两种状态的文案常量叠加，取当前没有被 is-hidden 藏起来的那一条。 */
+  function visibleLabel(button: DOMWrapper<Element>) {
+    return button.get('.copy-button-label > span:not(.is-hidden)').text()
+  }
+
   afterEach(() => {
     if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard)
     else delete (navigator as { clipboard?: unknown }).clipboard
     vi.useRealTimers()
   })
 
-  it('成功复制逐字节内容并显示 2 秒浮窗（FR-COPY-01/02）', async () => {
+  it('成功复制逐字节内容，并在按钮上就地反馈 2 秒（FR-COPY-01/02）', async () => {
     vi.useFakeTimers()
     const writeText = vi.fn().mockResolvedValue(undefined)
     setClipboard({ writeText })
     const source = '第一行😀\n[b]第二行[/b]'
     const wrapper = mount(CopyButton, { props: { source } })
 
-    await wrapper.get('button.copy-button').trigger('click')
+    const button = wrapper.get('button.copy-button')
+    // 两种状态的文案常驻 DOM、互相隐藏，按钮宽度由较长的一条决定，切换不产生位移
+    expect(button.classes()).not.toContain('is-copied')
+    expect(visibleLabel(button)).toBe('复制 BBCode')
+    expect(button.findAll('.copy-button-label > span')).toHaveLength(2)
+
+    await button.trigger('click')
     await flushPromises()
 
     expect(writeText).toHaveBeenCalledWith(source)
-    const toast = wrapper.get('.copy-toast')
-    expect(toast.text()).toBe('已复制')
-    expect(toast.classes()).toContain('copy-toast--success')
+    // 成功反馈落在按钮自身，不再弹出浮窗（2026-10-04 所有者裁定）
+    expect(wrapper.find('.copy-toast').exists()).toBe(false)
+    expect(button.classes()).toContain('is-copied')
+    expect(visibleLabel(button)).toBe('已复制')
+    // 可访问名称保持稳定，状态变化由常驻 live region 播报
+    expect(button.attributes('aria-label')).toBe('复制 BBCode')
+    expect(wrapper.get('.visually-hidden').text()).toBe('已复制')
 
     await vi.advanceTimersByTimeAsync(2000)
-    expect(wrapper.find('.copy-toast').exists()).toBe(false)
+    expect(button.classes()).not.toContain('is-copied')
+    expect(visibleLabel(button)).toBe('复制 BBCode')
+    expect(wrapper.get('.visually-hidden').text()).toBe('')
   })
 
   it('复制被拒绝时显示失败反馈而不是成功（FR-COPY-03）', async () => {
     setClipboard({ writeText: vi.fn().mockRejectedValue(new Error('权限被拒绝')) })
     const wrapper = mount(CopyButton, { props: { source: '原文' } })
 
-    await wrapper.get('button.copy-button').trigger('click')
+    const button = wrapper.get('button.copy-button')
+    await button.trigger('click')
     await flushPromises()
 
     const toast = wrapper.get('.copy-toast')
     expect(toast.text()).toContain('复制失败')
     expect(toast.text()).not.toContain('已复制')
-    expect(toast.classes()).toContain('copy-toast--failure')
+    // 失败不进"已复制"状态；浮窗只负责视觉呈现，播报由常驻 live region 承担
+    expect(button.classes()).not.toContain('is-copied')
+    expect(toast.attributes('aria-hidden')).toBe('true')
+    expect(wrapper.get('.visually-hidden').text()).toContain('复制失败')
+  })
+
+  it('失败浮窗沿用 2 秒后收起的时长（FR-COPY-03）', async () => {
+    vi.useFakeTimers()
+    setClipboard({ writeText: vi.fn().mockRejectedValue(new Error('权限被拒绝')) })
+    const wrapper = mount(CopyButton, { props: { source: '原文' } })
+
+    await wrapper.get('button.copy-button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.copy-toast').exists()).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(wrapper.find('.copy-toast').exists()).toBe(false)
   })
 
   it('缺少剪贴板能力时明确失败，不做静默降级（NFR-BR-03）', async () => {
