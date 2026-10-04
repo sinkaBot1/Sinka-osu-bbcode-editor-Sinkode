@@ -89,7 +89,7 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
 
 前置条件：仓库已经按批准转为**公开**；`main` 分支上的 CI 已通过。
 
-1. **确认构建路径正确**：本项目以项目页形式发布，地址形如 `https://<用户名>.github.io/Sinka-osu-bbcode-editor/`，因此构建时需要把资源路径前缀设置成仓库名。发布前这一步由发布任务统一处理，并在本文件记录实际使用的命令与结果。
+1. **确认构建路径正确**：本项目以项目页形式发布，地址形如 `https://<用户名>.github.io/Sinka-osu-bbcode-editor-Sinkode/`，因此构建时需要把资源路径前缀设置成仓库名。发布前这一步由发布任务统一处理，并在本文件记录实际使用的命令与结果。
 2. **配置 Pages 来源**：仓库 → **Settings** → **Pages** → Source 选择 **GitHub Actions**（不要选 “Deploy from a branch”，否则不会用到下面的工作流）。
 3. **添加部署工作流**：新增 `.github/workflows/pages.yml`，职责是 `npm ci` → `npm run build` → 上传 `dist/` → 部署到 Pages；部署任务只申请 Pages 需要的权限（`pages: write`、`id-token: write`），构建任务保持只读。
 4. **触发并观察**：推送 `main` 后，Actions 里应出现构建与部署两个任务；部署完成后 Pages 页面会显示站点地址。

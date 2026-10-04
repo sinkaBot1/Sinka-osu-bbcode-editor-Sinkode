@@ -609,8 +609,8 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               href="https://osu.ppy.sh/users/21614712"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="在 osu! 打开 Sinkode 的主页（新标签页）"
-              title="在 osu! 打开 Sinkode 的主页"
+              aria-label="在 osu! 打开 SINKA0 的主页（新标签页）"
+              title="在 osu! 打开 SINKA0 的主页"
             >
               <img
                 class="brand-symbol"
@@ -632,10 +632,12 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
           </div>
           <nav class="app-header-actions" aria-label="工作台入口">
             <span class="app-header-actions-divider" aria-hidden="true"></span>
+            <!-- 指向发布仓库 sinkaBot1/Sinka-osu-bbcode-editor-Sinkode（2026-10-04 所有者确认）：
+                 第一版的 sinkaBot1/Sinka-osu-bbcode-editor 是旧仓库，不是发布地址。 -->
             <a
               class="header-action header-action-icon"
               data-icon="github-mark"
-              href="https://github.com/sinkaBot1/Sinka-osu-bbcode-editor"
+              href="https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="在 GitHub 打开项目仓库（新标签页）"

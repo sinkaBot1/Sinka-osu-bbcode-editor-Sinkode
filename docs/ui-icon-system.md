@@ -124,7 +124,8 @@
 - 项目所有者提供原图：[图形标志](../logo/Sinkode-logo.png)、[字标](../logo/Sinkode-logo-name.png)。两张原图均为透明 1024×1024 PNG。
 - 运行时副本：[图形标志](../src/app/assets/sinkode-symbol.png)（403×423）、[字标](../src/app/assets/sinkode-wordmark.png)（813×156）仅裁去透明留白，逐像素核对相同，保持比例、像素内容和颜色。
 - 顶栏图形标志约 42px 高、字标约 28px 高，水平并排、垂直中心线偏差不超过 2px；窄屏入口允许换行，不裁切品牌图像。正式产品名保留为辅助技术可读的一级标题。
-- 顶栏图形标志与字标共同包在一个链接内，指向项目所有者的 osu! 主页：`https://osu.ppy.sh/users/21614712`（2026-10-03 由所有者提供并要求接入）。链接按[兼容性说明](compatibility.md)的 D-07 行为新标签页打开并带 `rel="noopener noreferrer"`；可访问名称与 `title` 为中文说明“在 osu! 打开 Sinkode 的主页”，悬停以 `filter: brightness(1.12)` 提亮、键盘焦点显示 2px 主题色焦点环，不新增配色令牌（悬停口径见 §8）。
+- 顶栏图形标志与字标共同包在一个链接内，指向项目所有者的 osu! 主页：`https://osu.ppy.sh/users/21614712`（2026-10-03 由所有者提供并要求接入）。链接按[兼容性说明](compatibility.md)的 D-07 行为新标签页打开并带 `rel="noopener noreferrer"`；可访问名称与 `title` 为中文说明“在 osu! 打开 SINKA0 的主页”，悬停以 `filter: brightness(1.12)` 提亮、键盘焦点显示 2px 主题色焦点环，不新增配色令牌（悬停口径见 §8）。
+- **名字口径（2026-10-04 所有者澄清）**：这个链接指向所有者**本人**的 osu! 主页，其 osu! 用户名是 `SINKA0`，因此可访问名称里的人名写 `SINKA0`；产品的正式名称始终是 `Sinkode`（本节素材命名、页面一级标题与 `LICENSE` 都按这个口径）。两者不可互换——此前文档与测试写成“打开 Sinkode 的主页”，等于把产品名当成了人名，已更正。
 - 验收依据：[头栏测试](../tests/e2e/header.spec.ts)覆盖图像加载、排列、对齐及 320/390/820/1440px 布局，并覆盖品牌链接的地址、`rel`、可访问名称、焦点环样式以及新标签页打开目标；当次人工像素核对与截图保存在开发过程中，不随本仓库发布。
 
 ## 7. 第三方品牌标志（GitHub，已接入顶栏）
@@ -134,7 +135,7 @@
 
 ### 7.1 用途与状态
 
-- 用途：点击打开项目 GitHub 仓库，地址为 `https://github.com/sinkaBot1/Sinka-osu-bbcode-editor`；按[兼容性说明](compatibility.md)的 D-07 行为新标签页打开并带 `rel="noopener noreferrer"`。
+- 用途：点击打开项目仓库，地址为 `https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode`（2026-10-04 由所有者确认该仓库即发布仓库，不是第一版的旧仓库）；按[兼容性说明](compatibility.md)的 D-07 行为新标签页打开并带 `rel="noopener noreferrer"`。
 - 该标志属于本文件的已记录例外：品牌标志必须原样使用，不适用第 4.1 节的单一线条图标风格规则；已在 §3 映射表登记条目。
 - 接入形态（2026-10-03）：位于顶栏动作区最左侧，`44px × 44px` 可操作区域，图形本体 `18px`；中文 `aria-label` 与 `title` 为“在 GitHub 打开项目仓库”（`aria-label` 另注明新标签页）；窄屏下与帮助、主题入口一起换行，不裁切、不横向溢出。
 - 颜色实现：素材保持上游原样（其 `fill` 为固定黑色，深色主题下不可见），改用图形自身作遮罩、以 `currentcolor` 上色，因此不新增配色令牌；悬停不改色，理由见 7.4；焦点沿用顶栏 2px 主题色焦点环。

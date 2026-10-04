@@ -2,9 +2,11 @@ import { expect, test, type Page } from '@playwright/test'
 import { installNetworkIsolation } from './helpers'
 
 const osProfileUrl = 'https://osu.ppy.sh/users/21614712'
-const OS_PROFILE_LINK_NAME = '在 osu! 打开 Sinkode 的主页（新标签页）'
-const OS_PROFILE_TITLE = '在 osu! 打开 Sinkode 的主页'
-const repositoryUrl = 'https://github.com/sinkaBot1/Sinka-osu-bbcode-editor'
+// 这个链接指向所有者本人的 osu! 主页，其 osu! 用户名是 SINKA0；
+// Sinkode 是产品名，两者不可互换（见 docs/ui-icon-system.md §6.2 的名字口径）。
+const OS_PROFILE_LINK_NAME = '在 osu! 打开 SINKA0 的主页（新标签页）'
+const OS_PROFILE_TITLE = '在 osu! 打开 SINKA0 的主页'
+const repositoryUrl = 'https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode'
 const REPOSITORY_LINK_NAME = '在 GitHub 打开项目仓库（新标签页）'
 const REPOSITORY_TITLE = '在 GitHub 打开项目仓库'
 const HOVER_OVERLAY = 'rgba(215, 222, 232, 0.09)'

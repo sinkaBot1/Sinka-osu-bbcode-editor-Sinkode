@@ -159,6 +159,7 @@ logo/                品牌素材（仅 PNG）
 ## 部署与发布现状
 
 - 第一版计划通过 GitHub Pages 以 HTTPS 静态站点发布，步骤、判读与回滚写在[部署说明](docs/deployment.md)。
+- 本仓库（`sinkaBot1/Sinka-osu-bbcode-editor-Sinkode`）同时也是**发布仓库**：2026-10-04 由项目所有者确认。第一版的旧仓库（`sinkaBot1/Sinka-osu-bbcode-editor`）不是发布仓库，头栏的 GitHub 入口与文档里的仓库地址都统一指向本仓库。
 - 本仓库目前**尚未发布在线站点**，Pages 也尚未启用；启用前需要在 `vite.config.ts` 设置与仓库名一致的资源路径前缀 `/Sinka-osu-bbcode-editor-Sinkode/`，并同步 Playwright 预览配置里的地址，否则线上会出现空白页。该步骤与验证结果必须在真正上线时补入部署说明。
 
 ## 遇到问题

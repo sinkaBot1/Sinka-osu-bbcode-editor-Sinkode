@@ -1,6 +1,6 @@
 # 隐私说明
 
-> 适用范围：`osu! BBCode Editor | Sinkode`（仓库 `Sinka-osu-bbcode-editor`，以下简称“本工具”）。
+> 适用范围：`osu! BBCode Editor | Sinkode`（仓库 `Sinka-osu-bbcode-editor-Sinkode`，以下简称“本工具”）。
 > 状态：随第一版交付；公开上线前如有变化，必须同步更新本文件并说明生效日期。
 
 ## 一句话结论
