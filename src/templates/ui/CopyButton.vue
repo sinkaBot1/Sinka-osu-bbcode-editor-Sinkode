@@ -74,11 +74,15 @@ onBeforeUnmount(clearTimer)
       title="复制 BBCode 原文"
       @click="copySource"
     >
-      <Check v-if="copied" :size="16" :stroke-width="2" aria-hidden="true" />
-      <Copy v-else :size="16" :stroke-width="2" aria-hidden="true" />
+      <!-- 两条图标常驻 DOM、叠在同一格：v-if 换 DOM 会让非活动那条不在渲染树里，
+           没有可动画对象（docs/ui-icon-system.md §10）。显隐由 .is-copied 驱动。 -->
+      <span class="copy-icon" aria-hidden="true">
+        <Copy :size="16" :stroke-width="2" />
+        <Check :size="16" :stroke-width="2" />
+      </span>
       <span class="copy-button-label" aria-hidden="true">
-        <span :class="{ 'is-hidden': copied }">复制 BBCode</span>
-        <span :class="{ 'is-hidden': !copied }">已复制</span>
+        <span class="label-idle">复制 BBCode</span>
+        <span class="label-copied">已复制</span>
       </span>
     </button>
     <Transition name="copy-toast">

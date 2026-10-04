@@ -503,10 +503,8 @@ test.describe('模板、保存与复制', () => {
     // 成功反馈落在按钮自身：换成对勾与「已复制」，不再出现浮窗（2026-10-04 所有者裁定）
     await expect(copyButton).toHaveClass(/is-copied/)
     await expect(page.locator('.copy-toast')).toHaveCount(0)
-    const copiedLabel = await copyButton.evaluate(
-      (element) => element.querySelector('.copy-button-label > span:not(.is-hidden)')?.textContent,
-    )
-    expect(copiedLabel).toBe('已复制')
+    const copiedLabel = await copyButton.locator('.copy-button-label').textContent()
+    expect(copiedLabel).toBe('复制 BBCode已复制')
 
     const copied = await page.evaluate(
       () => (window as unknown as { __copiedText?: string }).__copiedText,
@@ -572,10 +570,17 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.copy-toast')).toHaveCount(0)
     // 颜色有 120ms 过渡：用 toHaveCSS 自动重试到终值，避免读到过渡中间色
     await expect(button).toHaveCSS('color', 'rgb(120, 214, 163)')
-    const copiedLabel = await button.evaluate(
-      (element) => element.querySelector('.copy-button-label > span:not(.is-hidden)')?.textContent,
-    )
-    expect(copiedLabel).toBe('已复制')
+    // 图标描边是 currentColor，必须跟着一起转绿，不能只有文字变绿
+    await expect(button.locator('.copy-icon > svg').last()).toHaveCSS('color', 'rgb(120, 214, 163)')
+    // 两条图标与两条文案都常驻 DOM，切换状态不做增删，动画才有稳定对象
+    expect(
+      await button.evaluate((element) => ({
+        icons: element.querySelectorAll('.copy-icon > svg').length,
+        labels: element.querySelectorAll('.copy-button-label > span').length,
+      })),
+    ).toEqual({ icons: 2, labels: 2 })
+    const copiedLabel = await button.locator('.copy-button-label').textContent()
+    expect(copiedLabel).toBe('复制 BBCode已复制')
     await expect(button).not.toHaveClass(/is-copied/, { timeout: 4000 })
 
     // 失败：按钮不进"已复制"，浮窗仍在并贴合按钮右缘
@@ -597,6 +602,117 @@ test.describe('模板、保存与复制', () => {
     expect(failureVisual.background).toBe('rgb(112, 58, 48)')
     expect(failureVisual.rightGap).toBeLessThanOrEqual(1)
     await expect(button).not.toHaveClass(/is-copied/)
+  })
+
+  test('复制按钮成功时就地反馈，渐出用退出时长（2026-10-05 动效接入）', async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await openEditor(page)
+    const button = page.getByRole('button', { name: '复制 BBCode' })
+    const check = button.locator('.copy-icon > svg').last()
+
+    // 静止态：复制图标在位；对勾收起（缩到 60%、逆时针偏 24°）且不可见
+    const resting = await button.evaluate((element) => {
+      const icons = element.querySelectorAll('.copy-icon > svg')
+      const idle = getComputedStyle(icons[0] as Element)
+      const done = getComputedStyle(icons[1] as Element)
+      return {
+        idleOpacity: idle.opacity,
+        doneOpacity: done.opacity,
+        doneTransform: done.transform,
+        doneVisibility: done.visibility,
+      }
+    })
+    expect(resting.idleOpacity).toBe('1')
+    expect(resting.doneOpacity).toBe('0')
+    expect(resting.doneVisibility).toBe('hidden')
+    // 缩放 0.6 + 旋转 -24°：matrix(a, b, c, d, e, f)
+    expect(resting.doneTransform.startsWith('matrix(')).toBe(true)
+    const restingMatrix = resting.doneTransform
+      .replace('matrix(', '')
+      .replace(')', '')
+      .split(', ')
+      .map(Number)
+    expect(restingMatrix[0]).toBeCloseTo(0.6 * Math.cos((-24 * Math.PI) / 180), 2)
+    expect(restingMatrix[1]).toBeCloseTo(0.6 * Math.sin((-24 * Math.PI) / 180), 2)
+    const idleBox = await button.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      return { x: box.x, width: box.width }
+    })
+
+    // 过渡时长读 CSSOM 规则，而不是读"过渡中"的计算值：
+    // 动画一旦结束，computed transition-duration 会回到 0s，读它本身就是不可靠的断言。
+    // 这里锁定进入 260ms／退出 180ms 的分工——渐出不会误取进入时长。
+    const durations = await page.evaluate(() => {
+      const readDuration = (selector: string) => {
+        for (const sheet of document.styleSheets) {
+          for (const item of sheet.cssRules) {
+            if (item instanceof CSSStyleRule && item.selectorText === selector) {
+              return item.style.transitionDuration
+            }
+          }
+        }
+        return null
+      }
+      return {
+        checkEnter: readDuration('.copy-button.is-copied .copy-icon > svg:last-child'),
+        iconExit: readDuration('.copy-button.is-copied .copy-icon > svg:first-child'),
+        idleLabel: readDuration('.copy-button-label .label-idle'),
+        copiedLabelEnter: readDuration('.copy-button.is-copied .copy-button-label .label-copied'),
+      }
+    })
+    expect(durations.checkEnter).toBe('260ms, 260ms')
+    expect(durations.iconExit).toBe('180ms, 180ms')
+    expect(durations.idleLabel).toBe('180ms, 180ms')
+    expect(durations.copiedLabelEnter).toBe('260ms, 260ms')
+
+    // 按下回弹：只改 transform，松手回到 none，热区与排版不变
+    await button.hover()
+    await page.mouse.down()
+    await expect
+      .poll(() => button.evaluate((element) => getComputedStyle(element).transform))
+      .not.toBe('none')
+    await page.mouse.up()
+    await expect
+      .poll(() => button.evaluate((element) => getComputedStyle(element).transform))
+      .toBe('none')
+
+    // 位移为零：切换状态前后按钮盒子的位置与宽度完全一致
+    const boxOf = () =>
+      button.evaluate((element) => {
+        const box = element.getBoundingClientRect()
+        return { x: box.x, width: box.width }
+      })
+    await button.click()
+    await expect(button).toHaveClass(/is-copied/)
+    await expect(check).toHaveCSS('opacity', '1')
+    // 终态落在 scale(1) rotate(0)，即单位矩阵
+    await expect
+      .poll(() => check.evaluate((element) => getComputedStyle(element).transform))
+      .toBe('matrix(1, 0, 0, 1, 0, 0)')
+    await expect(page.locator('.copy-button-label .label-copied')).toHaveCSS('transform', 'none')
+    // 等 260ms／180ms 的过渡走完再量盒子：过渡期间量宽度会读到中间态
+    await page.waitForTimeout(400)
+    const copiedBox = await boxOf()
+    expect(copiedBox.x).toBeCloseTo(idleBox.x, 2)
+    expect(copiedBox.width).toBeCloseTo(idleBox.width, 2)
+
+    // 低动态效果：反馈照常出现，只是不再运动。低动态块写在文件末尾，
+    // 选择器特异性相同（都是 0,2,1）时后者胜出，所以这里读计算值是可靠的。
+    // transition-duration 归一为单值，与源规则里的两个时长写法不同，属正常。
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await expect(check).toHaveCSS('transition-duration', '1e-05s')
+    await expect(page.locator('.copy-button-label .label-copied')).toHaveCSS(
+      'transition-duration',
+      '1e-05s',
+    )
+    await page.mouse.down()
+    await expect
+      .poll(() => button.evaluate((element) => getComputedStyle(element).transform))
+      .toBe('none')
+    await page.mouse.up()
   })
 
   test('停止输入约 500ms 后显示保存时间（AC-TPL-05、FR-SAVE-03/04）', async ({ page }) => {

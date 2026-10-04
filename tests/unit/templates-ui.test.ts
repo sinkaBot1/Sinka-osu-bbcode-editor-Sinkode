@@ -227,9 +227,14 @@ describe('复制按钮组件', () => {
     Object.defineProperty(navigator, 'clipboard', { value, configurable: true })
   }
 
-  /** 按钮里两种状态的文案常量叠加，取当前没有被 is-hidden 藏起来的那一条。 */
+  /**
+   * 两种状态的文案叠加在同一格里，靠 `.is-copied` 决定哪条可见。
+   * jsdom 不加载 theme.css，读不到计算样式，所以按状态类读取当前可见的那条
+   * （docs/ui-icon-system.md §10.2）。
+   */
   function visibleLabel(button: DOMWrapper<Element>) {
-    return button.get('.copy-button-label > span:not(.is-hidden)').text()
+    const active = button.classes().includes('is-copied') ? '.label-copied' : '.label-idle'
+    return button.get(`.copy-button-label > ${active}`).text()
   }
 
   afterEach(() => {
@@ -246,10 +251,13 @@ describe('复制按钮组件', () => {
     const wrapper = mount(CopyButton, { props: { source } })
 
     const button = wrapper.get('button.copy-button')
-    // 两种状态的文案常驻 DOM、互相隐藏，按钮宽度由较长的一条决定，切换不产生位移
+    // 两条图标与两条文案**都常驻 DOM**、叠在同一格：换状态时不做增删，
+    // 动画与"切换不产生位移"才有稳定的对象（docs/ui-icon-system.md §10.2）
     expect(button.classes()).not.toContain('is-copied')
     expect(visibleLabel(button)).toBe('复制 BBCode')
     expect(button.findAll('.copy-button-label > span')).toHaveLength(2)
+    expect(button.findAll('.copy-icon > svg')).toHaveLength(2)
+    expect(button.find('.copy-icon').attributes('aria-hidden')).toBe('true')
 
     await button.trigger('click')
     await flushPromises()
@@ -259,6 +267,9 @@ describe('复制按钮组件', () => {
     expect(wrapper.find('.copy-toast').exists()).toBe(false)
     expect(button.classes()).toContain('is-copied')
     expect(visibleLabel(button)).toBe('已复制')
+    // 状态切换只改类名，图标与文案节点数量不变
+    expect(button.findAll('.copy-icon > svg')).toHaveLength(2)
+    expect(button.findAll('.copy-button-label > span')).toHaveLength(2)
     // 可访问名称保持稳定，状态变化由常驻 live region 播报
     expect(button.attributes('aria-label')).toBe('复制 BBCode')
     expect(wrapper.get('.visually-hidden').text()).toBe('已复制')

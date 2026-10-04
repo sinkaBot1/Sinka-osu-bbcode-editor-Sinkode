@@ -1096,9 +1096,11 @@ h2 {
   font-size: 13px;
   cursor: pointer;
   touch-action: manipulation;
+  /* 90ms 的按下回弹：只改绘制，不改热区与排版（docs/ui-icon-system.md §10.1） */
   transition:
     background-color 120ms ease,
-    color 120ms ease;
+    color 120ms ease,
+    transform 90ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* 触控目标补到 44px：视觉高度保持 32px，热区用伪元素外扩，不撑高 42px 的面板头
    （docs/ui-icon-system.md §4.1）。 */
@@ -1115,6 +1117,8 @@ h2 {
    又避开"强调色实心 + 浅色文字"在浅色主题下 3.28:1 的不达标组合。 */
 .copy-button:active {
   background: var(--color-divider-strong);
+  /* 按下回弹：只改 transform。这里不重写 transition，否则松手时会瞬间跳回。 */
+  transform: scale(0.97);
 }
 .copy-button:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -1123,8 +1127,35 @@ h2 {
 .copy-button.is-copied {
   color: var(--color-success);
 }
+/* 两条图标常驻 DOM、叠在同一格：换图标时有可动画对象，且不产生位移
+   （docs/ui-icon-system.md §10.2）。状态规则必须写在静止规则之后——
+   两处选择器同特异性时后写的胜出。 */
+.copy-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+.copy-icon > svg {
+  grid-area: 1 / 1;
+  display: block;
+}
+/* 静止：复制图标在位，对勾缩到 60% 并逆时针偏 24° 备用 */
+.copy-icon > svg:first-child {
+  opacity: 1;
+  transition:
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copy-icon > svg:last-child {
+  opacity: 0;
+  transform: scale(0.6) rotate(-24deg);
+  visibility: hidden;
+}
 /* 两种状态的文字叠在同一格里：按钮宽度由较长的一条决定，
-   「复制 BBCode」与「已复制」互相切换时不产生位移。 */
+   「复制 BBCode」与「已复制」互相切换时不产生位移。
+   渐出时长取当前可见那条的 transition，渐入取即将出现那条的（§10.2）。 */
 .copy-button-label {
   display: inline-grid;
   justify-items: center;
@@ -1133,8 +1164,52 @@ h2 {
 .copy-button-label > span {
   grid-area: 1 / 1;
 }
-.copy-button-label .is-hidden {
+.copy-button-label .label-idle {
+  opacity: 1;
+  transition:
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copy-button-label .label-copied {
+  opacity: 0;
+  transform: translateY(2px);
   visibility: hidden;
+}
+/* 已复制：对勾从 60% / -24° 弹出，原图标缩到 85% 淡出，
+   「已复制」从下方 2px 浮起、原文案上移 2px 淡出 */
+.copy-button.is-copied .copy-icon > svg {
+  /* 图标描边是 currentColor，要单独把颜色转到成功色，否则只有文字变绿 */
+  color: var(--color-success);
+}
+.copy-button.is-copied .copy-icon > svg:last-child {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  visibility: visible;
+  transition:
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copy-button.is-copied .copy-icon > svg:first-child {
+  opacity: 0;
+  transform: scale(0.85);
+  transition:
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copy-button.is-copied .copy-button-label .label-idle {
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copy-button.is-copied .copy-button-label .label-copied {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  transition:
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* 失败提示浮窗。成功反馈已改成按钮就地显示，这里只承载失败原因：按钮内放不下
    完整说明。配色沿用 `--color-danger-surface(-text)`，实测 7.55:1（深色）/
@@ -2033,6 +2108,17 @@ h2 {
   .template-drawer-backdrop,
   .template-drawer {
     transition-duration: 0.01ms;
+  }
+
+  /* 复制按钮的按下回弹与对勾弹出（docs/ui-icon-system.md §10.2）：
+     反馈照常出现，只是不再运动。 */
+  .copy-button,
+  .copy-button .copy-icon > svg,
+  .copy-button .copy-button-label > span {
+    transition-duration: 0.01ms;
+  }
+  .copy-button:active {
+    transform: none;
   }
 }
 
