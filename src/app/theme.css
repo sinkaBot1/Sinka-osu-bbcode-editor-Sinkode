@@ -253,9 +253,20 @@
   --preview-tooltip-text: #fff;
 
   /* 编辑器与语法高亮。六个语法色的深色取值在浅色底上只有 1.42:1 ~ 3.41:1
-     （最差的等号黄几乎不可见），因此按浅色底整体重新取色，均 ≥ 4.5:1。 */
+     （最差的等号黄几乎不可见），因此按浅色底整体重新取色。
+     2026-10-10 授权修订（所有者选定「方案 C｜暖调加强（不引入冷色）」，
+     随后按同日追加要求把结构符改回彩色）：
+     初版取值虽六色都 ≥ 4.5:1，但明度全挤在 L=0.484~0.549、色相全在暖区，
+     标签名饱和度只有 0.066（几乎无色），斜杠与等号的 OKLab ΔE 仅 4.92，
+     形成"上了色却看不出重点"；而正文 #141413 的 17.50:1 反比所有高亮更重。
+     结构符（[ ] / =）先试过中性暖灰，但所有者认为结构符号是 BBCode 的主要
+     标记、应当突出其对比，因此三类结构符统一取鲜明紫罗兰 #8b54d5：
+     对底 4.60:1，回到文字口径；与标签名、参数、无效标签、正文的 ΔE 分别为
+     28.5 / 28.1 / 28.1 / 42.6，六个语法色互不混淆。标签名、参数、无效标签
+     维持各自取到的"该色相在 #faf9f5 上、4.6:1 时 sRGB 色域内可达的饱和度上限"。
+     色相骨架为暖调加紫，不引入蓝/青等冷色。规则与实测见 docs/theme.md。 */
   --editor-caret: #141413;
-  --editor-active-line: #efe9de;
+  --editor-active-line: #e9dfc9;
   --editor-tooltip-background: #ffffff;
   --editor-tooltip-border: #d5cab8;
   --editor-tooltip-text: #141413;
@@ -263,12 +274,12 @@
   --editor-tooltip-selected-text: #141413;
   --editor-completion-detail: #6c6a64;
   --editor-completion-icon: #a9583e;
-  --syntax-bracket: #8a4a86;
-  --syntax-slash: #8a6d1f;
-  --syntax-tag: #2f6b5f;
-  --syntax-equals: #8a5a00;
-  --syntax-parameter: #a05236;
-  --syntax-invalid: #b93b3b;
+  --syntax-bracket: #8b54d5;
+  --syntax-slash: #8b54d5;
+  --syntax-tag: #00825d;
+  --syntax-equals: #8b54d5;
+  --syntax-parameter: #c04e00;
+  --syntax-invalid: #e40033;
 
   /* 滚动条与阴影：浅色下阴影从纯黑改为暖黑并大幅降低不透明度，否则显脏 */
   --scrollbar-track: #efe9de;
