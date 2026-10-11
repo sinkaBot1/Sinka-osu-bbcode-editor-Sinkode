@@ -13,7 +13,7 @@
 - `theme.css` 的 `:root` 保留一份**兜底副本**，供主题属性缺失的首帧与脱离主题挂载的组件使用。兜底取值当前等于 Darkode。
 - 主题 ID 与 `theme.css` 的块一一对应，常量在 `src/templates/storage/types.ts` 的 `DEFAULT_THEME_ID` 与 `THEMES`。
 
-**当前主题**：`Darkode`（深色，默认）与 `Claucode`（浅色）。
+**当前主题**：`Darkode`（深色，默认）、`Claucode`（浅色）、`Hollowcode`（深色，近纯黑底配琥珀金强调色，灵感来自绝区零 Hollow Zero 界面）。
 
 ### 1.1 令牌必须完整
 
@@ -33,29 +33,29 @@ Darkode 列一律填写**改动前的原值**，因此令牌化本身不产生�
 
 ### 2.1 工作台外壳
 
-| 令牌 | 作用 | Darkode | Claucode |
-| --- | --- | --- | --- |
-| `--color-background` | 工作区底色 | `#181b20` | `#f5f0e8` |
-| `--color-header` | 顶栏底色 | `#1e2228` | `#faf9f5` |
-| `--color-surface` | 面板底色 | `#20242b` | `#faf9f5` |
-| `--color-surface-raised` | 弹层/菜单底色 | `#272c34` | `#ffffff` |
-| `--color-border` | 描边 | `#353c47` | `#d5cab8` |
-| `--color-text` | 正文 | `#d7dee8` | `#141413` |
-| `--color-muted` | 次级文字 | `#8e9aaa` | `#6c6a64` |
-| `--color-accent` | 强调色（选中/活动/焦点环） | `#62b5ff` | `#cc785c` |
-| `--color-success` | 成功状态（含复制按钮的已复制态） | `#78d6a3` | `#357a44` |
+| 令牌 | 作用 | Darkode | Claucode | Hollowcode |
+| --- | --- | --- | --- | --- |
+| `--color-background` | 工作区底色 | `#181b20` | `#f5f0e8` | `#0c0d10` |
+| `--color-header` | 顶栏底色 | `#1e2228` | `#faf9f5` | `#111318` |
+| `--color-surface` | 面板底色 | `#20242b` | `#faf9f5` | `#14171c` |
+| `--color-surface-raised` | 弹层/菜单底色 | `#272c34` | `#ffffff` | `#1a1d24` |
+| `--color-border` | 描边 | `#353c47` | `#d5cab8` | `#282d38` |
+| `--color-text` | 正文 | `#d7dee8` | `#141413` | `#e4e8f2` |
+| `--color-muted` | 次级文字 | `#8e9aaa` | `#6c6a64` | `#7a8696` |
+| `--color-accent` | 强调色（选中/活动/焦点环） | `#62b5ff` | `#cc785c` | `#e8b84b` |
+| `--color-success` | 成功状态 | `#78d6a3` | `#357a44` | `#52c87c` |
 
 ### 2.2 语义令牌
 
-| 令牌 | 作用 | Darkode | Claucode |
-| --- | --- | --- | --- |
-| ◆ `--color-accent-text` | 强调色作**文字**的口径（预览链接） | `#62b5ff` | `#a9583e` |
-| ◆ `--color-on-accent` | 强调色底上的文字 | `#181b20` | `#ffffff` |
-| ◆ `--color-danger` | 错误状态 | `#f48771` | `#b93b3b` |
-| ◆ `--color-danger-hover` | 错误状态悬停 | `#ffad98` | `#8f2f2f` |
-| ◆ `--color-danger-surface` | 复制失败提示底色 | `#703a30` | `#f7e4e0` |
-| ◆ `--color-danger-surface-text` | 复制失败提示文字 | `#ffe6e0` | `#8f2f2f` |
-| ◆ `--color-diagnostic-location` | 诊断行的位置列 | `#c6cfdb` | `#3d3d3a` |
+| 令牌 | 作用 | Darkode | Claucode | Hollowcode |
+| --- | --- | --- | --- | --- |
+| ◆ `--color-accent-text` | 强调色作**文字**的口径（预览链接） | `#62b5ff` | `#a9583e` | `#c99830` |
+| ◆ `--color-on-accent` | 强调色底上的文字 | `#181b20` | `#ffffff` | `#0c0d10` |
+| ◆ `--color-danger` | 错误状态 | `#f48771` | `#b93b3b` | `#f48771` |
+| ◆ `--color-danger-hover` | 错误状态悬停 | `#ffad98` | `#8f2f2f` | `#ffad98` |
+| ◆ `--color-danger-surface` | 复制失败提示底色 | `#703a30` | `#f7e4e0` | `#703a30` |
+| ◆ `--color-danger-surface-text` | 复制失败提示文字 | `#ffe6e0` | `#8f2f2f` | `#ffe6e0` |
+| ◆ `--color-diagnostic-location` | 诊断行的位置列 | `#c6cfdb` | `#3d3d3a` | `#c6cfdb` |
 
 `--color-accent` 与 `--color-accent-text` 必须分开：Claude 的珊瑚色 `#cc785c` 在浅色纸面上只有 `3.11:1`，够做焦点环与选中条（图形 3:1），不够做正文级文字（文字需 4.5:1）。`--color-accent-text` 取加深值 `#a9583e`（`4.80:1`）。
 
@@ -63,40 +63,43 @@ Darkode 列一律填写**改动前的原值**，因此令牌化本身不产生�
 
 ### 2.3 中性层
 
-| 令牌 | 作用 | Darkode | Claucode |
-| --- | --- | --- | --- |
-| `--control-hover-background` | 统一悬停浮层 | `rgb(215 222 232 / 9%)` | `rgb(20 20 19 / 6%)` |
-| ◆ `--color-selection-background` | 选中态浮层 | `rgb(98 181 255 / 7%)` | `rgb(204 120 92 / 10%)` |
-| ◆ `--color-divider-strong` | 顶栏功能分隔线、复制按钮按下态浮层 | `rgb(215 222 232 / 16%)` | `rgb(20 20 19 / 16%)` |
-| ◆ `--color-resize-indicator` | 拖拽把手悬停 | `rgb(98 181 255 / 35%)` | `rgb(204 120 92 / 35%)` |
+| 令牌 | 作用 | Darkode | Claucode | Hollowcode |
+| --- | --- | --- | --- | --- |
+| `--control-hover-background` | 统一悬停浮层 | `rgb(215 222 232 / 9%)` | `rgb(20 20 19 / 6%)` | `rgb(228 232 242 / 9%)` |
+| ◆ `--color-selection-background` | 选中态浮层 | `rgb(98 181 255 / 7%)` | `rgb(204 120 92 / 10%)` | `rgb(232 184 75 / 7%)` |
+| ◆ `--color-divider-strong` | 顶栏功能分隔线、复制按钮按下态浮层 | `rgb(215 222 232 / 16%)` | `rgb(20 20 19 / 16%)` | `rgb(228 232 242 / 16%)` |
+| ◆ `--color-resize-indicator` | 拖拽把手悬停 | `rgb(98 181 255 / 35%)` | `rgb(204 120 92 / 35%)` | `rgb(232 184 75 / 35%)` |
 
 悬停仍然只提高背景亮度、不改描边颜色；强调色只用于"选中/活动"和键盘焦点环（口径见[图标规范 §8](ui-icon-system.md#8-工作台悬停与状态色2026-10-03-所有者要求)）。
 
 ### 2.4 外壳内嵌面
 
-| 令牌 | 作用 | Darkode | Claucode |
-| --- | --- | --- | --- |
-| ◆ `--shell-sidebar-background` | 模板栏、编辑器工具栏、诊断面板、行号栏、模板抽屉 | `#1b1f25` | `#efe9de` |
-| ◆ `--shell-inset-background` | 编辑器正文区、各输入框 | `#15181d` | `#faf9f5` |
-| ◆ `--shell-gutter-active` | 当前行行号 | `#252b33` | `#e8e0d2` |
-| ◆ `--shell-toolbar-group` | 工具栏分组底 | `rgb(32 36 43 / 74%)` | `rgb(250 249 245 / 74%)` |
+| 令牌 | 作用 | Darkode | Claucode | Hollowcode |
+| --- | --- | --- | --- | --- |
+| ◆ `--shell-sidebar-background` | 模板栏、编辑器工具栏、诊断面板、行号栏、模板抽屉 | `#1b1f25` | `#efe9de` | `#101318` |
+| ◆ `--shell-inset-background` | 编辑器正文区、各输入框 | `#15181d` | `#faf9f5` | `#0a0c0e` |
+| ◆ `--shell-gutter-active` | 当前行行号 | `#252b33` | `#e8e0d2` | `#161920` |
+| ◆ `--shell-toolbar-group` | 工具栏分组底 | `rgb(32 36 43 / 74%)` | `rgb(250 249 245 / 74%)` | `rgb(20 23 28 / 74%)` |
+| ◆ `--shell-divider-background` | 面板之间的水平分隔条 | `#171b21` | `#e8e0d2` | `#0e1014` |
+
+> `--shell-divider-background` 此前只在 `theme.css` 里声明、本清单漏列，2026-10-11 随 Hollowcode 一并补入；取值未改。
 
 浅色下各层之间的对比度天然很弱（画布与模板栏仅 `1.065:1`，编辑器与弹层仅 `1.053:1`）。分层由 1px 描边与阴影承担，**不要靠加深背景色来拉开层次**。
 
 ### 2.5 预览层
 
-| 令牌 | 作用 | Darkode | Claucode |
-| --- | --- | --- | --- |
-| ◆ `--preview-canvas-background` | 预览画布底 | `#111318` | `#e8e0d2` |
-| ◆ `--preview-card-background` | 预览内容卡片底 | `#20242b` | `#faf9f5` |
-| ◆ `--preview-card-border` | 预览内容卡片描边 | `#2d333c` | `#d5cab8` |
-| ◆ `--preview-iframe-background` | iframe 占位底 | `#0b0d10` | `#efe9de` |
-| ◆ `--preview-quote-text` | 引用块正文 | `#bdc8d6` | `#3d3d3a` |
-| ◆ `--preview-code-text` | 代码块文字 | `#d7dee8` | `#e8e0d2` |
-| `--preview-code-background` | 代码块底 | `#15181d` | `#181715` |
-| `--preview-heading` | 预览标题 | `#f1f5fa` | `#141413` |
-| `--preview-error-text` | 媒体失败提示 | `#f48771` | `#b93b3b` |
-| `--preview-box-title` | 折叠盒标题 | `var(--color-accent)` | `var(--color-accent)` |
+| 令牌 | 作用 | Darkode | Claucode | Hollowcode |
+| --- | --- | --- | --- | --- |
+| ◆ `--preview-canvas-background` | 预览画布底 | `#111318` | `#e8e0d2` | `#080a0c` |
+| ◆ `--preview-card-background` | 预览内容卡片底 | `#20242b` | `#faf9f5` | `#14171c` |
+| ◆ `--preview-card-border` | 预览内容卡片描边 | `#2d333c` | `#d5cab8` | `#222730` |
+| ◆ `--preview-iframe-background` | iframe 占位底 | `#0b0d10` | `#efe9de` | `#060709` |
+| ◆ `--preview-quote-text` | 引用块正文 | `#bdc8d6` | `#3d3d3a` | `#a8b4c4` |
+| ◆ `--preview-code-text` | 代码块文字 | `#d7dee8` | `#e8e0d2` | `#e4e8f2` |
+| `--preview-code-background` | 代码块底 | `#15181d` | `#181715` | `#0a0c0e` |
+| `--preview-heading` | 预览标题 | `#f1f5fa` | `#141413` | `#f2f5fc` |
+| `--preview-error-text` | 媒体失败提示 | `#f48771` | `#b93b3b` | `#f48771` |
+| `--preview-box-title` | 折叠盒标题 | `var(--color-accent)` | `var(--color-accent)` | `var(--color-accent)` |
 
 Claucode 的代码块**保持深色**（`#181715`）：这是 Claude 设计系统里最强的识别特征——奶油纸面上的一张深色卡片。代价是代码文字不能继续继承正文色，因此新增 `--preview-code-text`（在深底上 `13.67:1`）。
 
@@ -113,38 +116,40 @@ Claucode 的代码块**保持深色**（`#181715`）：这是 Claude 设计系�
 
 Darkode 侧一色未改；`--shell-gutter-active`（行号栏当前行）本次未列入授权范围，保持 `#e8e0d2`。
 
-| 令牌 | 作用 | Darkode | Claucode | Claucode 实测 |
-| --- | --- | --- | --- | --- |
-| ◆ `--editor-caret` | 光标 | `#ffffff` | `#141413` | — |
-| ◆ `--editor-active-line` | 当前行底色 | `#202832` | `#e9dfc9` | 对底 `1.26:1` |
-| ◆ `--editor-tooltip-background` | 补全菜单底 | `#20242b` | `#ffffff` | — |
-| ◆ `--editor-tooltip-border` | 补全菜单描边 | `#4a5565` | `#d5cab8` | — |
-| ◆ `--editor-tooltip-text` | 补全菜单文字 | `#d7dee8` | `#141413` | — |
-| ◆ `--editor-tooltip-selected-background` | 补全选中项底 | `#1769aa` | `#efe9de` | — |
-| ◆ `--editor-tooltip-selected-text` | 补全选中项文字 | `#ffffff` | `#141413` | — |
-| ◆ `--editor-completion-detail` | 补全说明文字 | `#9fb0c3` | `#6c6a64` | — |
-| ◆ `--editor-completion-icon` | 补全图标 | `#8ab4f8` | `#a9583e` | — |
-| ◆ `--syntax-bracket` | 方括号 | `#c586c0` | `#8b54d5` | `4.60:1` |
-| ◆ `--syntax-slash` | 结束标签的斜杠 | `#d7ba7d` | `#8b54d5` | `4.60:1` |
-| ◆ `--syntax-tag` | 标签名 | `#4ec9b0` | `#00825d` | `4.58:1` |
-| ◆ `--syntax-equals` | 等号 | `#ffcc66` | `#8b54d5` | `4.60:1` |
-| ◆ `--syntax-parameter` | 参数值 | `#ce9178` | `#c04e00` | `4.60:1` |
-| ◆ `--syntax-invalid` | 无效标签 | `#f44747` | `#e40033` | `4.59:1` |
+| 令牌 | 作用 | Darkode | Claucode | Claucode 实测 | Hollowcode |
+| --- | --- | --- | --- | --- | --- |
+| ◆ `--editor-caret` | 光标 | `#ffffff` | `#141413` | — | `#ffffff` |
+| ◆ `--editor-active-line` | 当前行底色 | `#202832` | `#e9dfc9` | 对底 `1.26:1` | `#141b24` |
+| ◆ `--editor-tooltip-background` | 补全菜单底 | `#20242b` | `#ffffff` | — | `#1a1d24` |
+| ◆ `--editor-tooltip-border` | 补全菜单描边 | `#4a5565` | `#d5cab8` | — | `#3a4155` |
+| ◆ `--editor-tooltip-text` | 补全菜单文字 | `#d7dee8` | `#141413` | — | `#e4e8f2` |
+| ◆ `--editor-tooltip-selected-background` | 补全选中项底 | `#1769aa` | `#efe9de` | — | `#7a5200` |
+| ◆ `--editor-tooltip-selected-text` | 补全选中项文字 | `#ffffff` | `#141413` | — | `#ffffff` |
+| ◆ `--editor-completion-detail` | 补全说明文字 | `#9fb0c3` | `#6c6a64` | — | `#8a9aaa` |
+| ◆ `--editor-completion-icon` | 补全图标 | `#8ab4f8` | `#a9583e` | — | `#e8b84b` |
+| ◆ `--syntax-bracket` | 方括号 | `#c586c0` | `#8b54d5` | `4.60:1` | `#c586c0` |
+| ◆ `--syntax-slash` | 结束标签的斜杠 | `#d7ba7d` | `#8b54d5` | `4.60:1` | `#d7ba7d` |
+| ◆ `--syntax-tag` | 标签名 | `#4ec9b0` | `#00825d` | `4.58:1` | `#4ec9b0` |
+| ◆ `--syntax-equals` | 等号 | `#ffcc66` | `#8b54d5` | `4.60:1` | `#ffcc66` |
+| ◆ `--syntax-parameter` | 参数值 | `#ce9178` | `#c04e00` | `4.60:1` | `#ce9178` |
+| ◆ `--syntax-invalid` | 无效标签 | `#f44747` | `#e40033` | `4.59:1` | `#f44747` |
 
 补全菜单的选中项在浅色下**不使用蓝色**：Claude 体系里没有蓝，选中态由奶油色浮层承担。
+
+Hollowcode 同样是深色主题，六个语法色直接沿用 Darkode 取值：在近纯黑编辑器底 `#0a0c0e` 上，六色实测为 `7.04:1`、`10.46:1`、`9.61:1`、`13.14:1`、`7.41:1`、`5.45:1`，全部高于 Darkode 编辑器底 `#15181d` 上的实测值，无需重新取色。补全菜单的选中项底色改为琥珀金 `#7a5200`，以呼应主题强调色（白字在其上 `6.92:1`，达到文字口径）。
 
 > 可复查的测量方式：`#faf9f5` 上的对比度与 OKLab/OKLCh 数值可用同一色值复算；"色相 → 饱和度上限"扫描、结构符候选对比与改动前后截图见[证据目录](evidence/claucode-syntax-2026-10-10/README.md)，复跑脚本 `palette-measure.mjs` 零依赖、不联网。自动化断言见 `tests/unit/theme-tokens.test.ts`。
 
 ### 2.7 滚动条与阴影
 
-| 令牌 | 作用 | Darkode | Claucode |
-| --- | --- | --- | --- |
-| ◆ `--scrollbar-track` | 滚动条轨道 | `#171b21` | `#efe9de` |
-| ◆ `--scrollbar-thumb` | 滚动条滑块 | `#586273` | `#c0b4a0` |
-| ◆ `--scrollbar-thumb-hover` | 滑块悬停 | `#738198` | `#a89880` |
-| ◆ `--shadow-overlay` | 弹层阴影 | `0 8px 20px rgb(0 0 0 / 35%)` | `0 8px 20px rgb(20 20 19 / 12%)` |
-| ◆ `--shadow-drawer` | 模板抽屉阴影 | `12px 0 28px rgb(0 0 0 / 28%)` | `12px 0 28px rgb(20 20 19 / 10%)` |
-| ◆ `--color-drawer-scrim` | 抽屉遮罩 | `rgb(0 0 0 / 48%)` | `rgb(20 20 19 / 32%)` |
+| 令牌 | 作用 | Darkode | Claucode | Hollowcode |
+| --- | --- | --- | --- | --- |
+| ◆ `--scrollbar-track` | 滚动条轨道 | `#171b21` | `#efe9de` | `#0a0c0e` |
+| ◆ `--scrollbar-thumb` | 滚动条滑块 | `#586273` | `#c0b4a0` | `#3a4255` |
+| ◆ `--scrollbar-thumb-hover` | 滑块悬停 | `#738198` | `#a89880` | `#4e5a70` |
+| ◆ `--shadow-overlay` | 弹层阴影 | `0 8px 20px rgb(0 0 0 / 35%)` | `0 8px 20px rgb(20 20 19 / 12%)` | `0 8px 20px rgb(0 0 0 / 45%)` |
+| ◆ `--shadow-drawer` | 模板抽屉阴影 | `12px 0 28px rgb(0 0 0 / 28%)` | `12px 0 28px rgb(20 20 19 / 10%)` | `12px 0 28px rgb(0 0 0 / 35%)` |
+| ◆ `--color-drawer-scrim` | 抽屉遮罩 | `rgb(0 0 0 / 48%)` | `rgb(20 20 19 / 32%)` | `rgb(0 0 0 / 55%)` |
 
 滚动条此前是 `*` 上的全局字面值，不属于任何主题块；浅色主题下会出现一根突兀的深色滚动条，因此一并纳入令牌。阴影在浅色下从纯黑改为暖黑并大幅降低不透明度，否则会显脏。
 
@@ -179,7 +184,7 @@ Darkode 侧一色未改；`--shell-gutter-active`（行号栏当前行）本次�
 
 色板元素带 `data-theme-sample` 属性，于是色值仍然只在 `theme.css` 维护一份，TS 不需要抄第二份。
 
-三格依次取 `--color-background`、`--color-text`、`--color-accent`。第二格用**正文色**而非面板色：Claucode 的 `--color-surface`（`#faf9f5`）与 `--color-background`（`#f5f0e8`）只差 `1.09:1`，两格会几乎一样；换成正文色后，Darkode 是「深蓝黑 / 浅灰 / 亮蓝」、Claucode 是「米白 / 暖黑 / 珊瑚」，深浅反转一眼可辨。
+三格依次取 `--color-background`、`--color-text`、`--color-accent`。第二格用**正文色**而非面板色：Claucode 的 `--color-surface`（`#faf9f5`）与 `--color-background`（`#f5f0e8`）只差 `1.09:1`，两格会几乎一样；换成正文色后，Darkode 是「深蓝黑 / 浅灰 / 亮蓝」、Claucode 是「米白 / 暖黑 / 珊瑚」、Hollowcode 是「近纯黑 / 浅蓝白 / 琥珀金」，深浅与色相一眼可辨。
 
 > 历史缺陷：色板此前引用 `var(--color-background)` 等**主题令牌**，而 `var()` 在元素自身上下文解析，所以取的是"当前生效主题"的值。只有一个主题时无法发现；加入第二个主题后，菜单里所有选项的色板会长得一模一样，用户只能靠读文字选主题。
 
@@ -292,3 +297,36 @@ html.is-theme-revealing * {
 结构符的选色依据：在 `#faf9f5` 上固定色相与饱和度、二分到恰好 `4.6:1` 的明度后比较区分度——紫罗兰（`300°`）与其余四色的最小 ΔE 在 `C=0.14~0.22` 各档为 `23.7~29.8`，品红（`335°`）因与参数、无效标签同属红系降到 `17.3~18.2`；采用的 `C=0.19` 档得到 `#8b54d5`（对底 `4.60:1`），与标签名、参数、无效标签、正文的 ΔE 分别为 `28.5 / 28.1 / 28.1 / 42.6`。若嫌不够跳，同色相取 `C=0.22` 得到 `#904ce4`（对底同为 `4.60:1`），换一个取值即可。
 
 初版六色的结构性缺陷（本次修订的量化依据）：OKLCh 明度全部落在 `L=0.484~0.549`（跨度 `0.065`）、平均饱和度 `0.111`、斜杠与等号的 OKLab ΔE 仅 `4.92`（Darkode 同位置为 `8.49`）；而正文 `#141413` 对底 `17.50:1`，比六个高亮色都更重。浅色底上"某色相能达到的饱和度上限"受 sRGB 色域限制，且随色相差异极大——`#faf9f5` 上取 `4.6:1` 时，青绿（`180°`）只有 `0.098`，紫（`315°`）可达 `0.291`，这是标签名在初版里发灰的物理原因。
+
+### Hollowcode 实测（2026-10-11）
+
+全部为 WCAG 相对亮度计算值，底色取该文字实际所在的那一层。
+
+| 用途 | 取值 | 底色 | 对比度 |
+| --- | --- | --- | --- |
+| 正文 | `#e4e8f2` | `#14171c` | `14.65:1` |
+| 正文 | `#e4e8f2` | `#0c0d10` | `15.85:1` |
+| 次级文字 | `#7a8696` | `#14171c` | `4.86:1` |
+| 链接/强调文字 | `#c99830` | `#14171c` | `6.86:1` |
+| 成功状态 | `#52c87c` | `#14171c` | `8.48:1` |
+| 错误状态 | `#f48771` | `#14171c` | `7.31:1` |
+| 强调色底上的文字 | `#0c0d10` | `#e8b84b` | `10.54:1` |
+| 引用块正文 | `#a8b4c4` | `#14171c` | `8.55:1` |
+| 预览标题 | `#f2f5fc` | `#14171c` | `16.46:1` |
+| 代码块文字 | `#e4e8f2` | `#0a0c0e` | `15.98:1` |
+| 诊断行位置列 | `#c6cfdb` | `#101318` | `11.83:1` |
+| 补全菜单文字 | `#e4e8f2` | `#1a1d24` | `13.75:1` |
+| 补全菜单说明 | `#8a9aaa` | `#1a1d24` | `5.85:1` |
+| 补全菜单选中项文字 | `#ffffff` | `#7a5200` | `6.92:1` |
+| 编辑器方括号 | `#c586c0` | `#0a0c0e` | `7.04:1` |
+| 编辑器斜杠 | `#d7ba7d` | `#0a0c0e` | `10.46:1` |
+| 编辑器标签名 | `#4ec9b0` | `#0a0c0e` | `9.61:1` |
+| 编辑器等号 | `#ffcc66` | `#0a0c0e` | `13.14:1` |
+| 编辑器参数值 | `#ce9178` | `#0a0c0e` | `7.41:1` |
+| 编辑器无效标签 | `#f44747` | `#0a0c0e` | `5.45:1` |
+| 编辑器当前行底色（分层可见度，非文字口径） | `#141b24` | `#0a0c0e` | `1.13:1`（正文在其上 `14.13:1`） |
+| 描边（图形边界，非文字口径） | `#282d38` | `#0c0d10` | `1.41:1` |
+
+所有文字用途均 ≥ `4.5:1`。**待裁决项**：当前行底色的分层可见度只有 `1.13:1`，低于 Darkode 的 `1.20:1` 与 Claucode 修订后的 `1.26:1`。是否按同一口径提亮到 `1.2:1` 以上属配色改动，需项目所有者授权；未获授权前保持现值 `#141b24`。
+
+自动化断言见 `tests/unit/theme-tokens.test.ts`（覆盖三个主题块的令牌集合一致性与 Hollowcode 的文字口径）。

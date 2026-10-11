@@ -37,6 +37,7 @@ export interface ThemeOption {
 export const THEMES: readonly ThemeOption[] = [
   { id: 'darkode', name: 'Darkode', description: '深色主题：编辑器、预览与工作台统一配色' },
   { id: 'claucode', name: 'Claucode', description: '浅色主题：编辑器、预览与工作台统一配色' },
+  { id: 'hollowcode', name: 'Hollowcode', description: '深色主题：近纯黑底配琥珀金强调色' },
 ]
 
 export const DEFAULT_THEME_ID = 'darkode'

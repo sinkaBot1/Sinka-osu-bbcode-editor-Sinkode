@@ -33,6 +33,7 @@
      悬停只提高背景亮度，不改描边颜色；强调色只表示"选中/活动"和键盘焦点环。
      各处浮层的透明度差异用 color-mix 从语义色派生，不按百分比逐个建令牌。 */
   --control-hover-background: rgb(215 222 232 / 9%);
+  --color-selection-background: rgb(98 181 255 / 7%);
   --color-divider-strong: rgb(215 222 232 / 16%);
   --color-resize-indicator: rgb(98 181 255 / 35%);
 
@@ -129,6 +130,7 @@
 
   /* 中性层 */
   --control-hover-background: rgb(215 222 232 / 9%);
+  --color-selection-background: rgb(98 181 255 / 7%);
   --color-divider-strong: rgb(215 222 232 / 16%);
   --color-resize-indicator: rgb(98 181 255 / 35%);
 
@@ -219,6 +221,7 @@
   /* 中性层：深色下的"正文色 9% 浅浮层"在奶油底上不可见，
      浅色主题必须换成暖黑的低透明度浮层，取值见 docs/theme.md §2.3。 */
   --control-hover-background: rgb(20 20 19 / 6%);
+  --color-selection-background: rgb(204 120 92 / 10%);
   --color-divider-strong: rgb(20 20 19 / 16%);
   --color-resize-indicator: rgb(204 120 92 / 35%);
 
@@ -288,6 +291,95 @@
   --shadow-overlay: 0 8px 20px rgb(20 20 19 / 12%);
   --shadow-drawer: 12px 0 28px rgb(20 20 19 / 10%);
   --color-drawer-scrim: rgb(20 20 19 / 32%);
+}
+
+/* 主题块：Hollowcode（深色，琥珀金）。灵感来自绝区零的 Hollow Zero 界面——
+   近纯黑底色配高饱和琥珀金强调色，比 Darkode 更暗、对比更强烈。
+   与其余主题块一样必须声明全部令牌。*/
+[data-theme='hollowcode'],
+[data-theme-sample='hollowcode'] {
+  color-scheme: dark;
+
+  /* 工作台外壳 */
+  --color-background: #0c0d10;
+  --color-header: #111318;
+  --color-surface: #14171c;
+  --color-surface-raised: #1a1d24;
+  --color-border: #282d38;
+  --color-text: #e4e8f2;
+  --color-muted: #7a8696;
+  --color-accent: #e8b84b;
+  --color-success: #52c87c;
+
+  /* 语义令牌 */
+  --color-accent-text: #c99830;
+  --color-on-accent: #0c0d10;
+  --color-danger: #f48771;
+  --color-danger-hover: #ffad98;
+  --color-danger-surface: #703a30;
+  --color-danger-surface-text: #ffe6e0;
+  --color-diagnostic-location: #c6cfdb;
+
+  /* 中性层 */
+  --control-hover-background: rgb(228 232 242 / 9%);
+  --color-selection-background: rgb(232 184 75 / 7%);
+  --color-divider-strong: rgb(228 232 242 / 16%);
+  --color-resize-indicator: rgb(232 184 75 / 35%);
+
+  /* 外壳内嵌面 */
+  --shell-sidebar-background: #101318;
+  --shell-inset-background: #0a0c0e;
+  --shell-gutter-active: #161920;
+  --shell-toolbar-group: rgb(20 23 28 / 74%);
+  --shell-divider-background: #0e1014;
+
+  /* 预览语义色 */
+  --preview-canvas-background: #080a0c;
+  --preview-card-background: #14171c;
+  --preview-card-border: #222730;
+  --preview-iframe-background: #060709;
+  --preview-quote-text: #a8b4c4;
+  --preview-code-background: #0a0c0e;
+  --preview-code-text: #e4e8f2;
+  --preview-heading: #f2f5fc;
+  --preview-error-text: #f48771;
+  --preview-tooltip-max-width: 280px;
+  --preview-box-title: var(--color-accent);
+  /* 与其余主题同值：锁定基准的可观察行为，不参与主题色相。 */
+  --preview-spoiler-cover: #000;
+  --preview-spoiler-cover-text: #000;
+  --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  --preview-spoiler-selection-text: #fff;
+  --preview-imagemap-region-border: rgb(255 111 178 / 80%);
+  --preview-imagemap-region-background: rgb(255 111 178 / 50%);
+  --preview-tooltip-background: #000;
+  --preview-tooltip-text: #fff;
+
+  /* 编辑器与语法高亮：深色底，语法色沿用 Darkode 取值（在近纯黑底上对比度更高）；
+     补全选中态改为琥珀金底以呼应主题强调色。 */
+  --editor-caret: #ffffff;
+  --editor-active-line: #141b24;
+  --editor-tooltip-background: #1a1d24;
+  --editor-tooltip-border: #3a4155;
+  --editor-tooltip-text: #e4e8f2;
+  --editor-tooltip-selected-background: #7a5200;
+  --editor-tooltip-selected-text: #ffffff;
+  --editor-completion-detail: #8a9aaa;
+  --editor-completion-icon: #e8b84b;
+  --syntax-bracket: #c586c0;
+  --syntax-slash: #d7ba7d;
+  --syntax-tag: #4ec9b0;
+  --syntax-equals: #ffcc66;
+  --syntax-parameter: #ce9178;
+  --syntax-invalid: #f44747;
+
+  /* 滚动条与阴影：比 Darkode 更深的黑底，阴影不透明度相应提高 */
+  --scrollbar-track: #0a0c0e;
+  --scrollbar-thumb: #3a4255;
+  --scrollbar-thumb-hover: #4e5a70;
+  --shadow-overlay: 0 8px 20px rgb(0 0 0 / 45%);
+  --shadow-drawer: 12px 0 28px rgb(0 0 0 / 35%);
+  --color-drawer-scrim: rgb(0 0 0 / 55%);
 }
 
 /* 主题切换的圆揭示：新配色以顶栏「主题」按钮为圆心向四周扩散，

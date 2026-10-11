@@ -64,7 +64,7 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   await expect(dialog).toBeVisible()
   await expect(theme).toHaveAttribute('aria-expanded', 'true')
   const themeOptions = dialog.locator('.theme-option')
-  await expect(themeOptions).toHaveCount(2)
+  await expect(themeOptions).toHaveCount(3)
   const selectedOption = themeOptions.filter({ hasText: 'Darkode' })
   await expect(selectedOption).toHaveClass(/is-selected/)
   await expect(selectedOption.locator('.theme-option-check')).toBeVisible()
@@ -76,10 +76,19 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
       [...element.querySelectorAll(`.theme-preview[data-theme-sample="${id}"] span`)].map(
         (cell) => getComputedStyle(cell).backgroundColor,
       )
-    return { darkode: read('darkode'), claucode: read('claucode') }
+    return {
+      darkode: read('darkode'),
+      claucode: read('claucode'),
+      hollowcode: read('hollowcode'),
+    }
   })
   expect(swatches.darkode).toEqual(['rgb(24, 27, 32)', 'rgb(215, 222, 232)', 'rgb(98, 181, 255)'])
   expect(swatches.claucode).toEqual(['rgb(245, 240, 232)', 'rgb(20, 20, 19)', 'rgb(204, 120, 92)'])
+  expect(swatches.hollowcode).toEqual([
+    'rgb(12, 13, 16)',
+    'rgb(228, 232, 242)',
+    'rgb(232, 184, 75)',
+  ])
   const optionStyle = await selectedOption.evaluate((element) => {
     const style = getComputedStyle(element)
     return { borderStyle: style.borderStyle, boxShadow: style.boxShadow }

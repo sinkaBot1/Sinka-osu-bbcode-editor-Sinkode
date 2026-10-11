@@ -27,6 +27,14 @@ function blockTokens(selectorPattern: string): Map<string, string> {
 const fallback = blockTokens(':root')
 const darkode = blockTokens("\\[data-theme='darkode'\\]")
 const claucode = blockTokens("\\[data-theme='claucode'\\]")
+const hollowcode = blockTokens("\\[data-theme='hollowcode'\\]")
+
+// 三个主题块的令牌集合与文字口径由断言锁定（docs/theme.md §1.1、§6）
+const themeBlocks = [
+  ['darkode', darkode],
+  ['claucode', claucode],
+  ['hollowcode', hollowcode],
+] as const
 
 function token(block: Map<string, string>, name: string): string {
   const value = block.get(name)
@@ -60,8 +68,12 @@ const syntaxTokens = [
 ] as const
 
 describe('主题令牌契约', () => {
-  it('两个主题块声明的令牌集合完全一致', () => {
-    expect([...claucode.keys()].sort()).toEqual([...darkode.keys()].sort())
+  it('三个主题块声明的令牌集合完全一致', () => {
+    for (const [id, block] of themeBlocks) {
+      expect([...block.keys()].sort(), `${id} 的令牌集合与 Darkode 不一致`).toEqual(
+        [...darkode.keys()].sort(),
+      )
+    }
   })
 
   it('主题块覆盖 :root 兜底副本的全部令牌，只有排版尺寸类允许例外', () => {
@@ -69,10 +81,7 @@ describe('主题令牌契约', () => {
     // 也不需要主题菜单的色板取色，因此只声明在 :root。其余令牌一个都不能漏。
     const sizeOnly = new Set(['--osu-profile-content-max-width'])
     const missing = [...fallback.keys()].filter((name) => !sizeOnly.has(name))
-    for (const [id, block] of [
-      ['darkode', darkode],
-      ['claucode', claucode],
-    ] as const) {
+    for (const [id, block] of themeBlocks) {
       const absent = missing.filter((name) => !block.has(name))
       expect(absent, `${id} 主题块缺少令牌：${absent.join(', ')}`).toEqual([])
     }
@@ -138,6 +147,49 @@ describe('主题令牌契约', () => {
         4.5,
       )
     }
+  })
+
+  it('Hollowcode 的文字用途取值全部达到 4.5:1', () => {
+    const surface = token(hollowcode, '--color-surface')
+    for (const name of [
+      '--color-text',
+      '--color-muted',
+      '--color-accent-text',
+      '--color-success',
+      '--color-danger',
+      '--preview-quote-text',
+      '--preview-heading',
+    ] as const) {
+      const ratio = contrastRatio(token(hollowcode, name), surface)
+      expect(ratio, `${name} 对 ${surface} 只有 ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('Hollowcode 的六个语法色在近纯黑编辑器底上全部达标', () => {
+    const background = token(hollowcode, '--shell-inset-background')
+    for (const name of syntaxTokens) {
+      const ratio = contrastRatio(token(hollowcode, name), background)
+      expect(ratio, `${name} 对 ${background} 只有 ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(
+        4.5,
+      )
+    }
+  })
+
+  it('Hollowcode 沿用 Darkode 的语法色，只有补全选中态呼应主题强调色', () => {
+    for (const name of syntaxTokens) {
+      expect(token(hollowcode, name)).toBe(token(darkode, name))
+    }
+    expect(token(hollowcode, '--editor-tooltip-selected-background')).not.toBe(
+      token(darkode, '--editor-tooltip-selected-background'),
+    )
+  })
+
+  it('Hollowcode 强调色底上的文字达到文字口径', () => {
+    const ratio = contrastRatio(
+      token(hollowcode, '--color-on-accent'),
+      token(hollowcode, '--color-accent'),
+    )
+    expect(ratio).toBeGreaterThanOrEqual(4.5)
   })
 
   it('授权记录与实现同步：本次改动过的取值都写在兼容性说明里', () => {
