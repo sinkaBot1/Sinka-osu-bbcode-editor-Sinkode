@@ -50,6 +50,7 @@ import {
 } from '../templates'
 import { HelpPanel } from '../help'
 import { THEMES } from '../templates/storage/types'
+import SplashScreen from './SplashScreen.vue'
 
 // GitHub 仓库标志的遮罩地址写进样式表，而不是用行内样式对象：
 // Vue 解析含冒号的行内样式值时会把整个绑定丢掉，`url(data:…)` 正好会命中这一点。
@@ -58,6 +59,8 @@ githubMarkStyleElement.textContent = `.header-action-icon[data-icon='github-mark
 document.head.append(githubMarkStyleElement)
 
 const workspace = useWorkspaceStore()
+
+const showSplash = ref(true)
 
 const editorHost = ref<HTMLElement | null>(null)
 const workspaceElement = ref<HTMLElement | null>(null)
@@ -1095,5 +1098,8 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
       @delete="handleDeleteTemplate"
       @restore="handleRestoreExample"
     />
+
+    <!-- 开场动画：done 事件触发后 v-if 摘掉组件，归还焦点与交互 -->
+    <SplashScreen v-if="showSplash" @done="showSplash = false" />
   </div>
 </template>

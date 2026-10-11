@@ -35,9 +35,9 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 1 | `npm run format:check` | 输出 `All matched files use Prettier code style!` |
 | 2 | `npm run lint` | 无 error 输出，退出码 0 |
 | 3 | `npm run typecheck` | 无类型错误，退出码 0 |
-| 4 | `npm run test` | 所有文件与用例通过（当前 16 文件 / 104 用例） |
+| 4 | `npm run test` | 所有文件与用例通过（当前 17 文件 / 113 用例） |
 | 5 | `npm run build` | 生成 `dist/`，退出码 0 |
-| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 97 条） |
+| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 99 条） |
 
 另外两条与本仓库证据链直接相关：
 
