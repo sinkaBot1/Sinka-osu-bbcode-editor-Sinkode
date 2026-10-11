@@ -136,6 +136,25 @@ test.describe('正文排版对齐（依据 docs/compatibility.md §5 第 19、20
     expect(block.inlinePaddingLeft).toBe('4px')
   })
 
+  test('预览正文放开斜体合成，中文 [i] 不回退为正体', async ({ page }) => {
+    await render(page, '[i]颜色名[/i]')
+
+    const metrics = await page.locator('.preview-content').evaluate((root) => {
+      const body = root.querySelector(':scope > div') as HTMLElement
+      const em = root.querySelector('em') as HTMLElement
+      return {
+        shell: getComputedStyle(document.documentElement).fontSynthesis,
+        body: getComputedStyle(body).fontSynthesis,
+        em: getComputedStyle(em).fontStyle,
+      }
+    })
+    // 外壳禁止合成：界面字体不使用合成的假字形
+    expect(metrics.shell).toBe('none')
+    // 预览正文必须放开：中文字符回退到没有斜体字面的系统字体，禁止合成时显示为正体
+    expect(metrics.body).toBe('style')
+    expect(metrics.em).toBe('italic')
+  })
+
   test('列表左内边距为 20px 且项目符号在内容区外', async ({ page }) => {
     await render(page, '[list][*]甲[*]乙[/list]')
 

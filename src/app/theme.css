@@ -1613,6 +1613,10 @@ h2 {
   overflow-wrap: anywhere;
   font-family: Inter, sans-serif;
   font-size: 14px;
+  /* 外壳在 :root 用 font-synthesis: none 禁止界面字体合成假字形，该值会继承进
+     预览正文。中文字符回退到没有斜体字面的系统字体，禁止合成时 [i] 的中文部分
+     会显示为正体；这里只为预览正文放开斜体合成，拉丁字符仍用 Inter 的真实斜体。 */
+  font-synthesis: style;
 }
 .preview-content h2 {
   margin: 10px 0 0;
@@ -2665,10 +2669,6 @@ h2 {
   padding: 0;
   border: 0;
   background: transparent;
-}
-
-.help-panel-effect .preview-content > div {
-  font-synthesis: style;
 }
 
 .help-example-video {
