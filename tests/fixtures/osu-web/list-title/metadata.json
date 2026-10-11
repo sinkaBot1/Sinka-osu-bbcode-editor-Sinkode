@@ -13,5 +13,5 @@
     }
   ],
   "intentionalDifferences": [],
-  "notes": "2026-09-25：首个 [*] 前的空白吸收已对齐；上游把标题包在独立的无符号列表元素中，本项目标题结构仍为待决差异，见 docs/compatibility.md §6.3。"
+  "notes": "首个 [*] 前的空白按上游行为吸收；上游把标题包在独立的无符号列表元素中，本项目标题结构仍待裁决，见 docs/compatibility.md §6.3。"
 }

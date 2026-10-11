@@ -1,7 +1,7 @@
 # 部署说明（面向新手）
 
 > 目标读者：第一次往 GitHub 发布网站的人。本文按「先本地跑通 → 再让 CI 检查 → 最后发布上线」的顺序写，每一步都说明**你应该看到什么结果**、失败了怎么查。
-> 当前状态：仓库为**私密**，尚未启用 GitHub Pages。公开仓库与上线属于发布候选阶段，需要项目所有者明确批准后执行（`REL-02`、`REL-03`）。
+> 当前状态：仓库为**私密**，尚未启用 GitHub Pages。公开仓库与上线需要项目所有者明确批准后执行。
 > 相关文件：[README](../README.md)、[测试说明](testing.md)、[隐私说明](../PRIVACY.md)、CI 配置 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)。
 
 ## 0. 名词对照（看不懂标题时先看这里）
@@ -89,7 +89,7 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
 
 前置条件：仓库已经按批准转为**公开**；`main` 分支上的 CI 已通过。
 
-1. **确认构建路径正确**：本项目以项目页形式发布，地址形如 `https://<用户名>.github.io/Sinka-osu-bbcode-editor-Sinkode/`，因此构建时需要把资源路径前缀设置成仓库名。发布前这一步由发布任务统一处理，并在本文件记录实际使用的命令与结果。
+1. **设置构建路径**：本项目以项目页形式发布，地址形如 `https://<用户名>.github.io/Sinka-osu-bbcode-editor-Sinkode/`。在 `vite.config.ts` 设置仓库资源路径前缀，并让 Playwright 预览配置使用同一路径。
 2. **配置 Pages 来源**：仓库 → **Settings** → **Pages** → Source 选择 **GitHub Actions**（不要选 “Deploy from a branch”，否则不会用到下面的工作流）。
 3. **添加部署工作流**：新增 `.github/workflows/pages.yml`，职责是 `npm ci` → `npm run build` → 上传 `dist/` → 部署到 Pages；部署任务只申请 Pages 需要的权限（`pages: write`、`id-token: write`），构建任务保持只读。
 4. **触发并观察**：推送 `main` 后，Actions 里应出现构建与部署两个任务；部署完成后 Pages 页面会显示站点地址。
@@ -98,7 +98,7 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
    - 刷新页面不报错（静态站点 + 相对资源路径）；
    - 打开浏览器开发者工具的 Network 面板，确认 JS/CSS/图标都返回 200，没有 404 路径错误；
    - 按 `F12` 的 Console 应无报错。
-6. **记录**：把实际地址、验证时间、浏览器与结果写进专门的发布记录文档；若出现与 osu! 相关的可观察差异，同时登记到[兼容性说明](compatibility.md)。
+6. 若发现与 osu! 相关的可观察差异，登记到[兼容性说明](compatibility.md)。
 
 ### 回滚
 
@@ -112,7 +112,7 @@ Pages 部署失败或线上效果异常时：在 Actions 里找到上一个成�
 | 端到端测试停在收尾不退出 | 同样是受限会话对 `taskkill` 的权限限制：自行启动服务并让测试复用（见下方命令），或改用普通终端运行 |
 | `npm run test:e2e` 提示缺少浏览器 | `npx playwright install --with-deps chromium`（Linux 需要 `--with-deps`） |
 | `npm ci` 报 `EPERM: operation not permitted, unlink ...node_modules\...` | 有进程仍占用旧依赖（常见于之前启动的 `npm run dev`、`npm run preview`、esbuild 服务或编辑器）。先关闭这些窗口/进程，必要时终止占用 `node_modules` 下原生二进制的 `esbuild` 与 `node` 进程，再重新执行 `npm ci` |
-| `format:check` 在很多文件上报格式不符，但 CI 却通过 | 工作区被写成了 CRLF 换行符（Windows 上 `core.autocrlf=true` 会造成）。确认 `.gitattributes`（`* text=auto eol=lf`）未被删除，然后重新检出：`git rm --cached -r .` 后 `git reset --hard`，或删除工作区文件再 `git checkout -- .` |
+| `format:check` 在很多文件上报格式不符，但 CI 却通过 | 检查 `.gitattributes` 是否包含 `* text=auto eol=lf`，再运行 `git diff --check` 和 `git status --short` 查看本地差异。先保留并备份未提交改动；需要干净工作区时，使用新的工作树重新检出后复查，不要用重置或删除命令清理当前工作区 |
 | `lint` 报 `.vite/deps/...` 里的第三方错误 | `.vite/` 是 Vite 的依赖预打包缓存，已在 `.gitignore` 与 ESLint 忽略清单中；若仍被扫描，说明 ESLint 配置被改动，应恢复忽略项而不是去修缓存文件 |
 | 页面空白 / 资源 404 | 先跑 `npm run build` 看是否成功；再看 `dist/index.html` 里资源路径前缀是否与实际发布地址匹配 |
 | PowerShell 报「禁止运行脚本」 | 用 `npm.cmd` 代替 `npm`，或改用 Git Bash / CMD |
@@ -146,9 +146,9 @@ npm run test:e2e:preview
 # 用完请结束占用 4174 端口的进程
 ```
 
-以上两条替代命令针对受限 Windows 会话下的临时目录删除权限与测试服务器收尾问题；复现过程记录不随本仓库发布。
+以上两条替代命令用于处理受限 Windows 会话下的临时目录删除权限和测试服务器退出问题。
 
-## 6. 发布检查清单（发布候选阶段使用）
+## 6. 发布检查清单
 
 - [ ] `main` 分支 CI 全绿，且是准备发布的那个提交。
 - [ ] 六条固定命令在本机也通过（见[测试说明](testing.md#3-六条固定命令)）。
@@ -158,4 +158,3 @@ npm run test:e2e:preview
 - [ ] `LICENSE` 为 MIT，仓库内不含 osu-web 或 MOBE 的源码、样式与素材。
 - [ ] 浏览器人工烟测完成：Chrome、Edge、Firefox 均能编辑、预览、保存、复制。
 - [ ] 公开地址为 HTTPS，直接进入编辑器，无 404 与 Console 报错。
-- [ ] 记录上线时间、地址、验证人与已知差异。

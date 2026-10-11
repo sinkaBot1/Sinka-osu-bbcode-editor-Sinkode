@@ -1,6 +1,6 @@
 # osu-web 固定样例（tests/fixtures/osu-web/）
 
-> 固定样例矩阵已交付。基准提交与取证说明见 `docs/compatibility.md`。
+> 固定样例矩阵与基准取证说明见 `docs/compatibility.md`。
 > 本目录样例的**输入**为本项目独立编写（覆盖相同行为类），不复制 osu-web 自带样例文件；每个 case 通过 `metadata.json` 中的 `upstreamEvidence` 指向上游证据路径。
 
 ## 目录格式
@@ -26,10 +26,11 @@
 | `intentionalDifferences` | 差异编号（`docs/compatibility.md` 第 6 节的 D-XX），无则空数组 |
 | `notes` | 补充说明 |
 
-### expected.json 的两种形态
+### expected.json 字段
 
-- **观察记录形态**：`"status": "observation-record"`、`"expectedAssertions": null`。`observations` 记录锁定基准下的可观察行为事实（人读）。
-- **固化断言形态（当前）**：`status` 为 `asserted`，`expectedAssertions` 固化扫描 token、诊断位置、预览 HTML 和媒体结果；旧观察记录保留为 `observations`，便于审阅 diff。
+- `status` 必须为 `asserted`。
+- `observations` 记录锁定基准下的当前可观察行为，供人阅读。
+- `expectedAssertions` 固化扫描 token、诊断位置、预览 HTML 和媒体结果，供自动化测试校验。
 
 ## 完整性检查
 

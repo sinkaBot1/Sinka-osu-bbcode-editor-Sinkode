@@ -635,8 +635,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
           </div>
           <nav class="app-header-actions" aria-label="工作台入口">
             <span class="app-header-actions-divider" aria-hidden="true"></span>
-            <!-- 指向发布仓库 sinkaBot1/Sinka-osu-bbcode-editor-Sinkode（2026-10-04 所有者确认）：
-                 第一版的 sinkaBot1/Sinka-osu-bbcode-editor 是旧仓库，不是发布地址。 -->
+            <!-- 项目仓库。 -->
             <a
               class="header-action header-action-icon"
               data-icon="github-mark"

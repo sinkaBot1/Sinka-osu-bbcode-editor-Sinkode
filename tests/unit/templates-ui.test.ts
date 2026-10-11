@@ -263,7 +263,7 @@ describe('复制按钮组件', () => {
     await flushPromises()
 
     expect(writeText).toHaveBeenCalledWith(source)
-    // 成功反馈落在按钮自身，不再弹出浮窗（2026-10-04 所有者裁定）
+    // 成功反馈落在按钮自身。
     expect(wrapper.find('.copy-toast').exists()).toBe(false)
     expect(button.classes()).toContain('is-copied')
     expect(visibleLabel(button)).toBe('已复制')

@@ -137,7 +137,7 @@ test.describe('模板、保存与复制', () => {
     const createButton = page.getByTitle('新建模板')
     await expect(createButton).toBeVisible()
 
-    // 悬停不再改描边颜色（2026-10-03 项目所有者要求消除悬停蓝框）：
+    // 悬停只显示中性背景，不改变描边颜色：
     // 描边保持静止值 --color-border，反馈只来自背景浮层，不引入强调色。
     await createButton.hover()
     const hoverColors = await createButton.evaluate((element) => {
@@ -500,7 +500,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.status-bar .render-status')).toContainText('已更新')
     const copyButton = page.getByRole('button', { name: '复制 BBCode' })
     await copyButton.click()
-    // 成功反馈落在按钮自身：换成对勾与「已复制」，不再出现浮窗（2026-10-04 所有者裁定）
+    // 成功反馈落在按钮自身，显示对勾与「已复制」：
     await expect(copyButton).toHaveClass(/is-copied/)
     await expect(page.locator('.copy-toast')).toHaveCount(0)
     const copiedLabel = await copyButton.locator('.copy-button-label').textContent()
@@ -604,10 +604,7 @@ test.describe('模板、保存与复制', () => {
     await expect(button).not.toHaveClass(/is-copied/)
   })
 
-  test('复制按钮成功时就地反馈，渐出用退出时长（2026-10-05 动效接入）', async ({
-    page,
-    context,
-  }) => {
+  test('复制按钮成功时就地反馈，渐出用退出时长', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await openEditor(page)
     const button = page.getByRole('button', { name: '复制 BBCode' })

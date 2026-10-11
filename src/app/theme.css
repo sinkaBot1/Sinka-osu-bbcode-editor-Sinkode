@@ -29,7 +29,7 @@
   --color-danger-surface-text: #ffe6e0;
   --color-diagnostic-location: #c6cfdb;
 
-  /* 中性层（2026-10-03 所有者要求消除悬停蓝框后统一）：
+  /* 中性层：
      悬停只提高背景亮度，不改描边颜色；强调色只表示"选中/活动"和键盘焦点环。
      各处浮层的透明度差异用 color-mix 从语义色派生，不按百分比逐个建令牌。 */
   --control-hover-background: rgb(215 222 232 / 9%);
@@ -57,8 +57,7 @@
   /* 悬停气泡的最大宽度：与说明文字长度无关的排版上限，尺寸类令牌集中在这里声明，
      避免在元素上写内联样式（帮助面板的效果示意用 `span[style]` 定位示例元素）。 */
   --preview-tooltip-max-width: 280px;
-  /* 折叠盒（[box]、[spoilerbox]）标题：2026-10-03 所有者授权由固定粉色
-     改为主题强调色，与 [notice] 的授权口径一致，取值可被后续主题整体替换。 */
+  /* 折叠盒（[box]、[spoilerbox]）标题使用主题强调色，可随主题整体替换。 */
   --preview-box-title: var(--color-accent);
   /* 以下六项按既有裁决**不随主题变化**：spoiler 遮盖（D-13）、热区粉色（D-09）、
      悬停气泡外观（D-17）。取值在所有主题下相同，依据见 docs/theme.md §2.8。 */
@@ -71,8 +70,7 @@
   --preview-tooltip-background: #000;
   --preview-tooltip-text: #fff;
 
-  /* 编辑器与语法高亮：原先散落在 editorExtensions.ts 里的字面值，
-     浅色主题下六个语法色全部需要重新取值，见 docs/theme.md §2.6。 */
+  /* 编辑器与语法高亮令牌；取值规则见 docs/theme.md。 */
   --editor-caret: #ffffff;
   --editor-active-line: #202832;
   --editor-tooltip-background: #20242b;
@@ -89,7 +87,7 @@
   --syntax-parameter: #ce9178;
   --syntax-invalid: #f44747;
 
-  /* 滚动条与阴影：原先写在主题块之外，浅色主题下会露出深色滚动条 */
+  /* 滚动条与阴影 */
   --scrollbar-track: #171b21;
   --scrollbar-thumb: #586273;
   --scrollbar-thumb-hover: #738198;
@@ -255,19 +253,8 @@
   --preview-tooltip-background: #000;
   --preview-tooltip-text: #fff;
 
-  /* 编辑器与语法高亮。六个语法色的深色取值在浅色底上只有 1.42:1 ~ 3.41:1
-     （最差的等号黄几乎不可见），因此按浅色底整体重新取色。
-     2026-10-10 授权修订（所有者选定「方案 C｜暖调加强（不引入冷色）」，
-     随后按同日追加要求把结构符改回彩色）：
-     初版取值虽六色都 ≥ 4.5:1，但明度全挤在 L=0.484~0.549、色相全在暖区，
-     标签名饱和度只有 0.066（几乎无色），斜杠与等号的 OKLab ΔE 仅 4.92，
-     形成"上了色却看不出重点"；而正文 #141413 的 17.50:1 反比所有高亮更重。
-     结构符（[ ] / =）先试过中性暖灰，但所有者认为结构符号是 BBCode 的主要
-     标记、应当突出其对比，因此三类结构符统一取鲜明紫罗兰 #8b54d5：
-     对底 4.60:1，回到文字口径；与标签名、参数、无效标签、正文的 ΔE 分别为
-     28.5 / 28.1 / 28.1 / 42.6，六个语法色互不混淆。标签名、参数、无效标签
-     维持各自取到的"该色相在 #faf9f5 上、4.6:1 时 sRGB 色域内可达的饱和度上限"。
-     色相骨架为暖调加紫，不引入蓝/青等冷色。规则与实测见 docs/theme.md。 */
+  /* 编辑器与语法高亮。浅色底下的六个语法色均满足文字对比度要求，
+     结构符统一使用紫罗兰以保持同类标记的一致性；规则与实测见 docs/theme.md。 */
   --editor-caret: #141413;
   --editor-active-line: #e9dfc9;
   --editor-tooltip-background: #ffffff;
@@ -564,11 +551,8 @@ h2 {
   margin-bottom: 0;
   font-size: 13px;
 }
-/* 本节起为 2026-10-03 统一的悬停语言：静止描边是 --color-border，悬停保持它不变，
-   反馈只来自中性浮层。原先"悬停把 1px 描边换成主题蓝"的写法已全部去掉——那条蓝边
-   对底色有 7.10:1，把每个按钮都点成一个蓝色方块，而静止描边本身只有 1.40:1。
-   强调色现在只用于"选中/活动"（浅蓝底、2px 左条、分类描边）和键盘焦点环。
-   规则全文与逐处取值见 docs/ui-icon-system.md §8。 */
+/* 悬停只使用中性浮层，静止描边保持 --color-border；强调色用于选中、活动状态和键盘焦点环。
+   规则与逐处取值见 docs/ui-icon-system.md。 */
 .section-heading button {
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -635,11 +619,8 @@ h2 {
   height: 26px;
   background: var(--color-divider-strong);
 }
-/* 顶栏动作入口沿用工作台既有的无框语言（编辑器工具栏、模板行同款）：
-   静止时只有图形和文字，悬停才浮出一层 9% 中性浮层，不做描边、不加底色。
-   原先的实心底与头栏底对比度只有 1.03:1、边框 1.44:1，这个"框"在视觉上
-   几乎不成立，却把顶栏切成了三个方块，因此由项目所有者决定去掉（2026-10-03）。
-   圆角 5px 与编辑器工具栏按钮一致，让浮层在圆角半径上属于同一族。 */
+/* 顶栏动作入口使用无框语言：静止时只有图形和文字，悬停显示 9% 中性浮层，不做描边。
+   圆角 5px 与编辑器工具栏按钮一致。 */
 .header-action {
   display: inline-flex;
   align-items: center;
@@ -1178,12 +1159,8 @@ h2 {
   position: relative;
   display: inline-flex;
 }
-/* 复制 BBCode：无框图标按钮。并入全工作台统一的悬停语言
-   （docs/ui-icon-system.md §8）：静止不描边、不铺底，悬停只加中性浮层，
-   强调色留给"选中 / 活动"和键盘焦点。
-   原先是 1px `--color-border` 描边 + `--color-surface` 实心底，但该实心底与所在
-   面板头底完全相同（2026-10-04 实测 1.00:1），描边只有 1.40:1（深色）/
-   1.54:1（浅色）——那个"框"在视觉上并不成立，只把面板头点成一个孤立方块。 */
+/* 复制 BBCode：无框图标按钮。静止不描边、不铺底，悬停只加中性浮层，
+   强调色留给选中、活动状态和键盘焦点。 */
 .copy-button {
   position: relative;
   display: inline-flex;
@@ -1371,9 +1348,7 @@ h2 {
   min-height: 0;
 }
 .panel-header {
-  /* 44px 而非 42px：与窄屏 .mobile-template-trigger 的 44×44 取齐（此前窄屏被它撑到
-     44px、桌面端只有 42px，本身就不一致），并让面板头里的复制按钮能把触控热区补满
-     44px——见 docs/ui-icon-system.md §9。 */
+  /* 面板头与窄屏模板入口保持 44px 触控高度；复制按钮的热区也在此高度内。 */
   min-height: 44px;
   padding: 0 14px;
   border-bottom: 1px solid var(--color-border);

@@ -24,7 +24,7 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 生产产物验收 | 同上，入口不同 | `npm run test:e2e:preview` | 同一套用例针对 `dist/` 构建产物运行，见[部署说明](deployment.md#生产产物验收) |
 | 人工发布验收 | 无自动脚本 | 人工 | 真实第三方媒体、目标浏览器、公开地址烟测（发布前阶段） |
 
-强制约束（`TEST-COMP-05`）：**自动化测试不得依赖实时 osu! 网站、图床或 YouTube**。端到端测试还会主动拦截所有站外请求并返回空响应（见 `tests/e2e/helpers.ts` 的 `installNetworkIsolation`），保证「预览请求了哪个地址」由测试自己控制。真实媒体只在发布前人工验收。
+**自动化测试不得依赖实时 osu! 网站、图床或 YouTube**。端到端测试还会主动拦截所有站外请求并返回空响应（见 `tests/e2e/helpers.ts` 的 `installNetworkIsolation`），保证「预览请求了哪个地址」由测试自己控制。真实媒体只在发布前人工验收。
 
 ## 3. 六条固定命令
 
@@ -35,16 +35,16 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 1 | `npm run format:check` | 输出 `All matched files use Prettier code style!` |
 | 2 | `npm run lint` | 无 error 输出，退出码 0 |
 | 3 | `npm run typecheck` | 无类型错误，退出码 0 |
-| 4 | `npm run test` | 所有文件与用例通过（当前 17 文件 / 117 用例） |
+| 4 | `npm run test` | 所有测试文件与用例通过，退出码为 0 |
 | 5 | `npm run build` | 生成 `dist/`，退出码 0 |
-| 6 | `npm run test:e2e` | 全部端到端用例通过（当前 99 条） |
+| 6 | `npm run test:e2e` | 所有端到端用例通过，退出码为 0 |
 
 另外两条与本仓库证据链直接相关：
 
 - `node tests/check-osu-web-fixtures.mjs`：校验固定样例矩阵的完整性、必备用例、标签覆盖与 `size` 边界（当前 49 case / 24 标签）。
 - `npm run docs:check`：检查 Markdown 标题结构、本地链接与锚点是否有效。
 
-只改文档时可以跳过浏览器测试，但仍需通过 `npm run docs:check` 与 `npm run format:check`。
+只改文档时运行 `npm run format:check` 与 `npm run docs:check`；涉及代码的改动运行六条固定命令。
 
 ## 4. 增加一条固定样例（最重要的流程）
 
@@ -92,8 +92,8 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 
 `expected.json` 记录三类期望：语义 token 及其偏移、诊断（代码与行列）、清理后的预览 HTML 与媒体描述。
 
-- 新样例可以先放一份「观察记录」；确认结论后把 `status` 改为 `asserted`，并让 `expectedAssertions.sourceUnchanged` 为 `true`（原文必须逐字节不变）。
-- 其中 `tokens`、`diagnostics`、`preview` 三块可以按下面方式由当前实现生成，再**人工逐项审阅**：基线不能被一条命令无条件覆盖。
+- `status` 必须为 `asserted`，并让 `expectedAssertions.sourceUnchanged` 为 `true`（原文必须逐字节不变）。
+- `tokens`、`diagnostics`、`preview` 三块可以按下面方式由当前实现生成；生成后必须**人工逐项审阅**，不能无条件覆盖基线。
 
 ```bash
 node --experimental-strip-types scripts/generate-fixture-assertions.mts
@@ -126,10 +126,10 @@ npm run test:e2e                         # 端到端未受影响
 ## 6. 增加端到端测试
 
 - 文件放在 `tests/e2e/`，命名 `*.spec.ts`；浏览器矩阵当前只有 Chromium（配置见 `playwright.config.ts`）。
-- 执行前遵守[协作规则 §5.1](../AGENTS.md#51-网络访问默认关闭)：默认不访问真实外网，确认测试入口已隔离；依赖或浏览器缺失时不能自动下载，确需联网须先取得所有者明确同意。
+- 执行前遵守[协作规则](../AGENTS.md#供应链隐私与网络)：默认不访问真实外网，确认测试入口已隔离；依赖或浏览器缺失时不能自动下载，确需联网须先取得所有者明确同意。
 - 用 `tests/e2e/helpers.ts` 的 `openEditor()` / `openEmptyEditor()` 打开页面：在导航前安装浏览器上下文级站外请求拦截，覆盖主页面、iframe 和新窗口的首次导航。仅精确匹配 `127.0.0.1`、`localhost`、`[::1]` 的本机服务允许真实连接；站外导航由本地空 HTML 响应接管，其它站外资源返回空响应。站外 WebSocket 直接关闭、不连接服务器，测试配置禁止 Service Worker 绕过拦截。媒体专项样例仍使用本地替身内容，整个验收不访问真实图床、YouTube、osu! 或 GitHub。
-- `tests/e2e/network-isolation.spec.ts` 用第二层阻断保护验证新窗口首次导航与伪装本机域名：隔离失效时由保护层中止请求并让断言失败，不发出真实站外连接。这次调整只用于离线验收，不改变软件实际外链与媒体行为，也不调整 TLS、签名或依赖完整性检查。
-- 顶栏外链用例统一依赖上述上下文级隔离，不再单独注册不能覆盖新窗口首次请求的 `page.route()`。固定目标为项目所有者的 osu! 主页与项目 GitHub 仓库；验证链接属性、打开后的目标 URL、当前页面不被替换，以及新窗口显示统一隔离提供的空白页面。这些断言验证软件的外链行为，不验证站外网站是否在线。当前隔离不是系统级断网，新增测试必须在导航前调用统一隔离入口。
+- `tests/e2e/network-isolation.spec.ts` 用第二层阻断保护验证新窗口首次导航与伪装本机域名：隔离失效时由保护层中止请求并让断言失败，不发出真实站外连接。该保护层只用于离线验收，不改变软件实际外链与媒体行为，也不调整 TLS、签名或依赖完整性检查。
+- 顶栏外链用例使用上述上下文级隔离，固定目标为项目所有者的 osu! 主页与项目 GitHub 仓库；验证链接属性、打开后的目标 URL、当前页面不被替换，以及新窗口显示统一隔离提供的空白页面。这些断言验证软件的外链行为，不验证站外网站是否在线。当前隔离不是系统级断网，新增测试必须在导航前调用统一隔离入口。
 - 常用命令：
 
 ```bash
@@ -140,7 +140,7 @@ npm run test:e2e -- --debug                              # 单步调试
 npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
 ```
 
-- 几何断言（宽度、间距）请**在同一帧内**读取相关矩形，并明确容差来源；仓库对 DOM 几何比较使用 `0.001px` 容差，用于抵消亚像素舍入（依据：2026-10-02 复现的亚像素测量偏差记录，该过程记录不随本仓库发布）。真实布局回归必须仍能被抓到，不允许用大容差掩盖问题。
+- 几何断言（宽度、间距）请**在同一帧内**读取相关矩形，并明确容差来源；仓库对 DOM 几何比较使用 `0.001px` 容差抵消亚像素舍入。真实布局回归必须仍能被抓到，不允许用大容差掩盖问题。
 - 失败时先看 `test-results/` 里的失败截图与 trace（配置为首次重试时记录 trace），再决定是修实现还是修测试。
 - imagemap 气泡还要读取截图像素确认尖端实际可见、两侧没有矩形背景。动效比较父子透明度相乘后的最终有效值；固定输入与所有者截图见[气泡修复证据](evidence/imagemap-tooltip-2026-10-03/README.md)。
 
@@ -153,7 +153,7 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
    - 找不到元素 → 确认选择器与当前组件结构一致，避免用过长的样式类链；
    - 偶发几何失败 → 用 `--repeat-each` 复现，按第 6 节要求在同帧测量并记录依据。
 4. **构建或环境类失败**：见[部署说明](deployment.md)的故障定位章节（含受限 Windows 会话的临时目录问题）。
-5. 修复后必须**重跑受影响的自动化测试**；人工复测阶段发现的问题，同样先补自动化再复测（`TEST-QA-01`）。
+5. 修复后必须**重跑受影响的自动化测试**；人工复测发现的问题，同样先补自动化再复测。
 
 ## 8. CI 里跑什么
 

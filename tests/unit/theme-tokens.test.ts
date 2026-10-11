@@ -3,15 +3,11 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // 主题令牌契约与编辑器配色的回归断言。
-// 规则来源：docs/theme.md §1.1（令牌必须完整）、§2.6（编辑器与语法高亮取值）、
-// §6（对比度证据）；授权记录见 docs/compatibility.md §6.4 的 2026-10-10 条目。
-//
-// 这里补上文档一直声称、但此前并不存在的断言：主题块必须声明全部配色令牌——
-// 浅色主题漏掉一个令牌，运行时就会退回 :root 兜底副本的深色取值，形成"深色补丁"。
-// 同时锁定 2026-10-10 授权修订后的编辑器取值与两套对比度口径。
+// 规则来源：docs/theme.md 的令牌清单、编辑器取值与对比度要求。
+// 主题块缺少令牌时，浅色主题会退回 :root 的深色兜底值，因此必须保持令牌集合完整。
 
 const themeCss = readFileSync(join(process.cwd(), 'src', 'app', 'theme.css'), 'utf8')
-const compatibilityDoc = readFileSync(join(process.cwd(), 'docs', 'compatibility.md'), 'utf8')
+const themeDoc = readFileSync(join(process.cwd(), 'docs', 'theme.md'), 'utf8')
 
 // 主题块内部没有嵌套规则，直接取到第一个 "}" 即可
 function blockTokens(selectorPattern: string): Map<string, string> {
@@ -87,7 +83,7 @@ describe('主题令牌契约', () => {
     }
   })
 
-  it('Claucode 的编辑器取值与授权记录一致', () => {
+  it('Claucode 的编辑器取值符合当前主题规则', () => {
     // 结构符三类共用同一个紫罗兰：它们是一类视觉元素
     expect(token(claucode, '--syntax-bracket')).toBe('#8b54d5')
     expect(token(claucode, '--syntax-slash')).toBe('#8b54d5')
@@ -134,7 +130,6 @@ describe('主题令牌契约', () => {
     const background = token(claucode, '--shell-inset-background')
     const activeLine = token(claucode, '--editor-active-line')
     const text = token(claucode, '--color-text')
-    // 修订前这里只有 1.15:1，当前行实际上看不出来
     expect(contrastRatio(activeLine, background)).toBeGreaterThanOrEqual(1.2)
     expect(contrastRatio(text, activeLine)).toBeGreaterThanOrEqual(4.5)
   })
@@ -192,9 +187,9 @@ describe('主题令牌契约', () => {
     expect(ratio).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('授权记录与实现同步：本次改动过的取值都写在兼容性说明里', () => {
+  it('Claucode 主题取值记录在主题说明中', () => {
     for (const value of ['#8b54d5', '#00825d', '#c04e00', '#e40033', '#e9dfc9']) {
-      expect(compatibilityDoc).toContain(value)
+      expect(themeDoc).toContain(value)
     }
   })
 })
