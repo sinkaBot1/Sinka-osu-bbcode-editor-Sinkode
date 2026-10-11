@@ -149,17 +149,41 @@ test('顶栏品牌标志链接到项目所有者的 osu! 主页', async ({ page,
   expect(focusStyle.textDecoration).toBe('none')
   expect(focusStyle.opacity).toBe('1')
 
-  const images = brandLink.locator('img')
-  await expect(images).toHaveCount(2)
-  await expect(images.first()).toHaveCSS('filter', 'none')
+  const logos = brandLink.locator('.brand-symbol, .brand-wordmark')
+  await expect(logos).toHaveCount(2)
+  const logoStyles = await logos.evaluateAll((elements) =>
+    elements.map((element) => {
+      const style = getComputedStyle(element)
+      return { color: style.backgroundColor, mask: style.maskImage }
+    }),
+  )
+  expect(logoStyles).toEqual([
+    { color: 'rgb(98, 181, 255)', mask: expect.stringContaining('sinkode-symbol') },
+    { color: 'rgb(98, 181, 255)', mask: expect.stringContaining('sinkode-wordmark') },
+  ])
+  await expect(logos.first()).toHaveCSS('filter', 'none')
   await brandLink.hover()
-  await expect(images.first()).toHaveCSS('filter', 'brightness(1.12)')
-  await expect(images.last()).toHaveCSS('filter', 'brightness(1.12)')
+  await expect(logos.first()).toHaveCSS('filter', 'brightness(1.12)')
+  await expect(logos.last()).toHaveCSS('filter', 'brightness(1.12)')
   const layoutShift = await brandLink.evaluate((element) => element.getBoundingClientRect().width)
   await page.mouse.move(0, 0)
-  await expect(images.first()).toHaveCSS('filter', 'none')
+  await expect(logos.first()).toHaveCSS('filter', 'none')
   const restingWidth = await brandLink.evaluate((element) => element.getBoundingClientRect().width)
   expect(restingWidth).toBe(layoutShift)
+
+  const theme = page
+    .getByRole('navigation', { name: '工作台入口' })
+    .getByRole('button', { name: '主题', exact: true })
+  await theme.click()
+  const themeDialog = page.getByRole('dialog', { name: '选择主题' })
+  await themeDialog.locator('.theme-option').filter({ hasText: 'Claucode' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'claucode')
+  await expect(logos.first()).toHaveCSS('background-color', 'rgb(204, 120, 92)')
+  await expect(logos.last()).toHaveCSS('background-color', 'rgb(204, 120, 92)')
+  await themeDialog.locator('.theme-option').filter({ hasText: 'Hollowcode' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'hollowcode')
+  await expect(logos.first()).toHaveCSS('background-color', 'rgb(232, 184, 75)')
+  await expect(logos.last()).toHaveCSS('background-color', 'rgb(232, 184, 75)')
 
   const [opened] = await Promise.all([context.waitForEvent('page'), brandLink.click()])
   await opened.waitForLoadState()
@@ -333,13 +357,17 @@ for (const width of [320, 390, 820, 1440]) {
     const geometry = await header.evaluate((element) => {
       const brand = element.querySelector('.app-header-brand')!.getBoundingClientRect()
       const actions = element.querySelector('.app-header-actions')!.getBoundingClientRect()
-      const logos = [...element.querySelectorAll<HTMLImageElement>('.app-header-brand img')]
-      const [symbol, wordmark] = logos.map((image) => image.getBoundingClientRect())
+      const logos = [
+        ...element.querySelectorAll<HTMLElement>(
+          '.app-header-brand .brand-symbol, .app-header-brand .brand-wordmark',
+        ),
+      ]
+      const [symbol, wordmark] = logos.map((logo) => logo.getBoundingClientRect())
       return {
         fits: element.scrollWidth <= element.clientWidth,
         separated: brand.right <= actions.left || brand.bottom <= actions.top,
         logosLoaded:
-          logos.length === 2 && logos.every((image) => image.complete && image.naturalWidth > 0),
+          logos.length === 2 && logos.every((logo) => getComputedStyle(logo).maskImage !== 'none'),
         logosSideBySide: symbol.right < wordmark.left,
         logoCenterDelta: Math.abs(
           (symbol.top + symbol.bottom) / 2 - (wordmark.top + wordmark.bottom) / 2,

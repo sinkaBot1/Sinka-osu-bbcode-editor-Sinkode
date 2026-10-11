@@ -576,10 +576,17 @@ h2 {
   gap: 12px;
   min-width: 0;
 }
-.app-header-brand img {
+.app-header-brand .brand-symbol,
+.app-header-brand .brand-wordmark {
   display: block;
-  width: auto;
   flex: 0 0 auto;
+  background-color: var(--color-accent);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 .brand-link {
   display: flex;
@@ -589,7 +596,8 @@ h2 {
   color: inherit;
   text-decoration: none;
 }
-.brand-link:hover img {
+.brand-link:hover .brand-symbol,
+.brand-link:hover .brand-wordmark {
   filter: brightness(1.12);
 }
 .brand-link:focus-visible {
@@ -598,10 +606,16 @@ h2 {
   border-radius: 4px;
 }
 .brand-symbol {
+  width: 40px;
   height: 42px;
+  -webkit-mask-image: url('./assets/sinkode-symbol.png');
+  mask-image: url('./assets/sinkode-symbol.png');
 }
 .brand-wordmark {
+  width: 146px;
   height: 28px;
+  -webkit-mask-image: url('./assets/sinkode-wordmark.png');
+  mask-image: url('./assets/sinkode-wordmark.png');
 }
 .app-header-actions {
   display: flex;

@@ -47,7 +47,7 @@
 
 ## 5. 品牌素材
 
-- 项目品牌素材为 [`logo/Sinkode-logo.png`](../logo/Sinkode-logo.png) 和 [`logo/Sinkode-logo-name.png`](../logo/Sinkode-logo-name.png)；运行时副本位于 `src/app/assets/`。
+- 项目品牌素材为 [`logo/Sinkode-logo.png`](../logo/Sinkode-logo.png) 和 [`logo/Sinkode-logo-name.png`](../logo/Sinkode-logo-name.png)；运行时副本位于 `src/app/assets/`。顶栏以素材透明度作遮罩，颜色取当前主题的 `--color-accent`。
 - GitHub 标志文件为 `src/app/assets/github-mark.svg`，使用官方 Octicons 来源和 MIT 许可；保持官方形状和商标约束，不改色、不变形、不与项目 Logo 组合。
 - 品牌链接和 GitHub 链接均新标签页打开，并带 `rel="noopener noreferrer"`；可访问名称明确区分产品名 `Sinkode` 和用户账户名 `SINKA0`。
 

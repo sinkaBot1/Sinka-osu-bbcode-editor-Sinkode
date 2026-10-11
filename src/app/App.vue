@@ -27,8 +27,6 @@ import {
   Undo2,
   X,
 } from '@lucide/vue'
-import sinkodeSymbol from './assets/sinkode-symbol.png'
-import sinkodeWordmark from './assets/sinkode-wordmark.png'
 import githubMark from './assets/github-mark.svg'
 import { EditorView, type ViewUpdate } from '@codemirror/view'
 import type { PreviewResult } from '../bbcode/compatibility'
@@ -615,22 +613,8 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               aria-label="在 osu! 打开 SINKA0 的主页（新标签页）"
               title="在 osu! 打开 SINKA0 的主页"
             >
-              <img
-                class="brand-symbol"
-                :src="sinkodeSymbol"
-                alt=""
-                width="403"
-                height="423"
-                aria-hidden="true"
-              />
-              <img
-                class="brand-wordmark"
-                :src="sinkodeWordmark"
-                alt=""
-                width="813"
-                height="156"
-                aria-hidden="true"
-              />
+              <span class="brand-symbol" aria-hidden="true"></span>
+              <span class="brand-wordmark" aria-hidden="true"></span>
             </a>
           </div>
           <nav class="app-header-actions" aria-label="工作台入口">
