@@ -35,7 +35,7 @@ const example = computed(() => {
 
 <template>
   <div class="help-panel-effect">
-    <PreviewPane :result="example.result" :show-privacy-note="false" />
+    <PreviewPane :result="example.result" />
     <p v-if="example.hasMedia" class="help-example-media-note">
       本地示意：图片使用示意图，音频和视频不加载或播放远程资源。
     </p>

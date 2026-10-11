@@ -582,8 +582,6 @@ test.describe('安全实时预览', () => {
     expect(styles.sizedRatio).toBeCloseTo(2, 2)
     expect(styles.audioMarginLeft).toBe('0px')
     expect(styles.iframeMarginLeft).toBe('0px')
-
-    await expect(page.locator('.preview-privacy-note')).toContainText('不会上传模板内容')
   })
 
   test('宽视口下正文列宽严格等于 890px', async ({ page }) => {

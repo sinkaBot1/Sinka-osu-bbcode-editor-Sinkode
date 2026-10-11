@@ -34,7 +34,6 @@ describe('帮助效果示意', () => {
     for (const entry of helpEntries) {
       const wrapper = mount(HelpExample, { props: { source: entry.syntax } })
       expect(wrapper.find(selectors[entry.name]).exists(), entry.name).toBe(true)
-      expect(wrapper.find('.preview-privacy-note').exists()).toBe(false)
       if (entry.name === 'list') expect(wrapper.findAll('li')).toHaveLength(2)
       if (entry.name === 'list') expect(wrapper.get('ul').element.style.listStyleType).toBe('')
       if (entry.name === 'code') expect(wrapper.get('pre code').text()).toBe('[b]原样显示[/b]')

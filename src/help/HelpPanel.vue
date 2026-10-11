@@ -138,7 +138,6 @@ onBeforeUnmount(() => {
       <header class="help-panel-header">
         <div class="help-panel-heading">
           <h2 id="help-panel-title">BBCode 参考</h2>
-          <p>固定说明，不会修改编辑器正文</p>
         </div>
         <button
           class="help-panel-close"

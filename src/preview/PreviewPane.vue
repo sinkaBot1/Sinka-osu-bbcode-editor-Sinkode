@@ -3,13 +3,9 @@ import 'inter-ui/inter-latin.css'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { PreviewResult } from '../bbcode/compatibility'
 
-const props = withDefaults(
-  defineProps<{
-    result: PreviewResult | null
-    showPrivacyNote?: boolean
-  }>(),
-  { showPrivacyNote: true },
-)
+const props = defineProps<{
+  result: PreviewResult | null
+}>()
 
 const previewRoot = ref<HTMLElement | null>(null)
 const tooltip = ref<HTMLElement | null>(null)
@@ -342,9 +338,6 @@ onBeforeUnmount(() => {
       </p>
       <!-- eslint-disable-next-line vue/no-v-html -- 这里仅显示兼容管线已经清理的 HTML。 -->
       <div v-else v-html="result.sanitizedHtml"></div>
-      <p v-if="showPrivacyNote" class="preview-privacy-note">
-        媒体预览会由浏览器直接请求 BBCode 中指定的 HTTPS 地址，不会上传模板内容。
-      </p>
     </div>
     <div ref="tooltip" class="preview-tooltip" role="tooltip" aria-hidden="true">
       <span class="preview-tooltip__arrow"></span>

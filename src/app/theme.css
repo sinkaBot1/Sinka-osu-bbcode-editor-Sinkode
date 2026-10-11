@@ -1848,12 +1848,6 @@ h2 {
 .preview-placeholder {
   margin: 0;
 }
-.preview-privacy-note {
-  margin: 20px 0 0;
-  color: var(--color-muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
 .theme-popover {
   position: fixed;
   top: var(--theme-popover-top, 80px);
