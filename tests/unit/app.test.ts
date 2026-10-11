@@ -17,7 +17,7 @@ describe('应用骨架', () => {
     expect(wrapper.get('main[aria-label="BBCode 编辑工作区"]')).toBeTruthy()
     expect(wrapper.get('h1').text()).toBe('osu! BBCode Editor | Sinkode')
     expect(wrapper.get('.template-select').text()).toBe('默认示例')
-    expect(wrapper.get('.cm-content').text()).toContain('Always in Memory')
+    expect(wrapper.get('.cm-content').text()).toContain('SINKA0')
   })
 
   it('可以打开主题选择入口', async () => {

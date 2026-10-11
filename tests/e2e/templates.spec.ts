@@ -372,7 +372,7 @@ test.describe('模板、保存与复制', () => {
   test('首次访问创建默认示例，刷新后恢复当前模板（AC-TPL-01、FR-SAVE-06）', async ({ page }) => {
     const editor = await openEditor(page)
     await expect(page.locator('.template-select')).toHaveText('默认示例')
-    await expect(editor).toContainText('Always in Memory')
+    await expect(editor).toContainText('SINKA0')
 
     await page.getByTitle('新建模板').click()
     await expect(page.locator('.template-item.is-active .template-select')).toHaveText('未命名模板')
@@ -418,7 +418,7 @@ test.describe('模板、保存与复制', () => {
     await page.getByRole('button', { name: '确认删除' }).click()
     await expect(page.locator('.template-select')).toHaveCount(2)
     await expect(page.locator('.template-item.is-active .template-select')).toHaveText('默认示例')
-    await expect(page.locator('.cm-content')).toContainText('Always in Memory')
+    await expect(page.locator('.cm-content')).toContainText('SINKA0')
 
     await page.locator('.template-select', { hasText: '我的模板' }).click()
     await expect(page.locator('.cm-content')).toContainText('[b]我的模板[/b]')
@@ -450,7 +450,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.template-item.is-active .template-select')).toHaveText(
       '默认示例 (2)',
     )
-    await expect(page.locator('.cm-content')).toContainText('Always in Memory')
+    await expect(page.locator('.cm-content')).toContainText('SINKA0')
     await expect(page.locator('.template-select', { hasText: '未命名模板' })).toHaveCount(1)
 
     await page.locator('.template-select', { hasText: '未命名模板' }).click()
@@ -767,7 +767,7 @@ test.describe('模板、保存与复制', () => {
       ),
     ).toBe(false)
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
-    expect(clipboardText).toContain('Always in Memory')
+    expect(clipboardText).toContain('SINKA0')
   })
 })
 

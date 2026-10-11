@@ -42,10 +42,15 @@ export async function waitForSplashDone(page: Page): Promise<void> {
 }
 
 export async function clearEditor(page: Page, editor: Locator): Promise<Locator> {
-  await editor.click()
+  // 默认示例可能很长，`.cm-content` 的整体高度会超出滚动视口，
+  // 点它的中心会落到视口之外并被预览面板挡住，所以点第一行把光标放进编辑器。
+  await editor.locator('.cm-line').first().click()
   await page.keyboard.press('ControlOrMeta+a')
   await page.keyboard.press('Delete')
   await expect(editor).toHaveText('')
+  // 编辑器清空后，预览仍在约 150ms 防抖窗口内保留旧内容；等占位提示出现，
+  // 后续断言才不会命中默认示例残留的折叠盒与图片热区。
+  await expect(page.locator('.preview-placeholder')).toBeVisible()
   return editor
 }
 
