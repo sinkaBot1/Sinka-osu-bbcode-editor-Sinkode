@@ -144,10 +144,36 @@ test.describe('正文排版对齐（依据 docs/compatibility.md §5 第 19、20
       return {
         paddingLeft: computed.paddingLeft,
         listStylePosition: computed.listStylePosition,
+        listStyleType: computed.listStyleType,
       }
     })
     expect(metrics.paddingLeft).toBe('20px')
     expect(metrics.listStylePosition).toBe('outside')
+    expect(metrics.listStyleType).toBe('disc')
+  })
+
+  test('嵌套列表的标记形态不回退到浏览器默认的空心圆', async ({ page }) => {
+    await render(page, '[list=1]\n[*]有序项\n[list]\n[*]嵌套项一\n[*]嵌套项二\n[/list]\n[/list]')
+
+    const metrics = await page.locator('.preview-content').evaluate((root) => ({
+      ordered: getComputedStyle(root.querySelector('ol')!).listStyleType,
+      // 浏览器 UA 默认会把列表内嵌套的 ul 显示为 circle（空心圆），此处必须显式锁定为 disc
+      nestedUnordered: getComputedStyle(root.querySelector('ol ul')!).listStyleType,
+    }))
+    expect(metrics.ordered).toBe('decimal')
+    expect(metrics.nestedUnordered).toBe('disc')
+  })
+
+  test('无序列表多层嵌套保持实心圆，不回退为空心圆或方块', async ({ page }) => {
+    await render(page, '[list]\n[*]一\n[list]\n[*]二\n[list]\n[*]三\n[/list]\n[/list]\n[/list]')
+
+    const types = await page
+      .locator('.preview-content')
+      .evaluate((root) =>
+        [...root.querySelectorAll('ul')].map((item) => getComputedStyle(item).listStyleType),
+      )
+    // UA 默认下第 2 层是 circle、第 3 层起是 square；上游 .unordered 对所有层级固定 disc
+    expect(types).toEqual(['disc', 'disc', 'disc'])
   })
 
   test('折叠盒外边距为 0，上下间距只来自换行元素', async ({ page }) => {

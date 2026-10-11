@@ -181,7 +181,7 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 以下两项影响预览 DOM 结构，当前记录的可见样式一致。项目所有者尚未裁决，保持现状，暂不登记为 D 编号差异：
 
 - **列表标题结构**：上游把 `[list]` 后紧跟的首行文本包成独立的无符号列表元素（`list_title.html` 证据），本项目当前把标题文本直接放在列表元素内部，不额外包裹。上游证据：`tests/Libraries/bbcode_examples/list_title.html`。
-- **无序列表元素类型**：上游无参 `[list]` 输出有序列表元素并附加 `unordered` 类，再由样式表改为圆点（`resources/css/bbcode.less` 的 `.unordered { list-style-type: disc }`）；本项目输出语义化的无序列表元素，视觉一致但元素类型不同（屏幕阅读器语义因此更准确）。上游证据：`tests/Libraries/bbcode_examples/basic_list.html`、`resources/css/bbcode.less`。
+- **无序列表元素类型**：上游无参 `[list]` 输出有序列表元素并附加 `unordered` 类，再由样式表改为圆点（`resources/css/bbcode.less` 的 `.unordered { list-style-type: disc }`）；本项目输出语义化的无序列表元素，视觉一致但元素类型不同（屏幕阅读器语义因此更准确）。上游的 disc 规则不区分嵌套深度，本项目预览同样对所有层级的 `ul` 固定 `list-style-type: disc`、有序列表固定 `decimal`（若缺少该显式规则，浏览器 UA 默认会把嵌套 `ul` 显示为空心圆 `circle`、更深层为 `square`，与上游视觉不符），由 `tests/e2e/typography.spec.ts` 的嵌套列表用例锁定。上游证据：`tests/Libraries/bbcode_examples/basic_list.html`、`resources/css/bbcode.less`。
 
 ### 6.4 预览外观规则与待决项
 
