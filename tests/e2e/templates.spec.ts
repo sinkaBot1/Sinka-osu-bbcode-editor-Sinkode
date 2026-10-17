@@ -76,18 +76,19 @@ test.describe('模板、保存与复制', () => {
     await page.getByRole('button', { name: '打开帮助' }).click()
     await expect(page.locator('.help-panel')).toBeVisible()
     await expectNeutralHover('.help-panel-close', '帮助面板关闭')
-    // 当前选中的分类用强调色描边表示"选中"，属于允许的用法，
-    // 因此这里验证未选中的分类：悬停只加中性浮层，描边保持静止值。
+    // 分类胶囊静止就是中性浮层底的控件，悬停再上一档，全程没有描边。
     await expectNeutralHover('.help-panel-filter:not(.is-active)', '帮助面板未选中分类')
     await expectNeutralHover('.help-panel-entry', '帮助面板条目')
     // 复制按钮只在该条目展开后的详情里渲染
     await page.locator('.help-panel-entry').first().click()
     await expectNeutralHover('.help-panel-copy button', '帮助面板复制示例')
-    // 反向断言：强调色描边必须留给"选中"，不能被这次改动一并抹掉
-    await expect(page.locator('.help-panel-filter.is-active')).toHaveCSS(
-      'border-top-color',
-      'rgb(98, 181, 255)',
-    )
+    // 选中态不再用强调色描边：靠 --color-selection-background 浮层与 600 字重表达，
+    // 文字取正文色（强调文字压在 12% 强调浮层上只有 4.27:1，见 theme.md §6）。
+    const activeFilter = page.locator('.help-panel-filter.is-active')
+    await expect(activeFilter).toHaveCSS('border-top-width', '0px')
+    await expect(activeFilter).toHaveCSS('font-weight', '600')
+    await expect(activeFilter).toHaveCSS('background-color', 'rgba(98, 181, 255, 0.07)')
+    await expect(activeFilter).toHaveCSS('color', 'rgb(215, 222, 232)')
 
     await expectNeutralHover('.header-action', '顶栏动作入口')
     await expectNeutralHover('.editor-toolbar-button', '编辑器工具栏按钮')
@@ -928,10 +929,24 @@ for (const viewport of [
 
     const layout = await page.evaluate(() => {
       const drawer = document.querySelector<HTMLElement>('.template-drawer')!
+      const header = document.querySelector<HTMLElement>('.template-drawer-header')!
+      const close = document.querySelector<HTMLElement>('.template-drawer-close')!
+      const drawerStyle = getComputedStyle(drawer)
+      const closeRect = close.getBoundingClientRect()
+      // 关闭按钮的视觉方块由 ::before 画在 44×44 命中区的中心
+      const visual = getComputedStyle(close, '::before')
       return {
         width: drawer.getBoundingClientRect().width,
         fits: document.documentElement.scrollWidth <= window.innerWidth,
-        transition: getComputedStyle(drawer).transition,
+        transition: drawerStyle.transition,
+        radius: drawerStyle.borderTopRightRadius,
+        borderRight: drawerStyle.borderRightWidth,
+        shadow: drawerStyle.boxShadow,
+        headerHeight: header.getBoundingClientRect().height,
+        headerBackground: getComputedStyle(header).backgroundColor,
+        closeWidth: closeRect.width,
+        visualWidth: visual.width,
+        visualHeight: visual.height,
         touchTargets: [
           '.template-drawer-close',
           '.template-drawer-sidebar .section-heading > button',
@@ -945,6 +960,16 @@ for (const viewport of [
     expect(layout.width).toBeLessThanOrEqual(viewport.width)
     expect(layout.fits).toBe(true)
     expect(layout.transition).toContain('cubic-bezier')
+    // 批次 3：抽屉是内容族卡片——右侧 12 圆角、不画右描边、保留侧向投影，
+    // 头部 56 且不铺色带，关闭按钮视觉 24、命中区仍是 44。
+    expect(layout.radius).toBe('12px')
+    expect(layout.borderRight).toBe('0px')
+    expect(layout.shadow).not.toBe('none')
+    expect(layout.headerHeight).toBeCloseTo(56, 0)
+    expect(layout.headerBackground).toBe('rgba(0, 0, 0, 0)')
+    expect(layout.closeWidth).toBeGreaterThanOrEqual(44 - geometryEpsilon)
+    expect(layout.visualWidth).toBe('24px')
+    expect(layout.visualHeight).toBe('24px')
     for (const target of layout.touchTargets) {
       expect(target.width).toBeGreaterThanOrEqual(44 - geometryEpsilon)
       expect(target.height).toBeGreaterThanOrEqual(44 - geometryEpsilon)

@@ -91,10 +91,36 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   ])
   const optionStyle = await selectedOption.evaluate((element) => {
     const style = getComputedStyle(element)
-    return { borderStyle: style.borderStyle, boxShadow: style.boxShadow }
+    const bar = getComputedStyle(element, '::before')
+    return {
+      borderStyle: style.borderStyle,
+      boxShadow: style.boxShadow,
+      // 读 min-height 而不是盒子高度：弹层入场期间带 scale(0.96)，矩形会被缩小
+      minHeight: style.minHeight,
+      barWidth: bar.width,
+      barTransform: bar.transform,
+    }
   })
   expect(optionStyle.borderStyle).toBe('none')
   expect(optionStyle.boxShadow).toBe('none')
+  // 批次 3：选项保持 44 高的触控目标，选中指示是 3px 斜切竖条（提案 §5.12）
+  expect(optionStyle.minHeight).toBe('44px')
+  expect(optionStyle.barWidth).toBe('3px')
+  expect(optionStyle.barTransform).not.toBe('none')
+  // 弹层是仪器族浮层：直角、无投影，层级归到 --z-overlay（30）
+  const popoverStyle = await dialog.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      radius: style.borderTopLeftRadius,
+      shadow: style.boxShadow,
+      zIndex: style.zIndex,
+      padding: style.paddingTop,
+    }
+  })
+  expect(popoverStyle.radius).toBe('0px')
+  expect(popoverStyle.shadow).toBe('none')
+  expect(popoverStyle.zIndex).toBe('30')
+  expect(popoverStyle.padding).toBe('8px')
   const alignment = await page.evaluate(() => {
     const trigger = document.querySelector<HTMLButtonElement>('[aria-controls="theme-popover"]')!
     const popover = document.querySelector<HTMLElement>('#theme-popover')!

@@ -1245,7 +1245,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               <span></span>
               <span></span>
             </span>
-            <Check class="theme-option-check" :size="17" :stroke-width="2.4" aria-hidden="true" />
+            <Check class="theme-option-check" :size="16" :stroke-width="2.4" aria-hidden="true" />
           </label>
         </div>
         <p class="theme-note">主题会记住你的选择，下次打开自动恢复。</p>

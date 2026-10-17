@@ -138,6 +138,7 @@ onBeforeUnmount(() => {
       <header class="help-panel-header">
         <div class="help-panel-heading">
           <h2 id="help-panel-title">BBCode 参考</h2>
+          <p>点击标签查看语法、效果与常见错误；原文问题见诊断区。</p>
         </div>
         <button
           class="help-panel-close"
@@ -179,11 +180,6 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="help-panel-scroll">
-        <div class="help-panel-note">
-          <strong>参考说明</strong>
-          <p>点击标签查看语法、效果和常见错误；当前原文的问题由诊断区指出。</p>
-        </div>
-
         <div class="help-panel-section-heading">
           <h3>标签</h3>
           <span>{{ filteredEntries.length }} / {{ helpEntries.length }}</span>

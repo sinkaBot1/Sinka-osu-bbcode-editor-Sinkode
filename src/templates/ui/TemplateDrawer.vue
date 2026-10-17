@@ -138,7 +138,7 @@ onUnmounted(() => {
               title="关闭模板抽屉"
               @click="closeDrawer"
             >
-              <X :size="18" :stroke-width="2" aria-hidden="true" />
+              <X :size="16" :stroke-width="2" aria-hidden="true" />
             </button>
           </div>
           <aside class="template-sidebar template-drawer-sidebar" aria-label="模板列表">

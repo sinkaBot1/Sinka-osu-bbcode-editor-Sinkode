@@ -41,6 +41,102 @@ test.describe('BBCode 参考面板', () => {
     await expect(page.locator('.cm-content').textContent()).resolves.toBe(editorSourceBefore)
   })
 
+  // 批次 3 规格（提案 §5.11 与 §9 批次 3 裁决）：头部 56 并吸收说明、分类胶囊、
+  // 行 38 不画线、详情内嵌面、微标签取阶梯值。这里锁住可被数值验证的那几项。
+  test('头部、分类、行与详情按批次 3 规格渲染', async ({ page }) => {
+    await page.getByRole('button', { name: '打开帮助', exact: true }).click()
+    const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
+    await expect(panel).toBeVisible()
+
+    const header = await panel.locator('.help-panel-header').evaluate((element) => {
+      const style = getComputedStyle(element)
+      const title = element.querySelector('h2')!
+      const note = element.querySelector('p')!
+      return {
+        height: element.getBoundingClientRect().height,
+        border: style.borderBottomWidth,
+        background: style.backgroundColor,
+        titleSize: getComputedStyle(title).fontSize,
+        titleWeight: getComputedStyle(title).fontWeight,
+        noteSize: getComputedStyle(note).fontSize,
+        noteText: note.textContent,
+      }
+    })
+    expect(header.height).toBeCloseTo(56, 0)
+    expect(header.border).toBe('0px')
+    // 头部并入面板面：不再是独立的 --color-header 色带，自身不铺底色
+    expect(header.background).toBe('rgba(0, 0, 0, 0)')
+    expect(header.titleSize).toBe('13px')
+    expect(header.titleWeight).toBe('600')
+    expect(header.noteSize).toBe('11px')
+    expect(header.noteText).toContain('诊断区')
+    // 滚动区里原来那块“参考说明”已并进头部
+    await expect(panel.locator('.help-panel-note')).toHaveCount(0)
+
+    const pill = await panel
+      .locator('.help-panel-filter')
+      .first()
+      .evaluate((element) => {
+        const style = getComputedStyle(element)
+        return {
+          height: element.getBoundingClientRect().height,
+          radius: style.borderTopLeftRadius,
+          border: style.borderTopWidth,
+        }
+      })
+    expect(pill.height).toBeCloseTo(24, 0)
+    expect(Number.parseFloat(pill.radius)).toBeGreaterThanOrEqual(24)
+    expect(pill.border).toBe('0px')
+
+    const search = await panel.locator('.help-panel-search input').evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      radius: getComputedStyle(element).borderTopLeftRadius,
+    }))
+    expect(search.height).toBeCloseTo(32, 0)
+    expect(search.radius).toBe('0px')
+
+    const list = await panel.locator('.help-panel-list').evaluate((element) => {
+      const row = element.querySelector<HTMLElement>('.help-panel-entry')!
+      const item = element.querySelector<HTMLElement>('.help-panel-item')!
+      const style = getComputedStyle(row)
+      return {
+        listBorder: getComputedStyle(element).borderTopWidth,
+        itemBorder: getComputedStyle(item).borderBottomWidth,
+        rowHeight: row.getBoundingClientRect().height,
+        columns: style.gridTemplateColumns,
+      }
+    })
+    expect(list.listBorder).toBe('0px')
+    expect(list.itemBorder).toBe('0px')
+    expect(list.rowHeight).toBeCloseTo(38, 0)
+    expect(list.columns.startsWith('74px')).toBe(true)
+
+    await panel.locator('.help-panel-entry').first().click()
+    await expect(panel.locator('.help-panel-detail')).toBeVisible()
+    const detail = await panel.locator('.help-panel-detail').evaluate((element) => {
+      const label = element.querySelector<HTMLElement>('.help-panel-label')!
+      const syntax = element.querySelector<HTMLElement>('.help-panel-syntax')!
+      const copy = element.querySelector<HTMLElement>('.help-panel-copy button')!
+      return {
+        background: getComputedStyle(element).backgroundColor,
+        border: getComputedStyle(element).borderTopWidth,
+        labelSize: getComputedStyle(label).fontSize,
+        labelTracking: getComputedStyle(label).letterSpacing,
+        syntaxBackground: getComputedStyle(syntax).backgroundColor,
+        copyHeight: copy.getBoundingClientRect().height,
+        copyBorder: getComputedStyle(copy).borderTopWidth,
+      }
+    })
+    // 详情块是内嵌面，不再用分隔线划开；写法框只留轮廓
+    expect(detail.border).toBe('0px')
+    expect(detail.background).not.toBe('rgba(0, 0, 0, 0)')
+    expect(detail.syntaxBackground).toBe('rgba(0, 0, 0, 0)')
+    expect(detail.labelSize).toBe('10.5px')
+    expect(Number.parseFloat(detail.labelTracking)).toBeGreaterThanOrEqual(2)
+    expect(detail.copyHeight).toBeCloseTo(28, 0)
+    expect(detail.copyBorder).toBe('0px')
+  })
+
   test('复制示例、Esc 关闭和焦点恢复可用', async ({ page }) => {
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
@@ -118,7 +214,7 @@ test.describe('BBCode 参考面板', () => {
         await url
           .locator('svg')
           .evaluate((element) => getComputedStyle(element).transitionDuration),
-      ).toBe(reducedMotion === 'reduce' ? '1e-05s' : '0.18s')
+      ).toBe(reducedMotion === 'reduce' ? '1e-05s' : '0.16s')
       await expect(url).toBeFocused()
       await page.keyboard.press('Enter')
       await expect(detail).toBeVisible()
@@ -198,7 +294,8 @@ test.describe('BBCode 参考面板', () => {
       }
     })
 
-    expect(leaveMotion.durations).toEqual(expect.arrayContaining([180]))
+    // 浮层退出统一取 --dur-exit 160ms（批次 3 收口，批次 2 的模板菜单已是先例）
+    expect(leaveMotion.durations).toEqual(expect.arrayContaining([160]))
     expect(leaveMotion.easings).toEqual(expect.arrayContaining(['cubic-bezier(0.22, 1, 0.36, 1)']))
     expect(leaveMotion.properties).toEqual(expect.arrayContaining(['opacity', 'transform']))
     await expect(page.getByRole('dialog', { name: 'BBCode 参考' })).not.toBeVisible()

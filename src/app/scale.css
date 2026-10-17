@@ -124,16 +124,13 @@
    */
 
   /* 圆角：现状取值尚未归一到 0 / pill 与内容族三档 */
-  --legacy-radius-2: 2px;
   --legacy-radius-4: 4px;
   --legacy-radius-5: 5px;
   --legacy-radius-6: 6px;
-  --legacy-radius-8: 8px;
   --legacy-radius-99: 99px;
   --legacy-radius-10000: 10000px;
 
   /* 字号：现状里落在上面的字号阶梯之外的三档 */
-  --legacy-text-10: 10px;
   --legacy-text-17: 17px;
   --legacy-text-18: 18px;
 
@@ -146,8 +143,6 @@
   /* 层叠：现状里低于面板档的临时层级，逐处归入五档 */
   --legacy-z-1: 1;
   --legacy-z-2: 2;
-  --legacy-z-3: 3;
-  --legacy-z-4: 4;
   --legacy-z-5: 5;
 }
 
