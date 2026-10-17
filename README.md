@@ -10,6 +10,8 @@
 
 `CodeMirror 6` · `实时预览` · `语法诊断` · `本地模板` · `中文帮助` · `无后端` · `无遥测`
 
+**在线使用**：<https://sinkodeosu.site/>
+
 [快速开始](#快速开始) · [支持的标签](#第一版支持的标签) · [隐私与安全](#隐私与安全要点) · [遇到问题](#遇到问题) · [MIT 许可证](LICENSE)
 
 </div>
@@ -164,9 +166,9 @@ logo/                品牌素材（仅 PNG）
 
 ## 部署与发布现状
 
-- 第一版计划通过 GitHub Pages 以 HTTPS 静态站点发布，步骤、判读与回滚写在[部署说明](docs/deployment.md)。
-- 当前仓库 `sinkaBot1/Sinka-osu-bbcode-editor-Sinkode` 是产品发布仓库；目前尚未发布在线站点，GitHub Pages 尚未启用。
-- 启用 Pages 前，需在 `vite.config.ts` 设置资源路径前缀 `/Sinka-osu-bbcode-editor-Sinkode/`，并同步 Playwright 预览配置中的地址，否则线上页面会无法加载。具体步骤见[部署说明](docs/deployment.md)。
+- 在线站点：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名，`www` 自动跳转裸域名）；`https://osusinkode.top/` 只做跳转到主站。
+- 发布由 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) 完成：`npm ci` → `npm run build` → 上传 `dist/` → 部署；质量检查仍由 [`ci.yml`](.github/workflows/ci.yml) 负责。
+- 站点在域名根路径发布，因此 `vite.config.ts` 固定 `base: '/'`；改回 `github.io` 项目页形式时必须同步修改，完整步骤、判读与回滚见[部署说明](docs/deployment.md)。
 
 ## 遇到问题
 

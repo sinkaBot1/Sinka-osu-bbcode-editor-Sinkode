@@ -10,7 +10,7 @@
 - 第一版承诺的 osu! 标签覆盖 **24 / 24**；固定样例矩阵 **49 个 case**，完整性由 `node tests/check-osu-web-fixtures.mjs` 校验。
 - 测试命令和完整的验证顺序见[测试说明](testing.md)。
 - 锁定基准：osu-web `61b0a41431395f86ff68fa12744f3266448ec885`，正文最大宽度 `890px`。更换基准必须经项目所有者批准并重跑全部固定样例。
-- 本仓库**尚未发布在线站点**。GitHub Pages 启用前必须先设置资源路径前缀，见第 6 节。
+- 在线站点已发布：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名）；`https://osusinkode.top/` 只做跳转，详见[部署说明](deployment.md)第 4 节。
 
 ## 2. 待项目所有者裁决的事项（未裁决前保持现状）
 
@@ -26,9 +26,10 @@
 
 主题取值和令牌清单见[主题与切换动效](theme.md)，兼容差异见[兼容性说明 §6.4](compatibility.md#64-预览外观规则与待决项)。
 
-## 3. 待所有者提供的内容
+## 3. 发布授权
 
-- **发布授权**：把仓库转为公开、启用 GitHub Pages 都需要项目所有者明确批准后执行。
+- 改变站点公开范围、更换自定义域名、启用或关闭 GitHub Pages，都必须先取得项目所有者明确批准后执行。
+- 自定义域名 `sinkodeosu.site` 与跳转域名 `osusinkode.top` 的 DNS 记录、续费与 HTTPS 证书由项目所有者维护。
 
 ## 4. 已知限制（保留现状，不作为缺陷处理）
 
@@ -56,8 +57,7 @@
 - 候选菜单、帮助面板、模板菜单与弹窗的可操作性复查。
 - 真实媒体（图床、音频、YouTube）在目标浏览器上的发布前人工验收。
 
-## 6. 发布前必须完成的具体改动
+## 6. 发布相关的收尾事项
 
-- **资源路径前缀**：GitHub Pages 以项目页形式发布时，站点地址带仓库名，必须在 `vite.config.ts` 设置 `base: '/Sinka-osu-bbcode-editor-Sinkode/'`；同时把 `playwright.preview.config.ts` 的 `baseURL` 与 `webServer.url` 改到同一前缀，否则生产构建产物在线上会白屏。
-- 增加 GitHub Pages 部署工作流；第三方 action 固定到完整提交 SHA。
-- 在真实浏览器上完成隐私、许可证与内容安全策略检查，并把上线命令与实际结果补入[部署说明](deployment.md)。
+- **真实浏览器人工验收**：在 Chrome、Edge、Firefox 上完成隐私、许可证与内容安全策略检查，并把线上地址与实际结果补入[部署说明](deployment.md)第 6 节清单。
+- **自定义域名复核**：DNS 记录、证书有效期与 `Enforce HTTPS` 状态发生变化时，按[部署说明](deployment.md)第 4 节复验。

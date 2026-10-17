@@ -1,0 +1,66 @@
+# 把构建产物发布到 GitHub Pages。
+# - 质量检查仍由 ci.yml 负责；这里只做 安装 → 构建 → 上传 → 部署。
+# - 自定义域名 sinkodeosu.site 在仓库 Settings → Pages 中设置。使用自定义 Actions
+#   工作流发布时，GitHub 不读取也不要求产物里的 CNAME 文件，所以仓库不需要放 CNAME。
+# - 第三方 action 固定到完整提交 SHA（项目规则）；升级时必须重新核对 SHA。
+name: 发布到 GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 构建任务只需要读代码；Pages 的写权限只在部署任务里申请。
+permissions:
+  contents: read
+
+# 同一时间只跑一次发布，避免两次推送的产物互相覆盖；不取消正在进行的部署。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建静态站点
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: 配置 Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 按锁文件安装依赖
+        run: npm ci
+
+      - name: 构建生产版本
+        run: npm run build
+
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: dist
+
+  deploy:
+    name: 部署到 GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 部署站点
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e

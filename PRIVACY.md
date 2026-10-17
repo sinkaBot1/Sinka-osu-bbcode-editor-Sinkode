@@ -28,7 +28,7 @@
 以下行为都由你的操作或你写的内容触发：
 
 1. **你写的远程媒体**：预览里的 `[img]`、`[audio]`、`[youtube]`、`[imagemap]` 等标签，会让浏览器直接向你在 BBCode 中填写的地址发起 HTTPS 请求。对方站点因此能看到你的 IP 地址、浏览器标识和请求时间。本工具既不代理也不缓存这些内容。
-2. **托管平台本身**：网站计划通过 GitHub Pages 提供静态文件。访问该地址时，GitHub 会按[GitHub 隐私声明](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)处理服务器访问日志（例如 IP 地址）。这属于托管平台行为，本工具无法关闭，也不向其发送你的编辑内容。
+2. **托管平台本身**：网站通过 GitHub Pages 以 <https://sinkodeosu.site/> 提供静态文件（`osusinkode.top` 只是跳转到该地址）。访问时 GitHub 会按[GitHub 隐私声明](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)处理服务器访问日志（例如 IP 地址）。这属于托管平台行为，本工具无法关闭，也不向其发送你的编辑内容。
 3. **你主动打开的外部链接**：预览中的 `[url]`、自动识别链接，以及顶栏的 osu! 主页和 GitHub 仓库入口，会按你的点击在新标签页打开对应地址。HTTPS 目标由浏览器直接访问；邮件链接交由系统邮件程序处理。本工具不会把编辑内容附加到链接。
 
 如果你不希望任何第三方知道你正在编辑什么，请不要在预览中使用远程媒体标签，或先断开网络再编辑（编辑、诊断、复制都不需要联网）。
@@ -53,6 +53,6 @@
 ## 变更与联系
 
 - 本文件随仓库版本一起更新；任何影响隐私的实现变更都必须先更新本文件，再合并代码。
-- 发现隐私问题或与本文描述不符的行为，请在仓库提交 Issue（仓库转公开前，请直接联系项目所有者）。
+- 发现隐私问题或与本文描述不符的行为，请在[仓库 Issue](https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode/issues) 中提交。
 
 相关文件：[README](README.md)、[部署说明](docs/deployment.md)、[兼容性说明](docs/compatibility.md)、[路线与已知限制](docs/roadmap.md)。

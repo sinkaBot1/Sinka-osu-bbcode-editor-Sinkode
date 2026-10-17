@@ -1,8 +1,8 @@
 # 部署说明（面向新手）
 
 > 目标读者：第一次往 GitHub 发布网站的人。本文按「先本地跑通 → 再让 CI 检查 → 最后发布上线」的顺序写，每一步都说明**你应该看到什么结果**、失败了怎么查。
-> 当前状态：仓库为**私密**，尚未启用 GitHub Pages。公开仓库与上线需要项目所有者明确批准后执行。
-> 相关文件：[README](../README.md)、[测试说明](testing.md)、[隐私说明](../PRIVACY.md)、CI 配置 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)。
+> 当前状态：仓库已公开，GitHub Pages 由[部署工作流](../.github/workflows/pages.yml)发布，主站为 <https://sinkodeosu.site/>，`https://osusinkode.top/` 只做跳转。
+> 相关文件：[README](../README.md)、[测试说明](testing.md)、[隐私说明](../PRIVACY.md)、CI 配置 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)、部署工作流 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml)。
 
 ## 0. 名词对照（看不懂标题时先看这里）
 
@@ -85,20 +85,116 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
 | `test:e2e` 失败 | 多数与选择器或时序有关；本地用 `--repeat-each` 复现。CI 上服务器由 Playwright 自行启动，不存在「复用旧服务」问题 |
 | `npm ci` 失败 | `package-lock.json` 与 `package.json` 不一致（改依赖后忘记提交锁文件），或网络问题 |
 
-## 4. 首次发布到 GitHub Pages（需要所有者批准后执行）
+## 4. 发布到 GitHub Pages 并绑定自定义域名
 
-前置条件：仓库已经按批准转为**公开**；`main` 分支上的 CI 已通过。
+前置条件：仓库已按批准转为**公开**（免费账号的私密仓库不能发布 Pages），且 `main` 分支上的 CI 已通过。
 
-1. **设置构建路径**：本项目以项目页形式发布，地址形如 `https://<用户名>.github.io/Sinka-osu-bbcode-editor-Sinkode/`。在 `vite.config.ts` 设置仓库资源路径前缀，并让 Playwright 预览配置使用同一路径。
-2. **配置 Pages 来源**：仓库 → **Settings** → **Pages** → Source 选择 **GitHub Actions**（不要选 “Deploy from a branch”，否则不会用到下面的工作流）。
-3. **添加部署工作流**：新增 `.github/workflows/pages.yml`，职责是 `npm ci` → `npm run build` → 上传 `dist/` → 部署到 Pages；部署任务只申请 Pages 需要的权限（`pages: write`、`id-token: write`），构建任务保持只读。
-4. **触发并观察**：推送 `main` 后，Actions 里应出现构建与部署两个任务；部署完成后 Pages 页面会显示站点地址。
-5. **验证线上结果**：
-   - 打开给出的 HTTPS 地址，应**直接进入编辑器界面**（不能是营销页或 404）；
-   - 刷新页面不报错（静态站点 + 相对资源路径）；
-   - 打开浏览器开发者工具的 Network 面板，确认 JS/CSS/图标都返回 200，没有 404 路径错误；
-   - 按 `F12` 的 Console 应无报错。
-6. 若发现与 osu! 相关的可观察差异，登记到[兼容性说明](compatibility.md)。
+发布形态：部署工作流是 [`.github/workflows/pages.yml`](../.github/workflows/pages.yml)，它只做四件事——`npm ci` → `npm run build` → 上传 `dist/` → 部署到 Pages。质量检查仍由 `ci.yml` 负责。
+
+> **注意**：两个工作流各自触发，CI 失败**不会**自动拦住部署。推送后如果 Actions 里的「质量检查」变红，请立刻按本节末尾的**回滚**处理，修好再推，别让线上停在坏版本上。
+
+### 4.1 先理解资源路径（这一步错了就白屏）
+
+同一个站点，两种发布形态的资源前缀不同：
+
+| 发布形态 | 访问地址形如 | `vite.config.ts` 的 `base` |
+| --- | --- | --- |
+| 项目页 | `https://<用户名>.github.io/<仓库名>/` | `/<仓库名>/` |
+| 自定义域名（本项目） | `https://sinkodeosu.site/` | `/` |
+
+本项目已按自定义域名固定在 `base: '/'`。**不要**照旧写法改成带仓库名的前缀，否则线上会白屏，`F12` 的 Console 里会出现一串 `404`。
+
+### 4.2 把 Pages 的来源设为 GitHub Actions
+
+1. 打开 <https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode/settings/pages>。
+2. **Build and deployment** → **Source** 选 **GitHub Actions**，不要选 “Deploy from a branch”。
+3. 这里不需要填任何构建命令，步骤都已经写在 `pages.yml` 里。
+
+### 4.3 在 GitHub 填自定义域名
+
+在同一页面的 **Custom domain** 里填 `sinkodeosu.site`，点 **Save**。
+
+- 只填域名本身：**不要**加 `https://`，也不要加结尾斜杠。
+- 用自定义 Actions 工作流发布时，GitHub **不会**创建 `CNAME` 文件，产物里也不需要它；域名配置保存在仓库设置里。
+- 保存后证书要几分钟到 24 小时才签发完成，这段时间页面可能暂时提示证书错误。
+
+### 4.4 在腾讯云 DNSPod 配置主站解析
+
+`sinkodeosu.site` 的 DNS 在腾讯云。登录腾讯云 → **DNSPod** → 选中 `sinkodeosu.site` → **解析** → **添加记录**，按 GitHub 官方给出的地址填：
+
+| 主机记录 | 记录类型 | 记录值 |
+| --- | --- | --- |
+| `@` | `A` | `185.199.108.153` |
+| `@` | `A` | `185.199.109.153` |
+| `@` | `A` | `185.199.110.153` |
+| `@` | `A` | `185.199.111.153` |
+| `@` | `AAAA` | `2606:50c0:8000::153` |
+| `@` | `AAAA` | `2606:50c0:8001::153` |
+| `@` | `AAAA` | `2606:50c0:8002::153` |
+| `@` | `AAAA` | `2606:50c0:8003::153` |
+| `www` | `CNAME` | `sinkaBot1.github.io` |
+
+- `@` 表示裸域名 `sinkodeosu.site` 本身；四条 `A` 记录缺一不可（GitHub 靠多个 IP 做容灾）。
+- `AAAA` 是 IPv6，可选；官方建议同时保留 `A` 记录，因为 IPv6 普及度还不高。
+- `www` 的记录值只写 `sinkaBot1.github.io`，**不要**带仓库名。配好后 GitHub 会自动把 `www.sinkodeosu.site` 跳到裸域名。
+- 如果域名商预先塞了一条默认解析或 `*` 泛解析，先删掉，避免和上面的记录冲突。
+- 记录值来源：[GitHub 文档「为 Pages 站点管理自定义域名」](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)。
+
+本机验证解析（Windows PowerShell）：
+
+```powershell
+Resolve-DnsName sinkodeosu.site -Type A
+```
+
+应能列出上面四个 IP。DNS 变更最长 24 小时生效，通常几分钟到一小时。
+
+### 4.5 打开强制 HTTPS
+
+回到 Settings → Pages，等证书状态正常（不再是 “Certificate is being provisioned”）后勾选 **Enforce HTTPS**。
+
+选项是灰色、点不动，说明证书还没签好，属正常现象；超过 24 小时仍不可选时见第 5 节。
+
+### 4.6 验证线上结果
+
+- 打开 <https://sinkodeosu.site/>，应**直接进入编辑器界面**，不是营销页，也不是 404。
+- 地址栏有锁形图标，手动输入 `http://` 会跳到 `https://`。
+- 刷新页面不报错；`F12` → **Console** 无红色报错。
+- **Network** 面板里 JS、CSS、`favicon.png` 都返回 `200`，且没有指向 `/Sinka-osu-bbcode-editor-Sinkode/...` 的 404。
+- `https://www.sinkodeosu.site/` 会自动跳到裸域名。
+- 若发现与 osu! 相关的可观察差异，登记到[兼容性说明](compatibility.md)。
+
+### 4.7 让 osusinkode.top 跳到主站
+
+GitHub Pages 的**一个仓库只能绑定一个自定义域名**，也不支持服务器端 `301`。所以第二个域名用「另一个很小的 Pages 站点」来实现跳转：
+
+1. 新建一个公开仓库，例如 `osusinkode-redirect`（必须公开，免费账号的私密仓库不能发 Pages）。
+2. 在仓库根目录放一个 `index.html`：
+
+```html
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>正在跳转到 sinkodeosu.site</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://sinkodeosu.site/" />
+    <meta http-equiv="refresh" content="0; url=https://sinkodeosu.site/" />
+    <script>
+      location.replace('https://sinkodeosu.site/')
+    </script>
+  </head>
+  <body>
+    <p>正在跳转到 <a href="https://sinkodeosu.site/">sinkodeosu.site</a>……</p>
+  </body>
+</html>
+```
+
+3. 该仓库 Settings → Pages → Source 选 **Deploy from a branch**，分支 `main`、目录 `/ (root)`，然后 Save。
+4. 同一页的 **Custom domain** 填 `osusinkode.top`，Save。
+5. 到**阿里云**云解析给 `osusinkode.top` 加与 4.4 相同的四条 `A` 记录（主机记录 `@`）。
+6. 证书签好后勾选 **Enforce HTTPS**。
+
+这是浏览器端跳转（`meta refresh` + `location.replace`），不是 HTTP `301`。对搜索引擎来说两个地址会各算一个站点，所以页面里同时加了 `noindex` 和 `canonical`。若以后确实需要服务器端 `301`，才考虑 Cloudflare 的 Redirect Rules 之类方案，那时得把 `osusinkode.top` 的 NS 迁到 Cloudflare，成本更高，目前不需要。
 
 ### 回滚
 
@@ -115,6 +211,10 @@ Pages 部署失败或线上效果异常时：在 Actions 里找到上一个成�
 | `format:check` 在很多文件上报格式不符，但 CI 却通过 | 检查 `.gitattributes` 是否包含 `* text=auto eol=lf`，再运行 `git diff --check` 和 `git status --short` 查看本地差异。先保留并备份未提交改动；需要干净工作区时，使用新的工作树重新检出后复查，不要用重置或删除命令清理当前工作区 |
 | `lint` 报 `.vite/deps/...` 里的第三方错误 | `.vite/` 是 Vite 的依赖预打包缓存，已在 `.gitignore` 与 ESLint 忽略清单中；若仍被扫描，说明 ESLint 配置被改动，应恢复忽略项而不是去修缓存文件 |
 | 页面空白 / 资源 404 | 先跑 `npm run build` 看是否成功；再看 `dist/index.html` 里资源路径前缀是否与实际发布地址匹配 |
+| 打开 `sinkodeosu.site` 显示 404 或「There isn't a GitHub Pages site here」 | 依次查三件事：`@` 的四条 `A` 记录是否齐全且没有冲突的旧记录；Settings → Pages 的 Custom domain 是否与域名逐字一致（不带协议、不带斜杠）；Source 是否仍停在 “Deploy from a branch” |
+| 证书长时间停在 “being provisioned”，或 Enforce HTTPS 一直灰色 | 域名必须先解析到那四个 IP，GitHub 才开始签证书；解析生效后再等最多 24 小时。期间不要反复保存 Custom domain，会重置签发 |
+| 保存域名时提示已被其他仓库占用 | 到旧仓库的 Settings → Pages 把 Custom domain 移除，再回来保存 |
+| 线上白屏，Console 里 404 的路径带 `/Sinka-osu-bbcode-editor-Sinkode/` | `vite.config.ts` 的 `base` 与实际发布形态不一致：自定义域名必须是 `/`，只有项目页才是 `/<仓库名>/` |
 | PowerShell 报「禁止运行脚本」 | 用 `npm.cmd` 代替 `npm`，或改用 Git Bash / CMD |
 
 ### 本机构建故障的替代命令（Windows PowerShell）
