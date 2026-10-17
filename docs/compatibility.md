@@ -84,6 +84,8 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 
 以下行为来自锁定提交自带样例（`tests/Libraries/bbcode_examples/`），只描述输入 → 输出的可观察结果，不搬运实现。各行为在固定样例矩阵中有对应 case。
 
+### 5.1 标签识别与文本行为（第 1–16 条）
+
 1. **size 数值夹取**：显示阶段字号百分比被限制在 30–200。上游样例 `basic_size`：`size=5` 输出 30%、`size=50` 输出 50%、`size=85` 输出 85%、`size=150` 输出 150%、`size=1500` 输出 200%。
 2. **color 参数识别**：颜色名称（如 `white`）与 6 位十六进制（大小写均可）可识别；**3 位十六进制（如 `#fff`）不被识别**，整段标签原样保留为文本（上游样例 `basic_color`）。
 3. **未知/未识别结构原样保留**：无法识别的标签与参数形态在输出中保持为可见文本（上游样例 `basic_color` 的 `#fff` 行、`img_empty`、`invalid_email_url`、`imagemap_invalid_content_escape`、`imagemap_multi_first_invalid`、`box_with_bbcode_title` 第三段）。
@@ -100,6 +102,9 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 14. **保存阶段引用规范化**：`remove_quotes/` 子目录样例显示，osu! 在**保存**资料时会对不匹配的引用标记做剥离（未配对的 `quote` 标记被移除、配对多层引用被压平为无引用文本）。该行为只发生在 osu! 服务端保存时，不属于本地预览行为，本工具不得伪装成编辑器自动行为；仅用于解释"粘贴到 osu! 后显示与本地预览不同"的现象。
 15. **个人简介正文排版（字号基准与字体）**：简介内容位于 `.page-extra` 内，该层 `font-size: @font-size--title-small`（`resources/css/variables.less` 中为 `14px`）；`.bbcode` 经 `.content-font()` 应用 `font-family: var(--font-content)`，`--font-content` 为 `Inter, sans-serif`（`resources/css/layout.less`、`variables.less`，Inter 由 `resources/css/app.less` 导入的 `inter-ui` 包提供），并把 `line-height` 覆盖为 `1.5`（`resources/css/bbcode.less`）。[size] 显示阶段输出 `font-size:200%` 内联样式，故 `size=200` 的可观察结果为 `200% × 14px = 28px`、`size=150` 为 `21px`、`size=30` 为 `4.2px`。本项目预览据此设置正文基准（见 §6.2），不复制上游样式表或字体文件。
 16. **异常标签的配对模型**：上游保存阶段（`app/Libraries/BBCodeForDB.php`）**按标签类型各自成对识别**，每类标签用自己的成对模式扫描全文，因此一个未闭合的开始标签不会让其他标签失效；只有成功配对的标签会带上内部标记，显示阶段（`app/Libraries/BBCodeFromDB.php`）再把这些标记替换为对应元素。可观察结果：`[c][color=#...][/c]` 中 `[c]` 与 `[/c]` 仍然配成行内代码，不合法颜色 `[color=#...]` 作为可见文本留在代码内；未配对的开始标签与多余的结束标签都保留为可见文本（`unclosed-bold`、`stray-close-tag` 对应）。上游自带样例库没有交叉嵌套专例，其可观察行为由保存阶段"按类型成对"推导：`[b]…[i]…[/b]…[/i]` 中 `[b]` 与 `[i]` 都会各自配对，产生相互交叠的 HTML 片段，最终由浏览器容错解析。本项目只承认能构成严格嵌套的组合，无法形成安全嵌套的标签自身保留为可见文本，差异见 D-16。
+
+### 5.2 块级排版与间距（第 17–20 条）
+
 17. **块级标签的贴边换行吸收**：显示阶段处理块级标签时会吸收紧贴标签边界的换行，因此这些位置不会渲染出多余的换行元素；各标签吸收的范围不同。下表列出由固定样例锁定的行为规则：
 
 | 标签                                  | 内容开始处                  | 内容结束处 | 结束标签之后                                        |
@@ -111,7 +116,11 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 | `centre`                              | 1 个换行                    | 1 个换行   | 1 个换行                                            |
 | `imagemap`                            | 不吸收                      | 不吸收     | 解析成功时 1 个换行；解析失败时整段保留原文、不吸收 |
 
-可观察判据是"该位置是否产生换行元素"。对照证据：`notice_with_surrounding_newlines.html`（公告框内侧无换行元素、结束标签后的首个换行被吸收、空行仍保留为换行元素）、`box_with_surrounding_newlines.html`、`spoilerbox_with_surrounding_newlines.html`、`quote_newline.html`、`basic_list.html`（两个列表之间不产生换行元素）、`code_with_surrounding_newlines.html`、`imagemap.html`（无效段落整段保留原文）、`basic_quote.html`。上游样例的标签间空白在测试对照中被归一化处理，因此判定标准以"是否产生换行元素"为准，绝对数量按上述处理顺序记录。对应固定样例：`notice-basic`、`notice-surrounding-newlines`、`quote-basic`、`quote-newlines`、`box-with-title`、`box-nested`、`box-bbcode-title`、`spoilerbox-basic`、`code-block`、`code-surrounding-newlines`、`list-basic`、`list-title`、`heading-basic`、`centre-basic`、`block-inline-mix`、`imagemap-basic`、`imagemap-indented`。18. **引用署名**：`[quote="名字"]…[/quote]` 在引用块开头输出一行署名，形如 `<h4>名字 wrote:</h4>`（英文固定串 " wrote:"），随后才是引用正文；`[quote]…[/quote]` 不输出署名行。只有"双向引号包裹、名字非空且不含冒号"的参数形态会被识别（`basic_quote.html` 为证据；上游保存阶段的成对模式要求引号形态，显示阶段的名字模式不含冒号）。其他参数形态（`[quote=名字]`、`[quote=""]`、名字含冒号）在上游不会被识别为引用：开始标签保留为可见文本、结束标签被转换为孤立的引用闭合元素并被清理，本项目按 D-16 把整段保留为可见文本。对应固定样例：`quote-basic`、`quote-newlines`。19. **个人简介正文的块级排版数值（外观对齐依据）**：`.bbcode` 容器自身为 `line-height: 1.5` 与 `overflow-wrap: anywhere`（`resources/css/bbcode.less` 第 16–17 行）。其内部元素在锁定提交下的可观察排版数值如下（只记录数值，不搬运上游样式表）：
+可观察判据是"该位置是否产生换行元素"。对照证据：`notice_with_surrounding_newlines.html`（公告框内侧无换行元素、结束标签后的首个换行被吸收、空行仍保留为换行元素）、`box_with_surrounding_newlines.html`、`spoilerbox_with_surrounding_newlines.html`、`quote_newline.html`、`basic_list.html`（两个列表之间不产生换行元素）、`code_with_surrounding_newlines.html`、`imagemap.html`（无效段落整段保留原文）、`basic_quote.html`。上游样例的标签间空白在测试对照中被归一化处理，因此判定标准以"是否产生换行元素"为准，绝对数量按上述处理顺序记录。对应固定样例：`notice-basic`、`notice-surrounding-newlines`、`quote-basic`、`quote-newlines`、`box-with-title`、`box-nested`、`box-bbcode-title`、`spoilerbox-basic`、`code-block`、`code-surrounding-newlines`、`list-basic`、`list-title`、`heading-basic`、`centre-basic`、`block-inline-mix`、`imagemap-basic`、`imagemap-indented`。
+
+18. **引用署名**：`[quote="名字"]…[/quote]` 在引用块开头输出一行署名，形如 `<h4>名字 wrote:</h4>`（英文固定串 " wrote:"），随后才是引用正文；`[quote]…[/quote]` 不输出署名行。只有"双向引号包裹、名字非空且不含冒号"的参数形态会被识别（`basic_quote.html` 为证据；上游保存阶段的成对模式要求引号形态，显示阶段的名字模式不含冒号）。其他参数形态（`[quote=名字]`、`[quote=""]`、名字含冒号）在上游不会被识别为引用：开始标签保留为可见文本、结束标签被转换为孤立的引用闭合元素并被清理，本项目按 D-16 把整段保留为可见文本。对应固定样例：`quote-basic`、`quote-newlines`。
+
+19. **个人简介正文的块级排版数值（外观对齐依据）**：`.bbcode` 容器自身为 `line-height: 1.5` 与 `overflow-wrap: anywhere`（`resources/css/bbcode.less` 第 16–17 行）。其内部元素在锁定提交下的可观察排版数值如下（只记录数值，不搬运上游样式表）：
 
 | 元素                        | 上游数值                                                                                                                                            | 证据                                                                                                                        |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
