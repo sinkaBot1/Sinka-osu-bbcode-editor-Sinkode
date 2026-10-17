@@ -120,7 +120,23 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
 
 ### 4.4 在腾讯云 DNSPod 配置主站解析
 
-`sinkodeosu.site` 的 DNS 在腾讯云。登录腾讯云 → **DNSPod** → 选中 `sinkodeosu.site` → **解析** → **添加记录**，按 GitHub 官方给出的地址填：
+`sinkodeosu.site` 的 DNS 在腾讯云。
+
+**去哪做**：任选一个入口——DNSPod 独立控制台 <https://console.dnspod.cn/>，或腾讯云控制台 <https://console.cloud.tencent.com/> 顶部搜索「域名解析」。进去后左侧 **我的域名** → 点 `sinkodeosu.site` 那一行的 **解析**，进入记录列表。
+
+**怎么加**：点 **添加记录**，免费版每条记录要填下面几个框：
+
+| 表单字段 | 主站 `A` 记录怎么填 |
+| --- | --- |
+| 主机记录 | `@` |
+| 记录类型 | `A` |
+| 线路类型 | 默认线路 |
+| 记录值 | 下表中的 IP |
+| TTL | 默认 `600` 秒 |
+
+`@` 代表 `sinkodeosu.site` 本身（不是 `www`），**不要**把域名全称填进主机记录。
+
+要加的记录就是这张表，也就是 GitHub 官方清单：
 
 | 主机记录 | 记录类型 | 记录值 |
 | --- | --- | --- |
@@ -134,19 +150,26 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
 | `@` | `AAAA` | `2606:50c0:8003::153` |
 | `www` | `CNAME` | `sinkaBot1.github.io` |
 
-- `@` 表示裸域名 `sinkodeosu.site` 本身；四条 `A` 记录缺一不可（GitHub 靠多个 IP 做容灾）。
-- `AAAA` 是 IPv6，可选；官方建议同时保留 `A` 记录，因为 IPv6 普及度还不高。
+操作上就是反复点「添加记录」：前四条主机记录都填 `@`、类型选 `A`，只换记录值；`AAAA` 同理逐条加；最后一条是 `www` + `CNAME`。
+
+- 四条 `A` 记录缺一不可（GitHub 靠多个 IP 做容灾）；`AAAA` 是 IPv6，可选，官方建议同时保留 `A` 记录。
 - `www` 的记录值只写 `sinkaBot1.github.io`，**不要**带仓库名。配好后 GitHub 会自动把 `www.sinkodeosu.site` 跳到裸域名。
-- 如果域名商预先塞了一条默认解析或 `*` 泛解析，先删掉，避免和上面的记录冲突。
 - 记录值来源：[GitHub 文档「为 Pages 站点管理自定义域名」](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)。
+
+填完检查三件事：
+
+- `@` 上**不能**同时存在 `CNAME` 和 `A`/`AAAA`，两种类型互斥；原来若有一条 `@` 的 `CNAME`，先删掉。
+- 删掉域名商预置的「域名停放」记录、`*` 泛解析，以及指向旧服务器的旧记录。
+- 页面若提示 DNS 服务器不是 DNSPod 的，说明这个域名还没托管到 DNSPod；先按提示把 NS 改成 DNSPod 给出的地址（通常形如 `f1g1ns1.dnspod.net`），否则在这里加的记录不生效。
 
 本机验证解析（Windows PowerShell）：
 
 ```powershell
 Resolve-DnsName sinkodeosu.site -Type A
+Resolve-DnsName www.sinkodeosu.site -Type CNAME
 ```
 
-应能列出上面四个 IP。DNS 变更最长 24 小时生效，通常几分钟到一小时。
+第一条应列出上面四个 IP，第二条应指向 `sinkaBot1.github.io`。DNS 变更最长 24 小时生效，通常几分钟到一小时。
 
 ### 4.5 打开强制 HTTPS
 
