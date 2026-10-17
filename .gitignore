@@ -8,7 +8,7 @@ coverage/
 # 开发期临时产物：探测脚本、无头浏览器用户配置与调试截图
 .tmp/
 
-# 本机实验性工具（本机专用，不纳入版本库）
+# 个人实验性模块：仅本机使用，按本文件规则忽略
 .dsh-bridge/
 .claude/rules/dsh-collaboration.md
 
