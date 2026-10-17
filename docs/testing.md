@@ -39,10 +39,11 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 5 | `npm run build` | 生成 `dist/`，退出码 0 |
 | 6 | `npm run test:e2e` | 所有端到端用例通过，退出码为 0 |
 
-另外两条与本仓库证据链直接相关：
+另外三条与本仓库证据链直接相关：
 
 - `node tests/check-osu-web-fixtures.mjs`：校验固定样例矩阵的完整性、必备用例、标签覆盖与 `size` 边界（当前 49 case / 24 标签）。
 - `npm run docs:check`：检查 Markdown 标题结构、本地链接与锚点是否有效。
+- `npm run style:check`：检查 `src/app/theme.css` 里不再出现圆角、字号、时长、缓动与 `z-index` 字面量，并确认每个 `var(--x)` 都有声明（令牌或运行时写入）。背景见[界面重构提案](ui-refactor-proposal.md)第 10 节批次 0：令牌定义在 `src/app/scale.css`，组件规则只引用不写数值，迁移期尚未归一的取值走 `--legacy-*` 占位。
 
 只改文档时运行 `npm run format:check` 与 `npm run docs:check`；涉及代码的改动运行六条固定命令。
 
@@ -157,4 +158,4 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
 
 ## 8. CI 里跑什么
 
-`.github/workflows/ci.yml` 在 push 到 `main` 和所有 Pull Request 上执行，步骤与本文第 3 节一致（`npm ci` → 格式 → lint → 类型 → 单元/组件 → 构建 → 端到端），额外先安装 Chromium。CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。查看方式与常见失败原因见[部署说明](deployment.md#3-ci-与检查结果)。
+`.github/workflows/ci.yml` 在 push 到 `main` 和所有 Pull Request 上执行，步骤与本文第 3 节一致（`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建 → 端到端），额外先安装 Chromium。CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。查看方式与常见失败原因见[部署说明](deployment.md#3-ci-与检查结果)。

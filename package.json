@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:preview": "playwright test --config playwright.preview.config.ts",
-    "docs:check": "node scripts/check-docs-links.mjs"
+    "docs:check": "node scripts/check-docs-links.mjs",
+    "style:check": "node scripts/check-style-tokens.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
