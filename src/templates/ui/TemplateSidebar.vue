@@ -214,9 +214,11 @@ watch(
       <Transition name="template-sidebar-panel">
         <div v-if="props.open" class="template-sidebar-panel">
           <div class="section-heading">
-            <h2>模板</h2>
+            <h2>
+              模板<span class="template-sidebar-count">{{ templates.length }}</span>
+            </h2>
             <button type="button" aria-label="新建模板" title="新建模板" @click="emit('create')">
-              <Plus :size="18" :stroke-width="2" aria-hidden="true" />
+              <Plus :size="15" :stroke-width="2" aria-hidden="true" />
             </button>
           </div>
 
@@ -253,7 +255,7 @@ watch(
                     "
                     @click="toggleActionMenu(template, $event)"
                   >
-                    <Ellipsis :size="18" :stroke-width="2" aria-hidden="true" />
+                    <Ellipsis :size="15" :stroke-width="2" aria-hidden="true" />
                   </button>
                 </div>
                 <form
@@ -308,7 +310,7 @@ watch(
                 title="恢复默认示例"
                 @click="emit('restore')"
               >
-                <RotateCcw :size="16" :stroke-width="2" aria-hidden="true" />
+                <RotateCcw :size="15" :stroke-width="2" aria-hidden="true" />
                 恢复默认示例
               </button>
             </div>
@@ -323,7 +325,7 @@ watch(
         :title="props.open ? '关闭模板栏' : '打开模板栏'"
         @click="toggleSidebar"
       >
-        <PanelLeft :size="18" :stroke-width="2" aria-hidden="true" />
+        <PanelLeft :size="15" :stroke-width="2" aria-hidden="true" />
       </button>
     </div>
   </div>
@@ -344,7 +346,7 @@ watch(
           :title="`重命名模板：${actionMenuTemplate.name}`"
           @click="beginRename(actionMenuTemplate)"
         >
-          <Pencil :size="16" :stroke-width="2" aria-hidden="true" />
+          <Pencil :size="15" :stroke-width="2" aria-hidden="true" />
           重命名
         </button>
         <button
@@ -353,7 +355,7 @@ watch(
           :title="`复制模板：${actionMenuTemplate.name}`"
           @click="duplicateTemplate(actionMenuTemplate.id)"
         >
-          <Copy :size="16" :stroke-width="2" aria-hidden="true" />
+          <Copy :size="15" :stroke-width="2" aria-hidden="true" />
           复制模板
         </button>
         <span class="template-action-menu-separator" aria-hidden="true"></span>
@@ -364,7 +366,7 @@ watch(
           :title="`删除模板：${actionMenuTemplate.name}`"
           @click="requestDelete(actionMenuTemplate.id)"
         >
-          <Trash2 :size="16" :stroke-width="2" aria-hidden="true" />
+          <Trash2 :size="15" :stroke-width="2" aria-hidden="true" />
           删除模板
         </button>
       </div>

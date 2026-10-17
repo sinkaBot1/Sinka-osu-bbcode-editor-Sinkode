@@ -1008,7 +1008,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               aria-controls="template-drawer-title"
               @click="openMobileTemplateDrawer"
             >
-              <PanelLeft :size="18" :stroke-width="2" aria-hidden="true" />
+              <PanelLeft :size="16" :stroke-width="2" aria-hidden="true" />
             </button>
             <CopyButton :source="snapshot.source" />
           </div>

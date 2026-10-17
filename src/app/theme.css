@@ -560,14 +560,17 @@ h2 {
   margin-bottom: 0;
   font-size: var(--text-base);
 }
-/* 悬停只使用中性浮层，静止描边保持 --color-border；强调色用于选中、活动状态和键盘焦点环。
-   规则与逐处取值见 docs/ui-icon-system.md。 */
+/* 标题行图标按钮：静止无框、次级色，悬停只加中性浮层。
+   尺寸与圆角由各自的家族补齐——模板栏是内容族（24px + 8px 圆角），
+   主题弹层的关闭按钮是仪器族（直角，见 .theme-close）。 */
 .section-heading button {
-  border: 1px solid var(--color-border);
-  border-radius: var(--legacy-radius-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
   color: var(--color-muted);
-  background: var(--color-surface);
-  padding: 7px 10px;
+  background: transparent;
   cursor: pointer;
 }
 .section-heading button:hover {
@@ -756,17 +759,23 @@ h2 {
 .preview-panel {
   min-width: 0;
 }
+/* 模板栏是内容族：整栏是一块浮起的内容卡片（提案 §3.3 与 §5.2）。
+   卡片边缘本身就是与编辑面的分界，因此不再画右描边；右内边距留 2px 是因为
+   旁边的 8px 分隔条本身已经是空的，再叠 8px 会读成一条 16px 的沟。 */
 .template-sidebar {
   min-height: 0;
   overflow-y: auto;
-  border-right: 1px solid var(--color-border);
-  background: var(--shell-sidebar-background);
-  padding: 16px 12px;
+  margin: var(--space-4) var(--space-1) var(--space-4) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--line-structure);
+  border-radius: var(--r-card);
+  background: var(--surface-content);
   transition: padding var(--dur-3) var(--ease);
 }
+/* 收起后整列只剩 48px：内边距降到 4px，24px 的开合按钮才刚好放得下 */
 .template-sidebar.is-collapsed {
   overflow: hidden;
-  padding: 12px 8px;
+  padding: var(--space-2);
 }
 .template-sidebar-content {
   min-width: 0;
@@ -774,27 +783,28 @@ h2 {
 .template-sidebar-layout {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .template-sidebar-toggle {
   display: inline-flex;
-  flex: 0 0 32px;
+  flex: 0 0 var(--control-xs);
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--control-xs);
+  height: var(--control-xs);
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--legacy-radius-4);
-  color: var(--color-text);
-  background: var(--color-surface);
+  border: 0;
+  border-radius: var(--r-row);
+  color: var(--color-muted);
+  background: transparent;
   cursor: pointer;
 }
 .template-sidebar-layout > .template-sidebar-toggle {
   margin-left: auto;
 }
 .template-sidebar-toggle:hover {
-  background: var(--control-hover-background);
+  color: var(--color-text);
+  background: var(--state-hover);
 }
 .template-sidebar-toggle:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -809,17 +819,27 @@ h2 {
   min-width: 0;
   margin-bottom: 0;
 }
+/* 内容族的标题用 600 而不是 h2 默认的 700：卡片里不需要那么重的笔画 */
+.template-sidebar-panel .section-heading h2 {
+  font-weight: 600;
+}
+/* 标题行右侧的新建按钮：24px 直角图标按钮，与开合按钮同尺寸（自动化测试比对两者） */
 .template-sidebar-panel .section-heading > button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
+  width: var(--control-xs);
+  height: var(--control-xs);
+  border-radius: var(--r-row);
+}
+/* 标题右侧的等宽计数：内容族的“无衬线标题 + 等宽计数”分工（提案 §3.3） */
+.template-sidebar-count {
+  margin-left: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 .template-sidebar-main {
   min-width: 0;
-  margin-top: 18px;
+  margin-top: var(--space-5);
   overflow: hidden;
 }
 .template-sidebar-panel-enter-active,
@@ -867,17 +887,18 @@ h2 {
   align-items: center;
   gap: 10px;
 }
+/* 窄屏的模板入口与编辑面板头同属仪器族：无框、直角，命中区保持 44（触屏唯一入口） */
 .mobile-template-trigger {
   display: none;
-  width: 44px;
-  height: 44px;
+  width: var(--control-lg);
+  height: var(--control-lg);
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--legacy-radius-4);
+  border: 0;
+  border-radius: var(--radius);
   color: var(--color-text);
-  background: var(--color-surface);
+  background: transparent;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -907,17 +928,13 @@ h2 {
 .template-item {
   max-height: 320px;
   overflow: hidden;
-  margin-block-end: 2px;
-  padding: 2px 0;
-  border: 1px solid transparent;
-  background: transparent;
+  margin-block-end: var(--space-1);
+  padding: 0;
   transition:
     opacity var(--dur-3) var(--ease),
     transform var(--dur-3) var(--ease),
     max-height var(--dur-3) var(--ease),
-    margin-block-end var(--dur-3) var(--ease),
-    padding var(--dur-3) var(--ease),
-    border-width var(--dur-3) var(--ease);
+    margin-block-end var(--dur-3) var(--ease);
 }
 .template-list-move,
 .template-list-enter-active,
@@ -926,50 +943,43 @@ h2 {
     opacity var(--dur-3) var(--ease),
     transform var(--dur-3) var(--ease),
     max-height var(--dur-3) var(--ease),
-    margin-block-end var(--dur-3) var(--ease),
-    padding var(--dur-3) var(--ease),
-    border-width var(--dur-3) var(--ease);
-}
-.template-list-leave-active {
-  border-width: 0;
+    margin-block-end var(--dur-3) var(--ease);
 }
 .template-list-enter-from {
   opacity: 0;
   max-height: 0;
   transform: translateY(14px);
   margin-block-end: 0;
-  padding-block: 0;
-  border-width: 0;
 }
 .template-list-leave-to {
   opacity: 0;
   max-height: 0;
   transform: translateY(-14px);
   margin-block-end: 0;
-  padding-block: 0;
-  border-width: 0;
 }
+/* 模板行：内容行高度 34、圆角 8；选中态是强调浮层 + 2px 圆头竖条，
+   与仪器族的 3px 斜切竖条是有意的差异（提案 §9 裁决 G）。 */
 .template-row {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 40px;
+  grid-template-columns: minmax(0, 1fr) var(--control-xs);
   align-items: center;
-  min-height: 52px;
-  padding: 2px 4px 2px 8px;
-  border-radius: var(--legacy-radius-6);
+  min-height: var(--row-content);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-radius: var(--r-row);
   transition: background var(--dur-1) ease;
 }
 .template-row:hover {
-  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  background: var(--state-hover);
 }
 .template-row.is-active {
-  background: color-mix(in srgb, var(--color-accent) 7%, transparent);
+  background: var(--state-selected);
 }
 .template-row.is-active::before {
   position: absolute;
-  inset: 10px auto 10px 0;
+  inset: var(--space-2) auto var(--space-2) 0;
   width: 2px;
-  border-radius: var(--legacy-radius-2);
+  border-radius: var(--radius-pill);
   background: var(--color-accent);
   content: '';
 }
@@ -977,13 +987,14 @@ h2 {
   display: block;
   min-width: 0;
   width: 100%;
-  min-height: 44px;
-  padding: 0 8px;
+  min-height: var(--row-content);
+  padding: 0 var(--space-2);
   overflow: hidden;
   border: 0;
-  border-radius: var(--legacy-radius-4);
+  border-radius: var(--r-row);
   color: var(--color-text);
   background: transparent;
+  font-size: var(--text-base);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1002,12 +1013,12 @@ h2 {
 }
 .template-more {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: var(--control-xs);
+  height: var(--control-xs);
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: var(--legacy-radius-6);
+  border-radius: var(--r-row);
   color: var(--color-muted);
   background: transparent;
   cursor: pointer;
@@ -1015,18 +1026,20 @@ h2 {
 .template-more:hover,
 .template-more[aria-expanded='true'] {
   color: var(--color-text);
-  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  background: var(--state-hover);
 }
+/* 模板操作菜单：内容族浮层，圆角 10 + 投影；浮层跟随触发者的家族，
+   所以它和直角无投影的主题弹层形状不同（提案 §3.3 细则 1 与 §5.4）。 */
 .template-action-menu {
   position: fixed;
   z-index: var(--z-overlay);
   display: grid;
-  gap: 2px;
-  padding: 5px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--legacy-radius-7);
-  background: var(--color-surface-raised);
-  box-shadow: 0 8px 20px var(--shadow-overlay);
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--line-structure);
+  border-radius: var(--r-overlay);
+  background: var(--surface-overlay);
+  box-shadow: var(--elevation-content);
   transform-origin: top right;
 }
 .template-action-menu-enter-active {
@@ -1036,8 +1049,8 @@ h2 {
 }
 .template-action-menu-leave-active {
   transition:
-    opacity var(--legacy-dur-180) var(--ease),
-    transform var(--legacy-dur-180) var(--ease);
+    opacity var(--dur-exit) var(--ease),
+    transform var(--dur-exit) var(--ease);
 }
 .template-action-menu-enter-from,
 .template-action-menu-leave-to {
@@ -1047,15 +1060,15 @@ h2 {
 .template-action-menu button {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 40px;
-  padding: 0 10px;
+  gap: var(--space-2);
+  min-height: var(--control-md);
+  padding: 0 var(--space-3);
   border: 0;
-  border-radius: var(--legacy-radius-4);
+  border-radius: var(--r-row);
   color: var(--color-text);
   background: transparent;
   text-align: left;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 .template-action-menu button svg {
@@ -1064,77 +1077,95 @@ h2 {
 }
 .template-action-menu button:hover,
 .template-action-menu button:focus-visible {
-  background: var(--control-hover-background);
+  background: var(--state-hover);
 }
 .template-action-menu button:focus-visible {
   /* 焦点环是强调色唯一允许出现在"框"上的场合，此处保持 2px 实线不变 */
   outline: 2px solid var(--color-accent);
   outline-offset: -2px;
 }
+/* 危险项只用危险色文字与图标，不给红底（提案 §5.4） */
 .template-action-menu button.danger,
 .template-action-menu button.danger svg {
   color: var(--color-danger);
 }
 .template-action-menu-separator {
   height: 1px;
-  margin: 4px 5px;
-  background: var(--color-border);
+  margin: var(--space-1) var(--space-2);
+  background: var(--line-rhythm);
 }
+/* 行内控件与页脚按钮：内容族，圆角 8、12px 文字。静止描边取结构线，
+   悬停只加中性浮层，不把描边改成强调色（docs/ui-icon-system.md §6）。 */
 .template-rename button,
 .template-delete-confirm button,
 .template-footer button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--legacy-radius-3);
+  gap: var(--space-1);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line-structure);
+  border-radius: var(--r-row);
   color: var(--color-muted);
-  background: var(--color-surface);
+  background: transparent;
   font-size: var(--text-sm);
   cursor: pointer;
 }
 .template-rename button:hover,
+.template-delete-confirm button:hover,
 .template-footer button:hover {
   color: var(--color-text);
+  background: var(--state-hover);
 }
 .template-rename {
   display: grid;
-  gap: 8px;
-  padding: 8px 8px 12px 12px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-1) var(--space-3);
 }
+/* 输入框属“浮层轮廓”一类：静止是结构线，:focus 才转强调色并加 2px 焦点环（提案 §5.3）。
+   用 :focus 而不是 :focus-visible——文本输入框获得焦点就该看得见。 */
 .template-rename input {
   min-width: 0;
-  min-height: 38px;
-  padding: 0 8px;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--legacy-radius-3);
+  min-height: var(--control-md);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--line-structure);
+  border-radius: var(--r-row);
   color: var(--color-text);
-  background: var(--shell-inset-background);
+  background: var(--surface-inset);
+  font-size: var(--text-base);
+}
+.template-rename input:focus {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 .template-rename-actions,
 .template-delete-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-4);
 }
 .template-rename-actions button,
 .template-delete-actions button {
-  min-height: 34px;
+  min-height: var(--control-md);
+  white-space: nowrap;
+}
+/* 重命名的主动作是“保存”，用正文色而不是次级色；强调色仍留给选中与焦点 */
+.template-rename-actions button[type='submit'] {
+  color: var(--color-text);
 }
 .template-delete-confirm {
   display: grid;
   grid-template-rows: 1fr;
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .template-delete-confirm-enter-active,
 .template-delete-confirm-leave-active {
   transition:
     grid-template-rows var(--dur-3) var(--ease),
     margin-top var(--dur-3) var(--ease),
-    opacity var(--legacy-dur-180) ease-out;
+    opacity var(--dur-exit) ease-out;
 }
 .template-delete-confirm-enter-from,
 .template-delete-confirm-leave-to {
@@ -1146,11 +1177,11 @@ h2 {
   min-height: 0;
   overflow: hidden;
 }
+/* 删除确认保留左侧危险竖条：错误语义靠竖条与危险色文字表达，不铺红底 */
 .template-delete-confirm-surface {
   display: grid;
-  gap: 8px;
-  margin: 0 4px;
-  padding: 8px 0 8px 6px;
+  gap: var(--space-2);
+  padding: var(--space-3) 0 var(--space-3) var(--space-5);
   border-left: 2px solid var(--color-danger);
 }
 .template-delete-confirm-surface p {
@@ -1160,30 +1191,25 @@ h2 {
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
-.template-delete-confirm-surface button {
-  padding-inline: 4px;
-  white-space: nowrap;
-}
 .template-delete-confirm-surface button.danger {
   color: var(--color-danger);
 }
 .template-footer {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-rhythm);
 }
 .template-footer button {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--control-md);
   justify-content: flex-start;
-  padding: 0 10px;
+  padding: 0 var(--space-2);
   border-color: transparent;
   background: transparent;
 }
 .template-footer button:hover {
   border-color: transparent;
-  /* 原为 6%，与工作台统一的 9% 浮层并入同一口径 */
-  background: var(--control-hover-background);
+  background: var(--state-hover);
 }
 .copy-control {
   position: relative;
@@ -2227,19 +2253,27 @@ h2 {
   border-color: var(--color-accent);
   background: var(--color-surface-raised);
 }
+/* 抽屉里的模板栏不是浮起卡片：它已经在一个容器里，圆角与投影由抽屉自己承担（第 3 批）。
+   这里的任务是让卡片外观退回普通区块，同时保住触屏的 44px 命中区。 */
 .template-drawer-sidebar {
   display: block;
   min-height: 0;
   flex: 1 1 auto;
   overflow: visible;
+  margin: 0;
   border: 0;
-  padding: 12px 16px 20px;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-5) var(--space-6) var(--space-7);
 }
 .template-drawer-sidebar .template-sidebar-toggle {
   display: none;
 }
 .template-drawer-sidebar .template-sidebar-panel {
   display: block;
+}
+.template-drawer-sidebar .template-select {
+  min-height: var(--control-lg);
 }
 .template-drawer-sidebar .section-heading h2 {
   position: absolute;
@@ -2249,6 +2283,10 @@ h2 {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+/* 抽屉头已经写着“模板”，标题隐藏后新建按钮靠右，和行尾的“更多”对齐 */
+.template-drawer-sidebar .section-heading {
+  justify-content: flex-end;
 }
 .template-drawer-sidebar .template-sidebar-main {
   margin-top: 8px;

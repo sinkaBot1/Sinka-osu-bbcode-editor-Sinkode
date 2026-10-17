@@ -137,24 +137,26 @@ test.describe('模板、保存与复制', () => {
     const createButton = page.getByTitle('新建模板')
     await expect(createButton).toBeVisible()
 
-    // 悬停只显示中性背景，不改变描边颜色：
-    // 描边保持静止值 --color-border，反馈只来自背景浮层，不引入强调色。
+    // 模板栏的标题行按钮归内容族（提案 §5.2）：24×24、圆角 8、无描边，
+    // 悬停只加中性浮层，不引入强调色边框。
     await createButton.hover()
     const hoverColors = await createButton.evaluate((element) => {
       const styles = getComputedStyle(element)
       const tokens = getComputedStyle(document.documentElement)
+      const rect = element.getBoundingClientRect()
       return {
-        border: styles.borderTopColor,
-        restBorder: tokens.getPropertyValue('--color-border').trim(),
-        accent: tokens.getPropertyValue('--color-accent').trim(),
+        borderWidth: styles.borderTopWidth,
+        radius: styles.borderRadius,
         background: styles.backgroundColor,
+        accent: tokens.getPropertyValue('--color-accent').trim(),
+        size: { width: Math.round(rect.width), height: Math.round(rect.height) },
       }
     })
-    expect(hoverColors.restBorder).toBe('#353c47')
-    expect(hoverColors.border).toBe('rgb(53, 60, 71)')
     expect(hoverColors.accent).toBe('#62b5ff')
-    expect(hoverColors.border).not.toBe('rgb(98, 181, 255)')
+    expect(hoverColors.borderWidth).toBe('0px')
+    expect(hoverColors.radius).toBe('8px')
     expect(hoverColors.background).toBe(HOVER_OVERLAY)
+    expect(hoverColors.size).toEqual({ width: 24, height: 24 })
 
     const toggleBox = await toggle.boundingBox()
     const createBox = await createButton.boundingBox()
@@ -199,14 +201,139 @@ test.describe('模板、保存与复制', () => {
     await expect(page.getByTitle('恢复默认示例')).toContainText('恢复默认示例')
   })
 
+  test('模板卡片、行与浮层按内容族规格渲染（批次 2）', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await openEditor(page)
+
+    // 卡片：浮起的内容面（--color-surface #20242b）+ 12px 圆角 + 1px 结构线，四周留 8px。
+    // 右侧只留 2px，因为旁边还有 8px 的分隔条列，合起来是与编辑面之间的 10px 沟。
+    const card = await page.evaluate(() => {
+      const sidebar = document.querySelector<HTMLElement>('.template-sidebar')!
+      const styles = getComputedStyle(sidebar)
+      const rect = sidebar.getBoundingClientRect()
+      const workspace = document.querySelector<HTMLElement>('.workspace')!.getBoundingClientRect()
+      return {
+        radius: styles.borderRadius,
+        borderWidth: styles.borderTopWidth,
+        background: styles.backgroundColor,
+        shellBackground: getComputedStyle(document.querySelector<HTMLElement>('.app-shell')!)
+          .backgroundColor,
+        margin: styles.margin,
+        insideWorkspace:
+          rect.left >= workspace.left &&
+          rect.right <= workspace.right + 1 &&
+          rect.top >= workspace.top &&
+          rect.bottom <= workspace.bottom + 1,
+      }
+    })
+    expect(card.radius).toBe('12px')
+    expect(card.borderWidth).toBe('1px')
+    expect(card.background).toBe('rgb(32, 36, 43)')
+    expect(card.background).not.toBe(card.shellBackground)
+    expect(card.margin).toBe('8px 2px 8px 8px')
+    expect(card.insideWorkspace).toBe(true)
+
+    // 行：34 高、8 圆角、13px 文字；行尾的“更多”是 24×24 图标按钮
+    const row = await page.evaluate(() => {
+      const rowElement = document.querySelector<HTMLElement>('.template-row')!
+      const more = document.querySelector<HTMLElement>('.template-more')!
+      return {
+        height: Math.round(rowElement.getBoundingClientRect().height),
+        radius: getComputedStyle(rowElement).borderRadius,
+        fontSize: getComputedStyle(document.querySelector<HTMLElement>('.template-select')!)
+          .fontSize,
+        moreSize: Math.round(more.getBoundingClientRect().width),
+      }
+    })
+    expect(row.height).toBe(34)
+    expect(row.radius).toBe('8px')
+    expect(row.fontSize).toBe('13px')
+    expect(row.moreSize).toBe(24)
+
+    // 操作菜单：内容族浮层——10 圆角 + 投影（仪器族浮层一律没有投影），项高 32
+    await page.getByRole('button', { name: '更多操作：默认示例' }).click()
+    const menu = page.locator('#template-action-menu')
+    await expect(menu).toBeVisible()
+    const menuMetrics = await menu.evaluate((element) => {
+      const styles = getComputedStyle(element)
+      const item = element.querySelector<HTMLElement>('button')!
+      return {
+        radius: styles.borderRadius,
+        shadow: styles.boxShadow,
+        // 入场过渡带 scale(0.96)，getBoundingClientRect 会读到缩放后的高度，
+        // 所以尺寸用 offsetHeight 读布局盒。
+        itemHeight: item.offsetHeight,
+        itemRadius: getComputedStyle(item).borderRadius,
+        itemFontSize: getComputedStyle(item).fontSize,
+      }
+    })
+    expect(menuMetrics.radius).toBe('10px')
+    expect(menuMetrics.shadow).not.toBe('none')
+    expect(menuMetrics.itemHeight).toBe(32)
+    expect(menuMetrics.itemRadius).toBe('8px')
+    expect(menuMetrics.itemFontSize).toBe('12px')
+
+    // 重命名输入框：32 高、8 圆角；静止描边是结构线，获得焦点才转强调色并加 2px 焦点环
+    await menu.getByRole('button', { name: '重命名模板：默认示例' }).click()
+    const input = page.getByLabel('模板名称')
+    await expect(input).toBeFocused()
+    const inputMetrics = await input.evaluate((element) => {
+      const styles = getComputedStyle(element)
+      return {
+        height: (element as HTMLInputElement).offsetHeight,
+        radius: styles.borderRadius,
+        border: styles.borderTopColor,
+        outlineWidth: styles.outlineWidth,
+        outlineColor: styles.outlineColor,
+      }
+    })
+    expect(inputMetrics.height).toBe(32)
+    expect(inputMetrics.radius).toBe('8px')
+    expect(inputMetrics.border).toBe('rgb(98, 181, 255)')
+    expect(inputMetrics.outlineWidth).toBe('2px')
+    expect(inputMetrics.outlineColor).toBe('rgb(98, 181, 255)')
+    await page.getByRole('button', { name: '取消', exact: true }).click()
+
+    // 删除确认：危险语义靠 2px 左竖条与危险色文字，不铺红底
+    await page.getByRole('button', { name: '更多操作：默认示例' }).click()
+    await page.getByRole('button', { name: '删除模板：默认示例' }).click()
+    const confirm = page.getByRole('alertdialog')
+    await expect(confirm).toBeVisible()
+    const confirmMetrics = await confirm.evaluate((element) => {
+      const surface = element.querySelector<HTMLElement>('.template-delete-confirm-surface')!
+      const styles = getComputedStyle(surface)
+      return {
+        barWidth: styles.borderLeftWidth,
+        barColor: styles.borderLeftColor,
+        background: styles.backgroundColor,
+        dangerColor: getComputedStyle(element.querySelector<HTMLElement>('button.danger')!).color,
+      }
+    })
+    expect(confirmMetrics.barWidth).toBe('2px')
+    expect(confirmMetrics.barColor).toBe('rgb(244, 135, 113)')
+    expect(confirmMetrics.background).toBe('rgba(0, 0, 0, 0)')
+    expect(confirmMetrics.dangerColor).toBe('rgb(244, 135, 113)')
+    await confirm.getByRole('button', { name: '取消' }).click()
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+  })
+
   test('更多菜单在模板栏各宽度完整显示，支持键盘返回与侧栏收起', async ({ page }) => {
     await openEditor(page)
-    const sidebar = page.locator('.template-sidebar')
     const resizeHandle = page.getByRole('separator', { name: '调整模板栏宽度' })
     const more = page.getByRole('button', { name: '更多操作：默认示例' })
+    // 模板卡片四周留了边距（提案 §5.2），卡片可见宽度因此比栅格列宽小 10px。
+    // 拖拽手柄控制的是栅格列宽，所以拖动距离与断言都按 --template-width 计算。
+    const columnWidth = () =>
+      page.evaluate(() =>
+        Number.parseFloat(
+          getComputedStyle(document.querySelector<HTMLElement>('.workspace')!).getPropertyValue(
+            '--template-width',
+          ),
+        ),
+      )
 
     for (const width of [160, 300, 360]) {
-      const currentWidth = (await sidebar.boundingBox())!.width
+      const currentWidth = await columnWidth()
       const handleBox = (await resizeHandle.boundingBox())!
       const startX = handleBox.x + handleBox.width / 2
       const startY = handleBox.y + Math.min(30, handleBox.height / 2)
@@ -214,7 +341,7 @@ test.describe('模板、保存与复制', () => {
       await page.mouse.down()
       await page.mouse.move(startX + width - currentWidth, startY, { steps: 6 })
       await page.mouse.up()
-      await expect.poll(async () => (await sidebar.boundingBox())!.width).toBeCloseTo(width, 0)
+      await expect.poll(columnWidth).toBeCloseTo(width, 0)
 
       await more.click()
       const menu = page.locator('#template-action-menu')
