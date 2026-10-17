@@ -874,13 +874,9 @@ h2 {
   font-size: var(--legacy-text-18);
   line-height: 20px;
 }
-.empty-state,
 .preview-placeholder {
   color: var(--color-muted);
   font-size: var(--text-base);
-}
-.empty-state {
-  padding: 12px 8px;
 }
 .panel-header-actions {
   display: flex;
@@ -2751,13 +2747,38 @@ h2 {
   transition-duration: var(--dur-3);
 }
 
-/* 空状态本批只随面与线调整观感，“图标 + 一句解释 + 一个动作”的重写落在批次 4（提案 §5.16） */
+/* 空状态（提案 §5.16 与 §9 批次 4a 裁决）：仪器族——斜切节奏线 + 微标签 + 一句可执行解释。
+   不放图标、不放动作按钮、不画描边，零新增色值；左对齐与列表共用同一阅读起点。 */
 .help-panel-empty {
-  padding: var(--space-6) var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-8) var(--space-4) var(--space-6);
+}
+
+/* 斜切标记：24×2 的节奏线，把斜切母题收成一处静态信号，不占图标尺寸档。
+   颜色取节奏线令牌（16% 中性），不用结构线——结构线在空状态里读不出来。 */
+.help-panel-empty-mark {
+  width: var(--space-8);
+  height: var(--space-1);
+  background: var(--line-rhythm);
+  transform: skewX(var(--skew-rhythm));
+}
+
+.help-panel-empty-title {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  line-height: 1.4;
+}
+
+.help-panel-empty-text {
+  margin: 0;
   color: var(--color-muted);
   font-size: var(--text-sm);
   line-height: 1.6;
-  text-align: center;
 }
 
 /* 详情块是内嵌面：没有分隔线，用 --surface-inset 与面板面分开（提案 §5.11） */

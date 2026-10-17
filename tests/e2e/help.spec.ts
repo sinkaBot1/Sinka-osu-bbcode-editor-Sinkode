@@ -137,6 +137,64 @@ test.describe('BBCode 参考面板', () => {
     expect(detail.copyBorder).toBe('0px')
   })
 
+  // 批次 4a 规格（提案 §5.16 与 §9 批次 4a 裁决）：空状态是“斜切短线 + 微标签 + 一句解释”，
+  // 左对齐、无图标、无动作按钮、无描边。这里锁住可被数值验证的那几项。
+  test('搜索无结果时按批次 4a 规格渲染空状态', async ({ page }) => {
+    await page.getByRole('button', { name: '打开帮助', exact: true }).click()
+    const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
+    await panel.locator('.help-panel-search input').fill('不存在的标签')
+    const empty = panel.locator('.help-panel-empty')
+    await expect(empty).toBeVisible()
+
+    const spec = await empty.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const mark = element.querySelector<HTMLElement>('.help-panel-empty-mark')!
+      const title = element.querySelector<HTMLElement>('.help-panel-empty-title')!
+      const text = element.querySelector<HTMLElement>('.help-panel-empty-text')!
+      const markStyle = getComputedStyle(mark)
+      return {
+        role: element.getAttribute('role'),
+        border: style.borderTopWidth,
+        background: style.backgroundColor,
+        icons: element.querySelectorAll('svg').length,
+        buttons: element.querySelectorAll('button').length,
+        breaks: element.querySelectorAll('br').length,
+        markWidth: markStyle.width,
+        markHeight: markStyle.height,
+        markTransform: markStyle.transform,
+        markLeft: mark.getBoundingClientRect().left,
+        titleLeft: title.getBoundingClientRect().left,
+        titleSize: getComputedStyle(title).fontSize,
+        titleWeight: getComputedStyle(title).fontWeight,
+        titleTracking: getComputedStyle(title).letterSpacing,
+        textSize: getComputedStyle(text).fontSize,
+        text: text.textContent,
+      }
+    })
+
+    // 空状态自报状态，读屏能知道“结果变空了”
+    expect(spec.role).toBe('status')
+    // 无图标、无动作按钮、无描边、不铺底色，也不靠 <br> 手动断行
+    expect(spec.icons).toBe(0)
+    expect(spec.buttons).toBe(0)
+    expect(spec.breaks).toBe(0)
+    expect(spec.border).toBe('0px')
+    expect(spec.background).toBe('rgba(0, 0, 0, 0)')
+    // 斜切短线是 24×2 的节奏线：skewX(-12deg) 在计算值里是矩阵的 c = tan(-12°)
+    expect(spec.markWidth).toBe('24px')
+    expect(spec.markHeight).toBe('2px')
+    const matrix = spec.markTransform.slice(spec.markTransform.indexOf('(') + 1, -1).split(',')
+    expect(Number.parseFloat(matrix[2])).toBeCloseTo(-Math.tan((12 * Math.PI) / 180), 2)
+    // 左对齐：标记线与微标签共用同一阅读起点
+    expect(spec.titleLeft).toBeCloseTo(spec.markLeft, 0)
+    // 微标签 10.5px/600/0.2em，解释行 12px，并给出可执行的下一步
+    expect(spec.titleSize).toBe('10.5px')
+    expect(spec.titleWeight).toBe('600')
+    expect(Number.parseFloat(spec.titleTracking)).toBeGreaterThanOrEqual(2)
+    expect(spec.textSize).toBe('12px')
+    expect(spec.text).toContain('全部')
+  })
+
   test('复制示例、Esc 关闭和焦点恢复可用', async ({ page }) => {
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {

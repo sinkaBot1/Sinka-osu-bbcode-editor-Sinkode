@@ -271,10 +271,13 @@ onBeforeUnmount(() => {
             </Transition>
           </li>
         </ul>
-        <p v-else class="help-panel-empty">
-          没有匹配的标签。<br />
-          可以尝试标签名、用途或“越界”等关键词。
-        </p>
+        <div v-else class="help-panel-empty" role="status">
+          <span class="help-panel-empty-mark" aria-hidden="true"></span>
+          <p class="help-panel-empty-title">没有匹配的标签</p>
+          <p class="help-panel-empty-text">
+            可以试试标签名、用途或“越界”之类的关键词；把分类切回“全部”能看到全部标签。
+          </p>
+        </div>
       </div>
     </aside>
   </Transition>
