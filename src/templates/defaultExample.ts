@@ -18,10 +18,9 @@ export const DEFAULT_EXAMPLE_CONTENT = `[centre]
 [/centre]
 
 [notice]
-[color=#ff66aa][b]欢迎来到 SInkode 的个人主页。[/b][/color]
+[color=#ff66aa][b]欢迎来到 Sinkode。[/b][/color]
 
-这里是 [b]SINKA0[/b]，[i]Sinkode[/i] BBCode 编辑器的开发者。如果你看到 [spoiler]这一小段被黑条盖住了[/spoiler]，用鼠标划过去就能读出来——这叫行内剧透。
-[centre]↑[/centre]
+如果你看到 [spoiler]这一小段被黑条盖住了[/spoiler]，用鼠标划过去就能读出来。
 文字样式一览：[b]粗体[/b]、[i]斜体[/i]、[u]下划线[/u]、[s]删除线[/s]、[color=Gold]金色[/color]、[color=Aquamarine]水绿色[/color]。
 [/notice]
 
@@ -29,9 +28,9 @@ export const DEFAULT_EXAMPLE_CONTENT = `[centre]
 [list=1]
 [*][b]标签解析[/b]：严格嵌套配对，未知标签原样保留为文本
 [*][b]模板保存[/b]：打开侧边栏即可看到模板界面
-[*][b]候选词[/b]：输入 [ 后,自动弹出候选词列表
+[*][b]候选词[/b]：输入 [ 后，自动弹出候选词列表
 [list]
-[*]按方向键↑↓切换候选词，按tab和enter键入选中的候选测
+[*]按方向键↑↓切换候选词，按tab和enter键入选中的候选词
 [*]按esc关闭候选词面板
 [/list]
 [*][b]官网对齐[/b]：可以在osu官网个人简介编辑处进行的基础操作
@@ -42,16 +41,17 @@ export const DEFAULT_EXAMPLE_CONTENT = `[centre]
 
 
 [quote="SINKA0"]
-排版稿和代码一样：先把结构立住，再谈好不好看。
+"引用"
 [/quote]
 
+[heading][color=#ff66aa][b]代码块[/b][/color][/heading]
 如果你克隆了本项目的仓库，对应目录的命令行里敲 [c]npm run dev[/c] 就能启动本地服务器
 [code]
 > sinka-osu-bbcode-editor@0.1.0 dev
 > vite
 [/code]
 
-[heading][color=#ff66aa][b]媒体区[/b][/color][/heading]
+[heading][color=#ff66aa][b]媒体区 · YouTube · 音频[/b][/color][/heading]
 
 [youtube]https://www.youtube.com/watch?v=7wMz8mDyHgM&list=RD7wMz8mDyHgM&start_radio=1[/youtube]
 [audio]https://files.catbox.moe/h1qhu9.mp3[/audio]
@@ -84,6 +84,7 @@ don't read this
 我们承诺，未来各届 osu! World Cup 都将采用 lazer（注意，这不包括其他游戏模式），除非遇到阻碍这一计划实施的重大障碍。若出现这种情况，我们会通过常规渠道（osu! 论坛、Discord、新闻公告等）向大家更新进展。
 [/quote]
 [/spoilerbox]
+i love lazer..
 
 [heading][color=#ff66aa][b]找到我[/b][/color][/heading]
 [list]
