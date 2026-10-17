@@ -1,0 +1,164 @@
+/* Sinkode UI 设计语言 v1.0 —— 令牌层（唯一来源）
+ *
+ * 定位：本项目的工作台由两种视觉族组成。形状、投影、字体三处同时区分，
+ *   仪器族（直角）：顶栏、面板头、工具栏、编辑正文、状态栏、诊断、预览外框、帮助面板、主题弹层。
+ *   内容族（圆角）：模板侧栏、模板行、模板操作菜单、模板抽屉及其行内控件。
+ * 颜色不在这里定义：颜色按主题走，由 theme.css 的三套主题块提供。本文件只做语义映射，
+ *   不引入任何新的色值或透明度。
+ * 接入方式：main.ts 中先引入本文件，再引入 theme.css。本文件只声明令牌，不含组件规则；
+ *   组件规则仍写在 theme.css 里，逐批改成引用这里的令牌。
+ * 迁移期：:root 末尾的 --legacy-* 一段是批次 0 的等价中转（值等于替换前的字面量），
+ *   不属于设计语言，随各批用量清零删除。
+ */
+
+:root {
+  /* ── 第 1 层：基础尺寸 ───────────────────────────────── */
+
+  /* 空间：只允许这八档 */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+
+  /* 形状：仪器族只有直角与胶囊 */
+  --radius: 0;
+  --radius-pill: 999px;
+
+  /* 形状：内容族三档。深色低差环境下 8px 以下读不出来，故整体上浮一档 */
+  --r-row: 8px;
+  --r-overlay: 10px;
+  --r-card: 12px;
+
+  /* 斜切母题：只用于状态指示与节奏线，不用于容器 */
+  --skew-state: -14deg;
+  --skew-rhythm: -12deg;
+
+  /* 控件高度 */
+  --control-xs: 24px;
+  --control-sm: 28px;
+  --control-md: 32px;
+  --control-lg: 44px;
+
+  /* 行高 */
+  --row-instrument: 38px;
+  --row-content: 34px;
+
+  /* 框架高度 */
+  --shell-header-h: 56px;
+  --panel-head-h: 40px;
+  --panel-head-overlay-h: 56px;
+  --toolbar-h: 44px;
+  --toolbar-btn: 36px;
+  --status-h: 26px;
+
+  /* 字号 */
+  --text-micro: 10.5px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 15px;
+
+  /* 字距：汉字微标签靠字距承担“标签”身份；等宽栈对中文无效 */
+  --tracking-label: 0.2em;
+  --tracking-tight: 0.02em;
+
+  /* 字体族：等宽只承担机器数据（计数、坐标、标签名、状态） */
+  --font-ui:
+    'Inter', 'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* 动效 */
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 260ms;
+  --dur-exit: 160ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* 层叠：面板低于所有浮层，浮层低于热区气泡，气泡低于开场 */
+  --z-resize: 10;
+  --z-panel: 20;
+  --z-overlay: 30;
+  --z-tooltip: 40;
+  --z-splash: 100;
+
+  /* ── 第 2 层：语义映射（只引用主题令牌，不新建色值） ───────── */
+
+  --surface-chrome: var(--color-background);
+  --surface-content: var(--color-surface);
+  --surface-overlay: var(--color-surface-raised);
+  --surface-inset: var(--shell-inset-background);
+  --surface-canvas: var(--preview-canvas-background);
+
+  --line-structure: var(--color-border);
+  --line-rhythm: var(--color-divider-strong);
+
+  --ink: var(--color-text);
+  --ink-muted: var(--color-muted);
+  --accent: var(--color-accent);
+  --accent-ink: var(--color-accent-text);
+  --ok: var(--color-success);
+  --danger: var(--color-danger);
+
+  /* 悬停是中性浮层；选中是强调色浮层，可更淡，因为色调本身已经区分 */
+  --state-hover: var(--control-hover-background);
+  --state-selected: var(--color-selection-background);
+  --state-press: var(--color-divider-strong);
+
+  /* 投影只属于内容族浮层；仪器族浮层一律不用投影 */
+  --elevation-content: var(--shadow-overlay);
+
+  /* ── 迁移期占位（批次 0 的等价中转，不属于设计语言） ──────────────
+   * 批次 0 只做“字面量 → 令牌”的等价替换，视觉必须零变化，因此组件里尚未归一的
+   * 取值按原值登记在这里。目标形态是上面的阶梯，不是这些数：
+   *   批次 1–4 把用量逐处换成阶梯令牌，某个占位不再有引用时连行删除；
+   *   第 5 批结束时本段必须清空。新增样式不得引用 --legacy-*。
+   * 下面三个占位有锁定的用途，不能随批改数值：
+   *   --legacy-radius-4 / --legacy-radius-10000 / --legacy-text-18 用在
+   *   .preview-content 内，属预览渲染外观（osu-web 兼容基准），清空前须先比对
+   *   tests/e2e/typography.spec.ts。
+   */
+
+  /* 圆角：现状取值尚未归一到 0 / pill 与内容族三档 */
+  --legacy-radius-2: 2px;
+  --legacy-radius-3: 3px;
+  --legacy-radius-4: 4px;
+  --legacy-radius-5: 5px;
+  --legacy-radius-6: 6px;
+  --legacy-radius-7: 7px;
+  --legacy-radius-8: 8px;
+  --legacy-radius-99: 99px;
+  --legacy-radius-10000: 10000px;
+
+  /* 字号：现状里落在上面的字号阶梯之外的三档 */
+  --legacy-text-10: 10px;
+  --legacy-text-17: 17px;
+  --legacy-text-18: 18px;
+
+  /* 动效：现状里落在三档 + 退出档之外的时长 */
+  --legacy-dur-90: 90ms;
+  --legacy-dur-150: 150ms;
+  --legacy-dur-180: 180ms;
+  --legacy-dur-900: 900ms;
+
+  /* 层叠：现状里低于面板档的临时层级，逐处归入五档 */
+  --legacy-z-1: 1;
+  --legacy-z-2: 2;
+  --legacy-z-3: 3;
+  --legacy-z-4: 4;
+  --legacy-z-5: 5;
+}
+
+/* 低动态效果：只覆盖令牌，组件不再逐条登记 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0.01ms;
+    --dur-2: 0.01ms;
+    --dur-3: 0.01ms;
+    --dur-exit: 0.01ms;
+  }
+}

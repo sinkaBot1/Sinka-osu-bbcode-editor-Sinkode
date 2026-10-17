@@ -642,12 +642,22 @@ test.describe('模板、保存与复制', () => {
     // 过渡时长读 CSSOM 规则，而不是读"过渡中"的计算值：
     // 动画一旦结束，computed transition-duration 会回到 0s，读它本身就是不可靠的断言。
     // 这里锁定进入 260ms／退出 180ms 的分工——渐出不会误取进入时长。
+    // 取值改成令牌（var()）之后有个 CSSOM 细节：只要声明里出现 var()，整条 transition
+    // 就处于 pending-substitution 状态，transitionDuration 长手返回空串。所以这里取回
+    // 原样声明，再用根元素上的令牌值回代，等价于读令牌化之前的规则文本。
     const durations = await page.evaluate(() => {
+      const rootStyle = getComputedStyle(document.documentElement)
+      const resolveTokens = (value: string) =>
+        value.replace(/var\(\s*(--[a-z0-9-]+)\s*\)/gi, (_matched, name: string) =>
+          rootStyle.getPropertyValue(name).trim(),
+        )
       const readDuration = (selector: string) => {
         for (const sheet of document.styleSheets) {
           for (const item of sheet.cssRules) {
             if (item instanceof CSSStyleRule && item.selectorText === selector) {
-              return item.style.transitionDuration
+              const declared = resolveTokens(item.style.getPropertyValue('transition'))
+              const measured = declared.match(/\b\d+(?:\.\d+)?m?s\b/g) ?? []
+              return measured.join(', ')
             }
           }
         }

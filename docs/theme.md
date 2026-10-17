@@ -12,7 +12,7 @@
 
 ## 2. 令牌范围
 
-令牌名称和具体取值以 `src/app/theme.css` 为唯一来源。新增主题时，检查并填写下列全部类别，不在组件中新增主题专属字面色值：
+颜色令牌的名称和取值以 `src/app/theme.css` 为唯一来源；尺寸、形状、动效、层叠与字体族令牌在 `src/app/scale.css`（全局一套，不随主题变化），两边都不在组件里写字面色值。新增主题时，检查并填写下列全部颜色类别：
 
 - 工作台底色、顶栏、面板、弹层、描边、正文、次级文字、强调色和成功色。
 - 强调色文字、强调色底上文字、错误状态、错误表面和诊断位置文字。
@@ -31,7 +31,7 @@
 
 ## 4. 主题切换动效
 
-切换时，新主题以顶栏“主题”按钮为圆心进行圆形揭示。实现使用 View Transitions API 与 `clip-path: circle()`；圆半径覆盖到视口最远角，缓动为 `cubic-bezier(0.22, 1, 0.36, 1)`。
+切换时，新主题以顶栏“主题”按钮为圆心进行圆形揭示。实现使用 View Transitions API 与 `clip-path: circle()`；圆半径覆盖到视口最远角，缓动为 `--ease`（`cubic-bezier(0.22, 1, 0.36, 1)`，定义在 `src/app/scale.css`）。
 
 动画时长由 workspace 设置 `themeRevealDuration` 提供，单位毫秒，默认 `900`，范围 `0`–`5000`；`0` 表示立即切换。读取非法值时收敛到合法范围。
 
@@ -41,7 +41,7 @@
 
 ## 5. 新增主题
 
-1. 在 `src/app/theme.css` 添加包含全部令牌的主题块，并同时提供 `data-theme` 与 `data-theme-sample` 选择器。
+1. 在 `src/app/theme.css` 添加包含全部**颜色**令牌的主题块（尺寸与动效令牌在 `src/app/scale.css`，不属于主题块），并同时提供 `data-theme` 与 `data-theme-sample` 选择器。
 2. 在 `src/templates/storage/types.ts` 的 `THEMES` 中添加 ID、显示名称和说明；确认默认主题 ID 有效。
 3. 复核工作台、预览、编辑器、色板与兜底样式，不能有其他主题的字面色残留。
 4. 测量文字对比度并登记本节；更新 `tests/unit/theme-tokens.test.ts` 与主题菜单测试。
