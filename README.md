@@ -85,7 +85,7 @@
 
 > Windows 提示：若 PowerShell 报“因为在此系统上禁止运行脚本”而无法执行 `npm`，改用 `npm.cmd`（例如 `npm.cmd run dev`），或在 Git Bash / CMD 里执行同样的命令。
 >
-> 换行符提示：仓库用 `.gitattributes` 固定 LF。如果本地出现“大量文件格式不符、CI 却通过”的 `format:check` 失败，先确认 `.gitattributes` 还在，再重新检出工作区；其他情况见[部署说明的故障速查](docs/deployment.md#5-故障定位速查)。
+> 换行符提示：仓库用 `.gitattributes` 固定 LF。如果本地出现“大量文件格式不符、CI 却通过”的 `format:check` 失败，先确认 `.gitattributes` 还在，再重新检出工作区；其他情况见[遇到问题](#遇到问题)。
 
 ## 常用命令
 
@@ -159,7 +159,6 @@ logo/                品牌素材（仅 PNG）
 - [协作规则](AGENTS.md)：改代码前必须遵守的约定，规则冲突时以它为准。
 - [兼容性说明](docs/compatibility.md)：锁定的 osu-web 基准、可观察行为与有意差异。
 - [测试说明](docs/testing.md)：测试分层、六条固定命令、新增固定样例的完整步骤。
-- [部署说明](docs/deployment.md)：本机构建、生产产物验收、CI 判读与故障速查。
 - [路线与已知限制](docs/roadmap.md)：还没做的事、已知短板和待裁决项。
 
 界面相关的规则（工作台、主题、图标、编辑器字体）也在同一份索引里按任务列出。
@@ -168,14 +167,14 @@ logo/                品牌素材（仅 PNG）
 
 - 在线站点：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名，`www` 自动跳转裸域名）；`https://osusinkode.top/` 只做跳转到主站。
 - 发布由 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) 完成：`npm ci` → `npm run build` → 上传 `dist/` → 部署；质量检查仍由 [`ci.yml`](.github/workflows/ci.yml) 负责。
-- 站点在域名根路径发布，因此 `vite.config.ts` 固定 `base: '/'`；改回 `github.io` 项目页形式时必须同步修改，完整步骤、判读与回滚见[部署说明](docs/deployment.md)。
+- 站点在域名根路径发布，因此 `vite.config.ts` 固定 `base: '/'`；改回 `github.io` 项目页形式时必须同步改成 `/<仓库名>/`，否则线上白屏。
 
 ## 遇到问题
 
 | 现象 | 常见原因与处理 |
 | --- | --- |
 | `npm ci` 报找不到锁文件或网络超时 | 确认在仓库根目录执行，并确认网络可访问 npm registry；不要改用其他包管理器，也不要跳过完整性校验 |
-| `npm run build` 在本机报 `Access is denied` 后失败 | 个别受限 Windows 会话无法删除系统临时目录里的 esbuild 临时文件；把本次进程的临时目录指到项目内可写目录即可，命令见[部署说明](docs/deployment.md)的“本机构建故障”一节 |
+| `npm run build` 在本机报 `Access is denied` 后失败 | 个别受限 Windows 会话无法删除系统临时目录里的 esbuild 临时文件；把本次进程的 `TEMP` 与 `TMP` 指向 `node_modules/.cache/build-temp` 后重试即可 |
 | `npm run test:e2e` 首次运行报缺少浏览器 | 执行 `npx playwright install --with-deps chromium`（Linux CI 上需要 `--with-deps`） |
 | 端口 5173 / 4173 / 4174 被占用 | 关闭占用端口的进程，或给命令追加 `-- --port 4300` 之类的新端口 |
 | 页面打开是空白 | 按 `F12` 打开开发者工具查看 Console 报错；先确认 `npm run dev` 仍在运行 |

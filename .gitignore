@@ -14,4 +14,6 @@ docs/dev/
 # 个人实验性模块：仅本机使用，按本文件规则忽略
 .dsh-bridge/
 .claude/rules/dsh-collaboration.md
+# 部署指南：含站点域名与 DNS 配置，只在本机保留
+docs/deployment.md
 

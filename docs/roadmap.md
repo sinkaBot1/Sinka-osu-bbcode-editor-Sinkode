@@ -10,7 +10,7 @@
 - 第一版承诺的 osu! 标签覆盖 **24 / 24**；固定样例矩阵 **49 个 case**，完整性由 `node tests/check-osu-web-fixtures.mjs` 校验。
 - 测试命令和完整的验证顺序见[测试说明](testing.md)。
 - 锁定基准：osu-web `61b0a41431395f86ff68fa12744f3266448ec885`，正文最大宽度 `890px`。更换基准必须经项目所有者批准并重跑全部固定样例。
-- 在线站点已发布：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名）；`https://osusinkode.top/` 只做跳转，详见[部署说明](deployment.md)第 4 节。
+- 在线站点已发布：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名）；`https://osusinkode.top/` 只做跳转。
 
 ## 2. 待项目所有者裁决的事项（未裁决前保持现状）
 
@@ -59,5 +59,5 @@
 
 ## 6. 发布相关的收尾事项
 
-- **真实浏览器人工验收**：在 Chrome、Edge、Firefox 上完成隐私、许可证与内容安全策略检查，并把线上地址与实际结果补入[部署说明](deployment.md)第 6 节清单。
-- **自定义域名复核**：DNS 记录、证书有效期与 `Enforce HTTPS` 状态发生变化时，按[部署说明](deployment.md)第 4 节复验。
+- **真实浏览器人工验收**：在 Chrome、Edge、Firefox 上完成隐私、许可证与内容安全策略检查，并记录线上地址与实际结果。
+- **自定义域名复核**：DNS 记录、证书有效期与 `Enforce HTTPS` 状态发生变化时重新复验，配置步骤由项目所有者在本机维护。

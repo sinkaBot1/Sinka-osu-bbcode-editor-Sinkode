@@ -55,4 +55,4 @@
 - 本文件随仓库版本一起更新；任何影响隐私的实现变更都必须先更新本文件，再合并代码。
 - 发现隐私问题或与本文描述不符的行为，请在[仓库 Issue](https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode/issues) 中提交。
 
-相关文件：[README](README.md)、[部署说明](docs/deployment.md)、[兼容性说明](docs/compatibility.md)、[路线与已知限制](docs/roadmap.md)。
+相关文件：[README](README.md)、[兼容性说明](docs/compatibility.md)、[路线与已知限制](docs/roadmap.md)。

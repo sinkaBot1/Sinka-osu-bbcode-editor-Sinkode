@@ -1,7 +1,7 @@
 # 测试说明
 
 > 面向第一次接触本仓库的人：本文解释每类测试负责什么、怎么运行、失败时怎么定位，以及**增加一个新测试或一条固定样例的完整步骤**。
-> 相关文件：[兼容性说明](compatibility.md)、[路线与已知限制](roadmap.md)、[部署说明](deployment.md)。
+> 相关文件：[兼容性说明](compatibility.md)、[路线与已知限制](roadmap.md)。
 
 ## 1. 30 秒版本
 
@@ -21,7 +21,7 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 单元测试 | `tests/unit/*.test.ts` | `npm run test` | 扫描器、诊断、预览兼容管线、URL 策略、清洗、存储、命名、字素簇 |
 | 组件测试 | `tests/unit/*.test.ts`（Vue Test Utils） | `npm run test` | 工具栏、状态栏、模板界面、预览交互、帮助面板 |
 | 端到端测试 | `tests/e2e/*.spec.ts` | `npm run test:e2e` | 真实浏览器里的首次使用、保存恢复、复制、键盘、布局、隐私拦截 |
-| 生产产物验收 | 同上，入口不同 | `npm run test:e2e:preview` | 同一套用例针对 `dist/` 构建产物运行，见[部署说明](deployment.md#生产产物验收) |
+| 生产产物验收 | 同上，入口不同 | `npm run test:e2e:preview` | 同一套用例针对 `dist/` 构建产物运行 |
 | 人工发布验收 | 无自动脚本 | 人工 | 真实第三方媒体、目标浏览器、公开地址烟测（发布前阶段） |
 
 **自动化测试不得依赖实时 osu! 网站、图床或 YouTube**。端到端测试还会主动拦截所有站外请求并返回空响应（见 `tests/e2e/helpers.ts` 的 `installNetworkIsolation`），保证「预览请求了哪个地址」由测试自己控制。真实媒体只在发布前人工验收。
@@ -153,9 +153,9 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
    - 页面空白 → 检查开发服务器是否被占用/未启动，或手动跑 `npm run dev` 确认页面本身可用；
    - 找不到元素 → 确认选择器与当前组件结构一致，避免用过长的样式类链；
    - 偶发几何失败 → 用 `--repeat-each` 复现，按第 6 节要求在同帧测量并记录依据。
-4. **构建或环境类失败**：见[部署说明](deployment.md)的故障定位章节（含受限 Windows 会话的临时目录问题）。
+4. **构建或环境类失败**：先确认 `npm run build` 能独立通过；受限 Windows 会话可把 `TEMP` 与 `TMP` 指向项目内可写目录（例如 `node_modules/.cache/build-temp`）后重试。
 5. 修复后必须**重跑受影响的自动化测试**；人工复测发现的问题，同样先补自动化再复测。
 
 ## 8. CI 里跑什么
 
-`.github/workflows/ci.yml` 在 push 到 `main` 和所有 Pull Request 上执行，步骤与本文第 3 节一致（`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建 → 端到端），额外先安装 Chromium。CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。查看方式与常见失败原因见[部署说明](deployment.md#3-ci-与检查结果)。
+`.github/workflows/ci.yml` 在 push 到 `main` 和所有 Pull Request 上执行，步骤与本文第 3 节一致（`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建 → 端到端），额外先安装 Chromium。CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。运行结果和失败步骤在仓库的 **Actions** 页面查看。
