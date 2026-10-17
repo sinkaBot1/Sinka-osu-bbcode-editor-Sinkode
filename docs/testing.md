@@ -43,7 +43,7 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 
 - `node tests/check-osu-web-fixtures.mjs`：校验固定样例矩阵的完整性、必备用例、标签覆盖与 `size` 边界（当前 49 case / 24 标签）。
 - `npm run docs:check`：检查 Markdown 标题结构、本地链接与锚点是否有效。
-- `npm run style:check`：检查 `src/app/theme.css` 里不再出现圆角、字号、时长、缓动与 `z-index` 字面量，并确认每个 `var(--x)` 都有声明（令牌或运行时写入）。背景见[界面重构提案](ui-refactor-proposal.md)第 10 节批次 0：令牌定义在 `src/app/scale.css`，组件规则只引用不写数值，迁移期尚未归一的取值走 `--legacy-*` 占位。
+- `npm run style:check`：检查 `src/app/theme.css` 里不再出现圆角、字号、时长、缓动与 `z-index` 字面量，并确认每个 `var(--x)` 都有声明（令牌或运行时写入）。令牌定义在 `src/app/scale.css`，组件规则只引用不写数值；迁移期尚未归一的取值走 `--legacy-*` 占位，规则见[主题与切换动效](theme.md)第 2 节。
 
 只改文档时运行 `npm run format:check` 与 `npm run docs:check`；涉及代码的改动运行六条固定命令。
 

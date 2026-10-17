@@ -5,9 +5,9 @@
 //   node scripts/check-style-tokens.mjs src/app/theme.css ...    # 只检查指定文件
 // 退出码 0 = 通过；1 = 存在问题。
 //
-// 背景：界面重构批次 0 已把 theme.css 的圆角、字号、时长、缓动与 z-index 全部换成令牌
-// （见 docs/ui-refactor-proposal.md 第 10 节）。令牌定义在 src/app/scale.css，组件规则
-// 只引用、不写数值。本脚本守住这条线，避免后续批次又把数值写回字面量。
+// 背景：theme.css 的圆角、字号、时长、缓动与 z-index 已全部换成令牌（规则见
+// docs/theme.md 第 2 节）。令牌定义在 src/app/scale.css，组件规则只引用、不写数值。
+// 本脚本守住这条线，避免数值又被写回字面量。
 //
 // 检查内容：
 //   1. 注释之外的 border-radius / font-size 里不得出现 px 数字，z-index 不得写数字，
