@@ -63,7 +63,7 @@ const showSplash = ref(true)
 const editorHost = ref<HTMLElement | null>(null)
 const workspaceElement = ref<HTMLElement | null>(null)
 const headerElement = ref<HTMLElement | null>(null)
-const expandedHeaderHeight = ref(72)
+const expandedHeaderHeight = ref(56)
 const headerOpen = ref(true)
 const themeDialogOpen = ref(false)
 const themeButtonElement = ref<HTMLButtonElement | null>(null)
@@ -639,7 +639,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               :aria-expanded="helpOpen"
               @click="toggleHelp"
             >
-              <CircleHelp :size="18" :stroke-width="2" aria-hidden="true" />
+              <CircleHelp :size="16" :stroke-width="2" aria-hidden="true" />
               <span>帮助</span>
             </button>
             <button
@@ -653,7 +653,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               :aria-expanded="themeDialogOpen"
               @click="toggleThemePicker"
             >
-              <Moon :size="18" :stroke-width="2" aria-hidden="true" />
+              <Moon :size="16" :stroke-width="2" aria-hidden="true" />
               <span>主题</span>
             </button>
           </nav>
@@ -668,7 +668,8 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
         :aria-expanded="headerOpen"
         @click="toggleHeader"
       >
-        <ChevronUp :size="18" :stroke-width="2" aria-hidden="true" />
+        <span class="header-toggle-tab" aria-hidden="true"></span>
+        <ChevronUp :size="12" :stroke-width="2" aria-hidden="true" />
       </button>
     </div>
 

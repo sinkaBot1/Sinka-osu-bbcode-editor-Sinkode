@@ -466,15 +466,16 @@ button {
   height: 100%;
   overflow: hidden;
 }
+/* 顶栏并入框架面：只保留下边 1px 结构线，不再是一条独立底色的横条（提案 §5.1）。 */
 .app-header {
-  flex: 0 0 72px;
+  flex: 0 0 var(--shell-header-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 72px;
-  padding: 14px 22px;
+  min-height: var(--shell-header-h);
+  padding: 0 22px;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-header);
+  background: var(--surface-chrome);
   transition:
     opacity var(--dur-3) var(--ease),
     transform var(--dur-3) var(--ease);
@@ -483,34 +484,47 @@ button {
   opacity: 0;
   transform: translateY(-24px);
 }
+/* 开合把手：贴在顶栏右下角的梯形签（斜切母题落点三）。
+   命中区保持 44 高，可见部分只有顶部 17px；面板头右侧为此预留 70px（46 足迹 + 16 右距 + 8 间距）。 */
 .header-toggle {
   position: absolute;
   top: 100%;
-  left: 80%;
+  right: 16px;
   z-index: var(--legacy-z-1);
   display: flex;
-  width: 44px;
+  width: 46px;
   height: 44px;
   align-items: flex-start;
   justify-content: center;
-  padding: 5px 0 0;
+  padding: 2px 0 0;
   border: 0;
   color: var(--color-text);
   background: transparent;
   cursor: pointer;
-  transform: translateX(-50%);
 }
-.header-toggle::before {
+/* 两层叠出 1px 描边：底层是描边色，上层是同一梯形向内收 1px 的面色。
+   只画左/右/下三边，顶边由顶栏本身的结构线承担。
+   签面单独用一个 span 承载，图标排在它后面，绘制顺序天然在签面之上，不需要 z-index。 */
+.header-toggle-tab,
+.header-toggle-tab::before,
+.header-toggle-tab::after {
   position: absolute;
   top: 0;
   left: 0;
-  width: 44px;
-  height: 28px;
-  border: 1px solid var(--color-border);
-  border-top: 0;
-  border-radius: 0 0 var(--legacy-radius-6) var(--legacy-radius-6);
-  background: var(--color-header);
+  width: 46px;
+  height: 17px;
+  clip-path: polygon(7px 0, 100% 0, 100% 100%, 0 100%);
+}
+.header-toggle-tab::before,
+.header-toggle-tab::after {
   content: '';
+}
+.header-toggle-tab::before {
+  background: var(--color-border);
+}
+.header-toggle-tab::after {
+  background: var(--surface-chrome);
+  clip-path: polygon(7px 0, 100% 0, calc(100% - 1px) calc(100% - 1px), 1px calc(100% - 1px));
 }
 .header-toggle svg {
   position: relative;
@@ -520,8 +534,7 @@ button {
 .header-dock.is-collapsed .header-toggle svg {
   transform: rotate(180deg);
 }
-.header-toggle:hover::before {
-  border-color: var(--color-border);
+.header-toggle:hover .header-toggle-tab::after {
   background: var(--color-surface-raised);
 }
 .header-toggle:focus-visible {
@@ -573,7 +586,7 @@ h2 {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 .app-header-brand .brand-symbol,
@@ -592,7 +605,7 @@ h2 {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   color: inherit;
   text-decoration: none;
 }
@@ -606,14 +619,14 @@ h2 {
   border-radius: var(--legacy-radius-4);
 }
 .brand-symbol {
-  width: 40px;
-  height: 42px;
+  width: 25px;
+  height: 26px;
   -webkit-mask-image: url('./assets/sinkode-symbol.png');
   mask-image: url('./assets/sinkode-symbol.png');
 }
 .brand-wordmark {
-  width: 146px;
-  height: 28px;
+  width: 92px;
+  height: 18px;
   -webkit-mask-image: url('./assets/sinkode-wordmark.png');
   mask-image: url('./assets/sinkode-wordmark.png');
 }
@@ -624,29 +637,31 @@ h2 {
   gap: 8px;
 }
 /* 动作区左侧的功能休止符：把品牌区与操作区分开。
-   规格对齐编辑器工具栏的分隔线（1px 宽、26px 高，不随 44px 的可操作区域拉满），
+   规格对齐编辑器工具栏的分隔线（1px 宽、18px 高，不随 44px 的可操作区域拉满），
    颜色取 16% 中性描边——比工具栏用的 --color-border 略强，
-   才能和头栏底色保持工具栏同级的可见度（分离度约 1.5:1，两侧共同构成 3:1 边界）。 */
+   才能和顶栏底色保持工具栏同级的可见度（分离度约 1.5:1，两侧共同构成 3:1 边界）。 */
 .app-header-actions-divider {
   flex: 0 0 1px;
   width: 1px;
-  height: 26px;
+  height: 18px;
   background: var(--color-divider-strong);
 }
 /* 顶栏动作入口使用无框语言：静止时只有图形和文字，悬停显示 9% 中性浮层，不做描边。
-   圆角 5px 与编辑器工具栏按钮一致。 */
+   直角与工具栏按钮一致；元素本身保持 44×44 命中区，背景用 content-box 裁到 34 高的视觉范围。 */
 .header-action {
   display: inline-flex;
+  height: 44px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-width: 44px;
   min-height: 44px;
-  padding: 0 4px;
+  padding: 5px 4px;
   border: 0;
-  border-radius: var(--legacy-radius-5);
-  color: var(--color-text);
+  border-radius: var(--radius);
+  color: var(--color-muted);
   background: transparent;
+  background-clip: content-box;
   font-size: var(--text-base);
   white-space: nowrap;
   cursor: pointer;
@@ -659,6 +674,11 @@ h2 {
 }
 .header-action:hover:not(:disabled) {
   background: var(--control-hover-background);
+  color: var(--color-text);
+}
+/* 第三方标志保持静默：悬停只出现中性浮层，不改色（商标约束见本文件下方注释）。 */
+.header-action.header-action-icon:hover {
+  color: var(--color-muted);
 }
 .header-action:focus-visible {
   outline: 2px solid var(--color-accent);
@@ -681,8 +701,8 @@ h2 {
 .header-action-icon::before {
   content: '';
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   background-color: currentcolor;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -1173,19 +1193,19 @@ h2 {
   position: relative;
   display: inline-flex;
 }
-/* 复制 BBCode：无框图标按钮。静止不描边、不铺底，悬停只加中性浮层，
-   强调色留给选中、活动状态和键盘焦点。 */
+/* 复制 BBCode：无框图标按钮，是编辑器面板头的主行动，所以文字取正文色而不是次级色。
+   静止不描边、不铺底，悬停只加中性浮层，强调色留给选中、活动状态和键盘焦点。 */
 .copy-button {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 32px;
+  min-height: 26px;
   padding: 0 10px;
   border: 0;
-  border-radius: var(--legacy-radius-5);
-  color: var(--color-muted);
+  border-radius: var(--radius);
+  color: var(--color-text);
   background: transparent;
   font-size: var(--text-base);
   cursor: pointer;
@@ -1196,12 +1216,12 @@ h2 {
     color var(--dur-1) ease,
     transform var(--legacy-dur-90) var(--ease);
 }
-/* 触控目标补到 44px：视觉高度保持 32px，热区用伪元素外扩，不撑高 42px 的面板头
-   （docs/ui-icon-system.md §4.1）。 */
+/* 触控目标补到面板头高度：视觉高度 26px，热区用伪元素外扩到 40px，
+   不撑高 40px 的面板头（docs/ui-icon-system.md §4.1）。 */
 .copy-button::after {
   content: '';
   position: absolute;
-  inset: -6px -4px;
+  inset: -7px -4px;
 }
 .copy-button:hover {
   color: var(--color-text);
@@ -1228,8 +1248,8 @@ h2 {
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 .copy-icon > svg {
   grid-area: 1 / 1;
@@ -1341,8 +1361,24 @@ h2 {
   opacity: 0;
   transform: translateY(-6px) scale(0.96);
 }
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.save-status-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentcolor;
+}
+/* 已保存只用一个成功色圆点加正文色文字，不再把整段文字涂成彩色（提案 §5.8）。 */
 .save-status--saved {
-  color: var(--color-success);
+  color: var(--color-muted);
+}
+.save-status--saved .save-status-dot {
+  background: var(--color-success);
 }
 .save-status--saving {
   color: var(--color-accent);
@@ -1362,13 +1398,20 @@ h2 {
   min-height: 0;
 }
 .panel-header {
-  /* 面板头与窄屏模板入口保持 44px 触控高度；复制按钮的热区也在此高度内。 */
-  min-height: 44px;
+  /* 面板头与顶栏一起并入框架面：下边界改由编辑面/画布的面差承担，不再画色带与描边。
+     高度按 --panel-head-h 40px；窄屏的模板抽屉入口仍是 44 的触控方块，会把它撑到 44。 */
+  min-height: var(--panel-head-h);
   padding: 0 14px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--surface-chrome);
   color: var(--color-text);
   font-size: var(--text-base);
+}
+.panel-header > span:first-child {
+  font-weight: 600;
+}
+/* 开合把手贴在顶栏右下角，落在这一侧时预览面板头给它让出 70px（提案 §5.1）。 */
+.preview-panel > .panel-header {
+  padding-right: 70px;
 }
 .panel-status {
   color: var(--color-muted);
@@ -1420,7 +1463,7 @@ h2 {
   justify-content: center;
   align-items: center;
   border: 0;
-  border-radius: var(--legacy-radius-5);
+  border-radius: var(--radius);
   color: var(--color-muted);
   background: transparent;
   padding: 0;
@@ -1445,12 +1488,14 @@ h2 {
 .diagnostic-count {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 0;
+  gap: var(--space-3);
+  min-height: 18px;
+  padding: 0 8px;
   border: 0;
-  color: var(--color-success);
+  border-radius: var(--radius-pill);
+  color: var(--color-muted);
   background: transparent;
+  font-size: var(--text-xs);
   cursor: pointer;
 }
 .diagnostic-count.has-errors {
@@ -1458,6 +1503,7 @@ h2 {
 }
 .diagnostic-count:hover:not(:disabled) {
   color: var(--color-danger-hover);
+  background: var(--control-hover-background);
 }
 .diagnostic-count:disabled {
   cursor: default;
@@ -1580,15 +1626,13 @@ h2 {
   padding: 0 8px 0 6px;
 }
 .status-bar {
-  min-height: 30px;
-  gap: 12px;
+  min-height: var(--status-h);
+  gap: var(--space-5);
   padding: 0 12px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-divider-strong);
   color: var(--color-muted);
   font-size: var(--text-xs);
-}
-.status-bar span:first-child {
-  color: var(--color-success);
+  font-variant-numeric: tabular-nums;
 }
 .status-bar > span {
   white-space: nowrap;
@@ -2116,10 +2160,8 @@ h2 {
 
 @media (max-width: 800px) {
   .app-header {
-    flex: 0 0 auto;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 12px 16px;
+    flex-wrap: nowrap;
+    padding: 0 12px;
   }
   .app-header-brand {
     max-width: 100%;
@@ -2131,8 +2173,9 @@ h2 {
     grid-template-columns: 1fr;
     overflow-y: auto;
   }
-  .editor-panel .panel-header-actions {
-    margin-right: calc(20vw + 16px);
+  /* 单列时开合把手落在编辑器面板头这一侧，同样预留 70px（不再用 calc(20vw + 16px) 补偿）。 */
+  .editor-panel > .panel-header {
+    padding-right: 70px;
   }
   .mobile-template-trigger {
     display: inline-flex;
@@ -2195,6 +2238,14 @@ h2 {
   }
 }
 
+/* 极窄屏（≤359px）：顶栏保持单行 56px，只留品牌符号，把宽度让给三个动作入口。
+   如果保留 92px 的字标，320px 下会挤出行高变化，头栏高度就不再是固定的一档。 */
+@media (max-width: 359px) {
+  .app-header-brand .brand-wordmark {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .header-dock,
   .app-header,
@@ -2223,7 +2274,7 @@ h2 {
 
 .help-panel {
   position: fixed;
-  top: var(--help-top, var(--header-expanded-height, 72px));
+  top: var(--help-top, var(--header-expanded-height, 56px));
   right: 0;
   bottom: 0;
   z-index: var(--legacy-z-3);

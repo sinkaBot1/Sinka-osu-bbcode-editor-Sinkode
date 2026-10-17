@@ -231,7 +231,7 @@ test('顶栏动作入口为无框样式，圆角与工具栏一致并在左侧�
     const dividerRect = divider.getBoundingClientRect()
     const buttons = [...actions.querySelectorAll('.header-action')]
     return {
-      dividerVisible: dividerRect.width >= 1 && dividerRect.height >= 20,
+      dividerVisible: dividerRect.width >= 1 && dividerRect.height >= 16,
       dividerBackground: dividerStyle.backgroundColor,
       dividerAtLeftEdge: Math.round(dividerRect.left - actionsRect.left),
       dividerToFirstAction: Math.round(buttons[0].getBoundingClientRect().left - dividerRect.right),
@@ -311,8 +311,8 @@ test('顶栏提供 GitHub 仓库入口，图标与上游客标志一致', async 
   expect(box.width).toBeGreaterThanOrEqual(44)
   expect(box.height).toBeGreaterThanOrEqual(44)
   expect(box.maskImage).toContain('data:image/svg+xml')
-  expect(box.markWidth).toBe('18px')
-  expect(box.markHeight).toBe('18px')
+  expect(box.markWidth).toBe('16px')
+  expect(box.markHeight).toBe('16px')
   expect(box.markColor).toBe(box.color)
 
   await repoLink.focus()
@@ -363,11 +363,15 @@ for (const width of [320, 390, 820, 1440]) {
         ),
       ]
       const [symbol, wordmark] = logos.map((logo) => logo.getBoundingClientRect())
+      const wordmarkDisplay = logos[1] ? getComputedStyle(logos[1]).display : 'none'
       return {
         fits: element.scrollWidth <= element.clientWidth,
         separated: brand.right <= actions.left || brand.bottom <= actions.top,
-        logosLoaded:
-          logos.length === 2 && logos.every((logo) => getComputedStyle(logo).maskImage !== 'none'),
+        logosLoaded: logos
+          .filter((logo) => logo.getBoundingClientRect().width > 0)
+          .every((logo) => getComputedStyle(logo).maskImage !== 'none'),
+        wordmarkHidden: wordmarkDisplay === 'none' || wordmark.width === 0,
+        symbolVisible: symbol.width > 0 && symbol.height > 0,
         logosSideBySide: symbol.right < wordmark.left,
         logoCenterDelta: Math.abs(
           (symbol.top + symbol.bottom) / 2 - (wordmark.top + wordmark.bottom) / 2,
@@ -392,8 +396,15 @@ for (const width of [320, 390, 820, 1440]) {
     expect(geometry.fits).toBe(true)
     expect(geometry.separated).toBe(true)
     expect(geometry.logosLoaded).toBe(true)
-    expect(geometry.logosSideBySide).toBe(true)
-    expect(geometry.logoCenterDelta).toBeLessThanOrEqual(2)
+    expect(geometry.symbolVisible).toBe(true)
+    if (width <= 359) {
+      // 极窄屏只保留品牌符号，让三个动作入口留在同一行（顶栏高度保持 56，不换行）
+      expect(geometry.wordmarkHidden).toBe(true)
+    } else {
+      expect(geometry.wordmarkHidden).toBe(false)
+      expect(geometry.logosSideBySide).toBe(true)
+      expect(geometry.logoCenterDelta).toBeLessThanOrEqual(2)
+    }
     for (const button of geometry.buttons) {
       expect(button.width).toBeGreaterThanOrEqual(44)
       expect(button.height).toBeGreaterThanOrEqual(44)
@@ -422,12 +433,15 @@ for (const width of [320, 1440]) {
       const rect = element.getBoundingClientRect()
       return {
         centerX: rect.left + rect.width / 2,
+        right: rect.right,
         width: rect.width,
         height: rect.height,
         easing: getComputedStyle(element.parentElement!).transitionTimingFunction,
       }
     })
-    expect(placement.centerX).toBeCloseTo(width * 0.8, 0)
+    // 把手贴在顶栏右下角：右边缘距视口右侧 16px，不再压在任何面板头上（提案 §5.1）。
+    expect(width - placement.right).toBeCloseTo(16, 0)
+    expect(placement.centerX).toBeCloseTo(width - 39, 0)
     expect(placement.width).toBeGreaterThanOrEqual(44)
     expect(placement.height).toBeGreaterThanOrEqual(44)
     expect(placement.easing).toContain('cubic-bezier')
@@ -540,27 +554,32 @@ test('头栏沿用侧边栏的快速曲线，内容同步上移淡出', async ({
   expect(motion.contentFaded).toBe(true)
 })
 
-test('收起期间切换到窄屏后，展开高度跟随头栏换行', async ({ page }) => {
+test('极窄屏顶栏保持单行 56px，收起后再展开高度不变', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await installNetworkIsolation(page)
   await page.goto('/')
   const dock = page.locator('.header-dock')
   const toggle = page.locator('.header-toggle')
 
+  const expandedAtWide = await dock.evaluate((element) => element.getBoundingClientRect().height)
+  expect(expandedAtWide).toBeCloseTo(56, 0)
+
   await toggle.click()
   await expect
     .poll(() => dock.evaluate((element) => element.getBoundingClientRect().height))
     .toBeLessThan(1)
+
+  // 收起期间切到极窄屏：顶栏不换行，展开高度仍是固定的一档（提案 §5.1）
   await page.setViewportSize({ width: 320, height: 900 })
   await expect
     .poll(() =>
       page.locator('.app-header').evaluate((element) => element.getBoundingClientRect().height),
     )
-    .toBeGreaterThan(100)
+    .toBeCloseTo(56, 0)
 
   await toggle.click()
   expect(await measureHeaderEdgeGap(page)).toBeLessThan(1)
   await expect
     .poll(() => dock.evaluate((element) => element.getBoundingClientRect().height))
-    .toBeGreaterThan(120)
+    .toBeCloseTo(56, 0)
 })

@@ -8,5 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <span class="save-status" :class="`save-status--${status}`" role="status">{{ text }}</span>
+  <span class="save-status" :class="`save-status--${status}`" role="status">
+    <span class="save-status-dot" aria-hidden="true"></span>{{ text }}
+  </span>
 </template>

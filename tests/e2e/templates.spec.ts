@@ -522,9 +522,9 @@ test.describe('模板、保存与复制', () => {
     const button = page.getByRole('button', { name: '复制 BBCode' })
     await expect(button).toBeVisible()
 
-    // 静止：不描边、不铺底、取中性 --color-muted
-    // （改造前是 1px --color-border 描边 + --color-surface 实心底，而实心底与面板头底
-    //   完全相同 1.00:1、描边只有 1.40:1，那个"框"在视觉上并不成立）
+    // 静止：不描边、不铺底。它是这个面板头的主行动，文字取 --color-text 而不是次级色
+    // （提案 §5.5 与第 9 节裁决 E；改造前是 1px --color-border 描边 + --color-surface 实心底，
+    //   而实心底与面板头底完全相同 1.00:1、描边只有 1.40:1，那个"框"在视觉上并不成立）
     const resting = await button.evaluate((element) => {
       const style = getComputedStyle(element)
       return {
@@ -535,10 +535,10 @@ test.describe('模板、保存与复制', () => {
     })
     expect(resting.borderWidth).toBe('0px')
     expect(resting.background).toBe('rgba(0, 0, 0, 0)')
-    expect(resting.color).toBe('rgb(142, 154, 170)')
+    expect(resting.color).toBe('rgb(215, 222, 232)')
 
-    // 视觉高度 32px，触控热区用 ::after 负数 inset 外扩到 44px；
-    // 面板头 min-height 同步为 44px，热区才真正落在可点范围内而不是被容器截断
+    // 视觉高度 26px，触控热区用 ::after 负数 inset 外扩到面板头的 40px；
+    // 面板头 min-height 同步为 40px，热区才真正落在可点范围内而不是被容器截断
     const touchTarget = await button.evaluate((element) => {
       const box = element.getBoundingClientRect()
       const after = getComputedStyle(element, '::after')
@@ -550,11 +550,11 @@ test.describe('模板、保存与复制', () => {
         below: document.elementFromPoint(x, box.bottom + 5)?.closest('.copy-button') !== null,
       }
     })
-    expect(touchTarget.height).toBeGreaterThanOrEqual(44 - geometryEpsilon)
+    expect(touchTarget.height).toBeGreaterThanOrEqual(40 - geometryEpsilon)
     expect(touchTarget.above).toBe(true)
     expect(touchTarget.below).toBe(true)
 
-    // 悬停：只加中性浮层，文字转为 --color-text，全程不出现强调色
+    // 悬停：只加中性浮层，文字仍是 --color-text，全程不出现强调色
     await button.hover()
     await page.waitForTimeout(150)
     const hover = await button.evaluate((element) => {
