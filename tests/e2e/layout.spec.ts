@@ -60,7 +60,7 @@ for (const width of [820, 900, 1440]) {
 }
 
 for (const width of [390, 820, 1440]) {
-  test(`平铺工具栏在 ${width}px 下保持单行且页面不横向溢出`, async ({ page }) => {
+  test(`工具栏在 ${width}px 下保持单行、按钮 36×36 且溢出入口与裁切一致`, async ({ page }) => {
     await page.setViewportSize({ width, height: 700 })
     await openEmptyEditor(page)
 
@@ -68,15 +68,19 @@ for (const width of [390, 820, 1440]) {
     const metrics = await toolbar.evaluate((element) => {
       const style = getComputedStyle(element)
       const buttons = [...element.querySelectorAll<HTMLButtonElement>('.editor-toolbar-button')]
+      const shell = element.parentElement!
       return {
         pageFits: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
         singleRow: style.flexWrap === 'nowrap' && element.scrollHeight <= element.clientHeight + 1,
         buttonCount: buttons.length,
-        buttonsMeetTouchTarget: buttons.every((button) => {
+        // 裁决 A：视觉与命中区同为 36，不做「视觉小、热区大」的重叠热区。
+        buttonsAreDecisionSize: buttons.every((button) => {
           const rect = button.getBoundingClientRect()
-          return rect.width >= 44 && rect.height >= 44
+          return Math.round(rect.width) === 36 && Math.round(rect.height) === 36
         }),
-        hasMoreButton: Boolean(element.querySelector('[aria-label="更多编辑操作"]')),
+        toolbarHeight: Math.round(element.getBoundingClientRect().height),
+        overflowing: element.scrollWidth > element.clientWidth + 1,
+        hasMoreButton: Boolean(shell.querySelector('[aria-label="更多编辑操作"]')),
         internalOverflowAllowed: element.scrollWidth >= element.clientWidth,
       }
     })
@@ -84,11 +88,45 @@ for (const width of [390, 820, 1440]) {
     expect(metrics.pageFits).toBe(true)
     expect(metrics.singleRow).toBe(true)
     expect(metrics.buttonCount).toBe(17)
-    expect(metrics.buttonsMeetTouchTarget).toBe(true)
-    expect(metrics.hasMoreButton).toBe(false)
+    expect(metrics.buttonsAreDecisionSize).toBe(true)
+    expect(metrics.toolbarHeight).toBe(44)
+    // 溢出必须给出可见入口，不溢出时也不能凭空多出一个按钮。
+    expect(metrics.hasMoreButton).toBe(metrics.overflowing)
     expect(metrics.internalOverflowAllowed).toBe(true)
   })
 }
+
+test('工具栏溢出按钮弹出被裁掉的按钮，支持键盘并可直接执行', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 700 })
+  const editor = await openEmptyEditor(page)
+
+  const more = page.getByRole('button', { name: '更多编辑操作' })
+  await expect(more).toBeVisible()
+  await expect(more).toHaveAttribute('aria-expanded', 'false')
+  // 裁切处有渐隐遮罩，滚到最右端才撤掉。
+  await expect(page.locator('.editor-toolbar-fade')).toBeVisible()
+
+  await more.click()
+  const menu = page.getByRole('menu', { name: '被裁掉的编辑操作' })
+  await expect(menu).toBeVisible()
+  await expect(more).toHaveAttribute('aria-expanded', 'true')
+
+  const items = menu.getByRole('menuitem')
+  await expect(items.first()).toBeFocused()
+  await page.keyboard.press('ArrowDown')
+  await expect(items.nth(1)).toBeFocused()
+  await page.keyboard.press('ArrowUp')
+  await expect(items.first()).toBeFocused()
+
+  await page.keyboard.press('Escape')
+  await expect(menu).not.toBeVisible()
+  await expect(more).toBeFocused()
+
+  await more.click()
+  await menu.getByRole('menuitem', { name: '代码块' }).click()
+  await expect(editor).toHaveText('[code][/code]')
+  await expect(page.locator('.editor-toolbar-more-menu')).toHaveCount(0)
+})
 
 test('桌面分隔条支持键盘调整并公开动态范围', async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 700 })

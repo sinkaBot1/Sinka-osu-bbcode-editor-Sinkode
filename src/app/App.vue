@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { Component } from 'vue'
 import {
   ALargeSmall,
   AlignCenter,
@@ -7,6 +8,7 @@ import {
   Check,
   CheckCircle2,
   Code2,
+  ChevronRight,
   ChevronUp,
   CircleAlert,
   CircleHelp,
@@ -358,6 +360,256 @@ function endResize() {
   layoutResizing.value = false
 }
 
+// ---- 编辑器工具栏 ----
+// 17 个动作只在这里定义一次，工具栏与「被裁按钮」浮层共用同一份来源，
+// 避免两处各写一遍后出现漏项、顺序漂移或标签不一致（提案 §5.6）。
+type ToolbarAction = {
+  key: string
+  label: string
+  icon: Component
+  run: (view: EditorView) => boolean
+}
+
+type ToolbarGroup = {
+  key: string
+  label: string
+  actions: ToolbarAction[]
+}
+
+const toolbarGroups: ToolbarGroup[] = [
+  {
+    key: 'history',
+    label: '历史操作',
+    actions: [
+      { key: 'undo', label: '撤销', icon: Undo2, run: (view) => undoCommand(view) },
+      { key: 'redo', label: '重做', icon: Redo2, run: (view) => redoCommand(view) },
+    ],
+  },
+  {
+    key: 'format',
+    label: '文字格式',
+    actions: [
+      { key: 'bold', label: '粗体', icon: Bold, run: (view) => wrapTag(view, 'b') },
+      { key: 'italic', label: '斜体', icon: Italic, run: (view) => wrapTag(view, 'i') },
+      { key: 'underline', label: '下划线', icon: Underline, run: (view) => wrapTag(view, 'u') },
+      { key: 'strike', label: '删除线', icon: Strikethrough, run: (view) => wrapTag(view, 's') },
+    ],
+  },
+  {
+    key: 'style',
+    label: '文字样式',
+    actions: [
+      {
+        key: 'color',
+        label: '文字颜色',
+        icon: Palette,
+        run: (view) => wrapTag(view, 'color', tagAllowsValue('color')),
+      },
+      {
+        key: 'size',
+        label: '字号',
+        icon: ALargeSmall,
+        run: (view) => wrapTag(view, 'size', tagAllowsValue('size')),
+      },
+    ],
+  },
+  {
+    key: 'insert',
+    label: '插入与布局',
+    actions: [
+      {
+        key: 'link',
+        label: '链接',
+        icon: Link2,
+        run: (view) => wrapTag(view, 'url', tagAllowsValue('url')),
+      },
+      { key: 'centre', label: '居中', icon: AlignCenter, run: (view) => wrapTag(view, 'centre') },
+    ],
+  },
+  {
+    key: 'media',
+    label: '媒体',
+    actions: [
+      { key: 'image', label: '图片', icon: Image, run: (view) => wrapTag(view, 'img') },
+      {
+        key: 'youtube',
+        label: 'YouTube 视频',
+        icon: SquarePlay,
+        run: (view) => wrapTag(view, 'youtube'),
+      },
+      { key: 'audio', label: '音频', icon: Music2, run: (view) => wrapTag(view, 'audio') },
+    ],
+  },
+  {
+    key: 'structure',
+    label: '结构',
+    actions: [
+      { key: 'code', label: '代码块', icon: Code2, run: (view) => wrapTag(view, 'code') },
+      {
+        key: 'quote',
+        label: '引用',
+        icon: Quote,
+        run: (view) => wrapTag(view, 'quote', tagAllowsValue('quote')),
+      },
+      {
+        key: 'list',
+        label: '列表',
+        icon: List,
+        run: (view) => wrapTag(view, 'list', tagAllowsValue('list')),
+      },
+      {
+        key: 'spoilerbox',
+        label: '剧透框',
+        icon: EyeOff,
+        run: (view) => wrapTag(view, 'spoilerbox'),
+      },
+    ],
+  },
+]
+
+const toolbarElement = ref<HTMLElement | null>(null)
+const toolbarMoreButtonElement = ref<HTMLButtonElement | null>(null)
+const toolbarMoreElement = ref<HTMLElement | null>(null)
+const toolbarMoreStyle = ref<Record<string, string>>({})
+const toolbarOverflowing = ref(false)
+const toolbarAtEnd = ref(false)
+const toolbarClippedKeys = ref<string[]>([])
+// 浮层内容在打开时冻结：横滚会让「被裁集合」逐帧变化，若直接跟随，
+// 用户正在读的条目会中途消失。
+const toolbarMoreKeys = ref<string[]>([])
+const toolbarMoreOpen = ref(false)
+let toolbarResizeObserver: ResizeObserver | undefined
+
+// 遮罩宽 24px，落在它下面的按钮既读不到也点不到，按被裁处理。
+const toolbarFadeWidth = 24
+const toolbarMoreGap = 4
+
+function clippedGroupsOf(keys: string[]): ToolbarGroup[] {
+  if (!keys.length) return []
+  return toolbarGroups
+    .map((group) => ({
+      ...group,
+      actions: group.actions.filter((action) => keys.includes(action.key)),
+    }))
+    .filter((group) => group.actions.length > 0)
+}
+
+const toolbarMoreGroups = computed(() => clippedGroupsOf(toolbarMoreKeys.value))
+
+function measureToolbarOverflow() {
+  const element = toolbarElement.value
+  if (!element) return
+  const overflowing = element.scrollWidth > element.clientWidth + 1
+  toolbarOverflowing.value = overflowing
+  toolbarAtEnd.value = element.scrollLeft + element.clientWidth >= element.scrollWidth - 1
+  if (!overflowing) {
+    toolbarClippedKeys.value = []
+    if (toolbarMoreOpen.value) closeToolbarMore(false)
+    return
+  }
+  const bounds = element.getBoundingClientRect()
+  const visibleRight = bounds.right - toolbarFadeWidth
+  const clipped: string[] = []
+  const buttons = element.querySelectorAll<HTMLElement>('.editor-toolbar-button[data-action]')
+  buttons.forEach((button) => {
+    const rect = button.getBoundingClientRect()
+    // 左侧被卷出去的和右侧压在遮罩下的都算不可见。
+    if (rect.left < bounds.left - 0.5 || rect.right > visibleRight + 0.5) {
+      const key = button.dataset.action
+      if (key) clipped.push(key)
+    }
+  })
+  const previous = toolbarClippedKeys.value
+  if (clipped.length === previous.length && clipped.every((key, index) => key === previous[index]))
+    return
+  toolbarClippedKeys.value = clipped
+}
+
+function updateToolbarMorePlacement() {
+  const button = toolbarMoreButtonElement.value
+  if (!button) return
+  const rect = button.getBoundingClientRect()
+  // 浮层对齐工具栏底边而不是按钮底边：按钮 24px 居中在 44px 的条里，
+  // 按按钮底边定位会让浮层压住工具栏最后几像素。
+  const shellBottom = button.parentElement?.getBoundingClientRect().bottom ?? rect.bottom
+  toolbarMoreStyle.value = {
+    '--toolbar-more-top': `${Math.max(rect.bottom, shellBottom) + toolbarMoreGap}px`,
+    '--toolbar-more-right': `${Math.max(12, window.innerWidth - rect.right)}px`,
+  }
+}
+
+function toolbarMoreItems() {
+  return [...(toolbarMoreElement.value?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])]
+}
+
+function openToolbarMore() {
+  if (!toolbarClippedKeys.value.length) return
+  toolbarMoreKeys.value = [...toolbarClippedKeys.value]
+  toolbarMoreOpen.value = true
+  void nextTick(() => {
+    updateToolbarMorePlacement()
+    toolbarMoreItems()[0]?.focus()
+  })
+}
+
+function closeToolbarMore(restoreFocus = true) {
+  toolbarMoreOpen.value = false
+  toolbarMoreKeys.value = []
+  if (restoreFocus) requestAnimationFrame(() => toolbarMoreButtonElement.value?.focus())
+}
+
+function toggleToolbarMore() {
+  if (toolbarMoreOpen.value) closeToolbarMore()
+  else openToolbarMore()
+}
+
+function runToolbarAction(action: ToolbarAction) {
+  if (editorView) action.run(editorView)
+}
+
+function runClippedToolbarAction(action: ToolbarAction) {
+  // 不回焦溢出按钮：包裹类命令会主动把焦点交给编辑器，回焦会把它抢回来。
+  // 撤销/重做这类不改焦点的命令会让焦点落到 body，这条兜底把焦点放回可见的触发点。
+  closeToolbarMore(false)
+  runToolbarAction(action)
+  const active = document.activeElement
+  if (!active || active === document.body) {
+    requestAnimationFrame(() => toolbarMoreButtonElement.value?.focus())
+  }
+}
+
+function moveToolbarMoreFocus(step: 1 | -1) {
+  const items = toolbarMoreItems()
+  if (!items.length) return
+  const current = items.indexOf(document.activeElement as HTMLElement)
+  const index = current < 0 ? 0 : (current + step + items.length) % items.length
+  items[index].focus()
+}
+
+function handleToolbarMoreKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeToolbarMore()
+    return
+  }
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    moveToolbarMoreFocus(1)
+    return
+  }
+  if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    moveToolbarMoreFocus(-1)
+    return
+  }
+  if (event.key === 'Home' || event.key === 'End') {
+    event.preventDefault()
+    const items = toolbarMoreItems()
+    const target = event.key === 'Home' ? items[0] : items[items.length - 1]
+    target?.focus()
+  }
+}
+
 function toggleDiagnostics() {
   if (diagnostics.value.length === 0) return
   showDiagnostics.value = !showDiagnostics.value
@@ -425,9 +677,18 @@ function toggleHelp() {
   else openHelp()
 }
 
-function handleThemePointerDown(event: PointerEvent) {
-  if (!themeDialogOpen.value) return
+// 文档级 pointerdown 同时服务于主题弹层与工具栏溢出浮层：两者都是点击外部关闭的浮层。
+function handleDocumentPointerDown(event: PointerEvent) {
   const target = event.target as Node
+  if (toolbarMoreOpen.value) {
+    if (
+      toolbarMoreButtonElement.value?.contains(target) ||
+      toolbarMoreElement.value?.contains(target)
+    )
+      return
+    closeToolbarMore(false)
+  }
+  if (!themeDialogOpen.value) return
   if (themeButtonElement.value?.contains(target) || themePopoverElement.value?.contains(target))
     return
   closeThemePicker(false)
@@ -443,6 +704,15 @@ function handleThemeKeydown(event: KeyboardEvent) {
     event.preventDefault()
     closeHelp()
   }
+  if (event.key === 'Escape' && toolbarMoreOpen.value) {
+    event.preventDefault()
+    closeToolbarMore()
+  }
+}
+
+function handleWindowResize() {
+  updateThemePopoverPlacement()
+  if (toolbarMoreOpen.value) updateToolbarMorePlacement()
 }
 
 function toggleHeader() {
@@ -538,6 +808,13 @@ onMounted(async () => {
       workspaceResizeObserver.observe(workspaceElement.value)
     }
   }
+  if (toolbarElement.value) {
+    measureToolbarOverflow()
+    if (typeof ResizeObserver !== 'undefined') {
+      toolbarResizeObserver = new ResizeObserver(measureToolbarOverflow)
+      toolbarResizeObserver.observe(toolbarElement.value)
+    }
+  }
   const activeTemplate = await workspace.initialize()
   if (!editorHost.value) return
 
@@ -548,20 +825,21 @@ onMounted(async () => {
   snapshot.value = snapshotForView(editorView)
   previewScheduler.schedule(editorView.state.doc.toString())
   document.addEventListener('visibilitychange', handleVisibilityChange)
-  document.addEventListener('pointerdown', handleThemePointerDown)
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
   window.addEventListener('keydown', handleThemeKeydown)
-  window.addEventListener('resize', updateThemePopoverPlacement)
+  window.addEventListener('resize', handleWindowResize)
   window.addEventListener('pagehide', flushPendingSave)
 })
 
 onUnmounted(() => {
   headerResizeObserver?.disconnect()
   workspaceResizeObserver?.disconnect()
+  toolbarResizeObserver?.disconnect()
   document.documentElement.removeAttribute('data-theme')
   document.removeEventListener('visibilitychange', handleVisibilityChange)
-  document.removeEventListener('pointerdown', handleThemePointerDown)
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
   window.removeEventListener('keydown', handleThemeKeydown)
-  window.removeEventListener('resize', updateThemePopoverPlacement)
+  window.removeEventListener('resize', handleWindowResize)
   window.removeEventListener('pagehide', flushPendingSave)
   previewScheduler.dispose()
   workspace.dispose()
@@ -735,177 +1013,81 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
             <CopyButton :source="snapshot.source" />
           </div>
         </div>
-        <div class="editor-toolbar" aria-label="编辑工具栏">
-          <div class="editor-toolbar-group" role="group" aria-label="历史操作">
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="撤销"
-              aria-label="撤销"
-              @click="editorView && undoCommand(editorView)"
-            >
-              <Undo2 :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="重做"
-              aria-label="重做"
-              @click="editorView && redoCommand(editorView)"
-            >
-              <Redo2 :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
+        <div class="editor-toolbar-shell">
+          <div
+            ref="toolbarElement"
+            class="editor-toolbar"
+            aria-label="编辑工具栏"
+            @scroll="measureToolbarOverflow"
+          >
+            <template v-for="(group, index) in toolbarGroups" :key="group.key">
+              <span v-if="index > 0" class="editor-toolbar-divider" aria-hidden="true"></span>
+              <div class="editor-toolbar-group" role="group" :aria-label="group.label">
+                <button
+                  v-for="action in group.actions"
+                  :key="action.key"
+                  :data-action="action.key"
+                  class="editor-toolbar-button"
+                  type="button"
+                  :title="action.label"
+                  :aria-label="action.label"
+                  @click="runToolbarAction(action)"
+                >
+                  <component :is="action.icon" :size="17" :stroke-width="2" aria-hidden="true" />
+                </button>
+              </div>
+            </template>
           </div>
-          <span class="editor-toolbar-divider" aria-hidden="true"></span>
-          <div class="editor-toolbar-group" role="group" aria-label="文字格式">
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="粗体"
-              aria-label="粗体"
-              @click="editorView && wrapTag(editorView, 'b')"
+          <!-- 裁切处给一层渐隐，滚到最右端时撤掉，避免右侧没内容还压着暗角。 -->
+          <div
+            v-if="toolbarOverflowing && !toolbarAtEnd"
+            class="editor-toolbar-fade"
+            aria-hidden="true"
+          ></div>
+          <button
+            v-if="toolbarOverflowing"
+            ref="toolbarMoreButtonElement"
+            class="editor-toolbar-more"
+            type="button"
+            title="更多编辑操作"
+            aria-label="更多编辑操作"
+            aria-haspopup="menu"
+            :aria-expanded="toolbarMoreOpen"
+            @click="toggleToolbarMore"
+          >
+            <ChevronRight :size="14" :stroke-width="2" aria-hidden="true" />
+          </button>
+          <Transition name="editor-toolbar-more">
+            <div
+              v-if="toolbarMoreOpen"
+              ref="toolbarMoreElement"
+              class="editor-toolbar-more-menu"
+              role="menu"
+              aria-label="被裁掉的编辑操作"
+              :style="toolbarMoreStyle"
+              @keydown="handleToolbarMoreKeydown"
             >
-              <Bold :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="斜体"
-              aria-label="斜体"
-              @click="editorView && wrapTag(editorView, 'i')"
-            >
-              <Italic :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="下划线"
-              aria-label="下划线"
-              @click="editorView && wrapTag(editorView, 'u')"
-            >
-              <Underline :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="删除线"
-              aria-label="删除线"
-              @click="editorView && wrapTag(editorView, 's')"
-            >
-              <Strikethrough :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-          </div>
-          <span class="editor-toolbar-divider" aria-hidden="true"></span>
-          <div class="editor-toolbar-group" role="group" aria-label="文字样式">
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="文字颜色"
-              aria-label="文字颜色"
-              @click="editorView && wrapTag(editorView, 'color', tagAllowsValue('color'))"
-            >
-              <Palette :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="字号"
-              aria-label="字号"
-              @click="editorView && wrapTag(editorView, 'size', tagAllowsValue('size'))"
-            >
-              <ALargeSmall :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-          </div>
-          <span class="editor-toolbar-divider" aria-hidden="true"></span>
-          <div class="editor-toolbar-group" role="group" aria-label="插入与布局">
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="链接"
-              aria-label="链接"
-              @click="editorView && wrapTag(editorView, 'url', tagAllowsValue('url'))"
-            >
-              <Link2 :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="居中"
-              aria-label="居中"
-              @click="editorView && wrapTag(editorView, 'centre')"
-            >
-              <AlignCenter :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-          </div>
-          <span class="editor-toolbar-divider" aria-hidden="true"></span>
-          <div class="editor-toolbar-group" role="group" aria-label="媒体">
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="图片"
-              aria-label="图片"
-              @click="editorView && wrapTag(editorView, 'img')"
-            >
-              <Image :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="YouTube 视频"
-              aria-label="YouTube 视频"
-              @click="editorView && wrapTag(editorView, 'youtube')"
-            >
-              <SquarePlay :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="音频"
-              aria-label="音频"
-              @click="editorView && wrapTag(editorView, 'audio')"
-            >
-              <Music2 :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-          </div>
-          <span class="editor-toolbar-divider" aria-hidden="true"></span>
-          <div class="editor-toolbar-group" role="group" aria-label="结构">
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="代码块"
-              aria-label="代码块"
-              @click="editorView && wrapTag(editorView, 'code')"
-            >
-              <Code2 :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="引用"
-              aria-label="引用"
-              @click="editorView && wrapTag(editorView, 'quote', tagAllowsValue('quote'))"
-            >
-              <Quote :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="列表"
-              aria-label="列表"
-              @click="editorView && wrapTag(editorView, 'list', tagAllowsValue('list'))"
-            >
-              <List :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-            <button
-              class="editor-toolbar-button"
-              type="button"
-              title="剧透框"
-              aria-label="剧透框"
-              @click="editorView && wrapTag(editorView, 'spoilerbox')"
-            >
-              <EyeOff :size="18" :stroke-width="2" aria-hidden="true" />
-            </button>
-          </div>
+              <div
+                v-for="group in toolbarMoreGroups"
+                :key="group.key"
+                class="editor-toolbar-more-group"
+              >
+                <p class="editor-toolbar-more-title">{{ group.label }}</p>
+                <button
+                  v-for="action in group.actions"
+                  :key="action.key"
+                  class="editor-toolbar-more-item"
+                  type="button"
+                  role="menuitem"
+                  :title="action.label"
+                  @click="runClippedToolbarAction(action)"
+                >
+                  <component :is="action.icon" :size="17" :stroke-width="2" aria-hidden="true" />
+                  <span>{{ action.label }}</span>
+                </button>
+              </div>
+            </div>
+          </Transition>
         </div>
         <div ref="editorHost" class="editor-host"></div>
         <Transition name="diagnostic-panel">
