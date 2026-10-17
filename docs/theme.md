@@ -25,7 +25,7 @@
 
 模板界面（内容族）的浮起效果不引入新色值：卡片底用 `--color-surface`、浮层底用 `--color-surface-raised`（见 `src/app/scale.css` 的 `--surface-content` 与 `--surface-overlay`），轮廓与分隔线用 `--color-border` 和 `--color-divider-strong`。因此新增主题只要填好这两档面与两条线，模板卡片在浅色主题下也会自然变成“比框架面更亮的纸面”。
 
-仪器族浮层（帮助面板、主题弹层）分别取 `--surface-content` 与 `--surface-overlay`，详情块与输入框取 `--surface-inset`；辅助文字用 `--color-muted`，需要正文级对比度的强调文字（标签名、代码）用 `--color-accent-text`，强调色图形与焦点环才用 `--color-accent`。悬停与选中浮层只从 `--control-hover-background`、`--color-divider-strong` 与 `--color-selection-background` 三档取，不在组件里另写透明度。
+浮层取色：帮助面板（仪器族）取 `--surface-content`，主题弹层与模板操作菜单（内容族浮层）取 `--surface-overlay`；详情块与输入框取 `--surface-inset`；辅助文字用 `--color-muted`，需要正文级对比度的强调文字（标签名、代码）用 `--color-accent-text`，强调色图形与焦点环才用 `--color-accent`。悬停与选中浮层只从 `--control-hover-background`、`--color-divider-strong` 与 `--color-selection-background` 三档取，不在组件里另写透明度。
 
 主题令牌修改后，更新本文件中受影响的现状和对比度数据，并更新主题令牌测试。主题色值不可只改组件或只改文档。
 

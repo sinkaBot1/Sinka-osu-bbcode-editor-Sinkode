@@ -92,35 +92,59 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   const optionStyle = await selectedOption.evaluate((element) => {
     const style = getComputedStyle(element)
     const bar = getComputedStyle(element, '::before')
+    const description = element.querySelector('.theme-option-description')!
     return {
       borderStyle: style.borderStyle,
       boxShadow: style.boxShadow,
+      radius: style.borderTopLeftRadius,
       // 读 min-height 而不是盒子高度：弹层入场期间带 scale(0.96)，矩形会被缩小
       minHeight: style.minHeight,
       barWidth: bar.width,
+      barRadius: bar.borderTopLeftRadius,
       barTransform: bar.transform,
+      descriptionWhiteSpace: getComputedStyle(description).whiteSpace,
+      // scrollWidth 超过 clientWidth 就说明文字仍被横向裁掉
+      descriptionClipped: description.scrollWidth > description.clientWidth + 1,
     }
   })
   expect(optionStyle.borderStyle).toBe('none')
   expect(optionStyle.boxShadow).toBe('none')
-  // 批次 3：选项保持 44 高的触控目标，选中指示是 3px 斜切竖条（提案 §5.12）
+  // 批次 4b：选项并入内容族——8 圆角行、44 高的触控目标、2px 圆头竖条（不再斜切）
+  expect(optionStyle.radius).toBe('8px')
   expect(optionStyle.minHeight).toBe('44px')
-  expect(optionStyle.barWidth).toBe('3px')
-  expect(optionStyle.barTransform).not.toBe('none')
-  // 弹层是仪器族浮层：直角、无投影，层级归到 --z-overlay（30）
+  expect(optionStyle.barWidth).toBe('2px')
+  expect(optionStyle.barRadius).toBe('999px')
+  expect(optionStyle.barTransform).toBe('none')
+  // 说明文字换行显示，不再用省略号截断
+  expect(optionStyle.descriptionWhiteSpace).toBe('normal')
+  expect(optionStyle.descriptionClipped).toBe(false)
+  // 弹层是内容族浮层：12 圆角 + 投影，层级归到 --z-overlay（30）
   const popoverStyle = await dialog.evaluate((element) => {
     const style = getComputedStyle(element)
+    const close = element.querySelector<HTMLElement>('.theme-close')!
+    const closeStyle = getComputedStyle(close)
     return {
       radius: style.borderTopLeftRadius,
       shadow: style.boxShadow,
       zIndex: style.zIndex,
       padding: style.paddingTop,
+      width: style.width,
+      // 同样读计算值：入场期间弹层带 scale(0.96)，盒子矩形会被缩小
+      closeRadius: closeStyle.borderTopLeftRadius,
+      closeWidth: closeStyle.width,
+      closeHeight: closeStyle.height,
     }
   })
-  expect(popoverStyle.radius).toBe('0px')
-  expect(popoverStyle.shadow).toBe('none')
+  expect(popoverStyle.radius).toBe('12px')
+  expect(popoverStyle.shadow).not.toBe('none')
   expect(popoverStyle.zIndex).toBe('30')
-  expect(popoverStyle.padding).toBe('8px')
+  expect(popoverStyle.padding).toBe('12px')
+  // 批次 4b：加宽到 360，三条主题说明才能在单行内读完
+  expect(popoverStyle.width).toBe('360px')
+  // 关闭按钮收到 24px，与模板栏标题行动作同规格
+  expect(popoverStyle.closeWidth).toBe('24px')
+  expect(popoverStyle.closeHeight).toBe('24px')
+  expect(popoverStyle.closeRadius).toBe('8px')
   const alignment = await page.evaluate(() => {
     const trigger = document.querySelector<HTMLButtonElement>('[aria-controls="theme-popover"]')!
     const popover = document.querySelector<HTMLElement>('#theme-popover')!

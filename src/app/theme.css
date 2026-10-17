@@ -561,8 +561,8 @@ h2 {
   font-size: var(--text-base);
 }
 /* 标题行图标按钮：静止无框、次级色，悬停只加中性浮层。
-   尺寸与圆角由各自的家族补齐——模板栏是内容族（24px + 8px 圆角），
-   主题弹层的关闭按钮是仪器族（直角，见 .theme-close）。 */
+   尺寸与圆角由各自的家族补齐——模板栏标题行与主题弹层的关闭按钮都是内容族
+   （24px + 8px 圆角，见 .theme-close）。 */
 .section-heading button {
   display: inline-flex;
   align-items: center;
@@ -1024,8 +1024,8 @@ h2 {
   color: var(--color-text);
   background: var(--state-hover);
 }
-/* 模板操作菜单：内容族浮层，圆角 10 + 投影；浮层跟随触发者的家族，
-   所以它和直角无投影的主题弹层形状不同（提案 §3.3 细则 1 与 §5.4）。 */
+/* 模板操作菜单：内容族浮层，圆角 10 + 投影；主题弹层并入内容族后同为圆角 + 投影，
+   两者的差别只在半径（10 与 12）与服务对象（提案 §3.3 细则 1 与 §5.4）。 */
 .template-action-menu {
   position: fixed;
   z-index: var(--z-overlay);
@@ -2045,18 +2045,20 @@ h2 {
 .preview-placeholder {
   margin: 0;
 }
-/* 主题弹层：仪器族浮层——直角、无投影，靠 1px 轮廓与一步亮度分离（提案 §5.12 与 §6.2）。
-   它从顶栏长出，所以不与模板操作菜单同形（提案 §3.3 细则 1）。 */
+/* 主题弹层：内容族浮层——12 圆角 + 投影，与模板栏卡片同族（提案 §9 批次 4b）。
+   它曾经是“直角 + 无投影”的仪器族浮层；项目所有者裁定它本质是一组“选一项”的
+   卡片列表，所以整块换成模板栏那套规格，与帮助面板的直角无投影不再一致。 */
 .theme-popover {
   position: fixed;
   top: var(--theme-popover-top, 80px);
   right: var(--theme-popover-right, 22px);
   z-index: var(--z-overlay);
-  width: min(320px, calc(100vw - 24px));
-  padding: var(--space-4);
+  width: min(360px, calc(100vw - 24px));
+  padding: var(--space-5);
   border: 1px solid var(--line-structure);
-  border-radius: var(--radius);
+  border-radius: var(--r-card);
   background: var(--surface-overlay);
+  box-shadow: var(--elevation-content);
   transform-origin: top right;
 }
 .theme-popover .section-heading {
@@ -2068,12 +2070,12 @@ h2 {
 }
 .theme-popover .section-heading button.theme-close {
   display: grid;
-  width: var(--control-sm);
-  height: var(--control-sm);
+  width: var(--control-xs);
+  height: var(--control-xs);
   place-items: center;
   padding: 0;
   border-color: transparent;
-  border-radius: var(--radius);
+  border-radius: var(--r-row);
   background: transparent;
 }
 .theme-popover .section-heading button.theme-close:hover {
@@ -2109,19 +2111,20 @@ h2 {
   min-height: var(--control-lg);
   padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--r-row);
   color: var(--color-text);
   background: transparent;
   cursor: pointer;
   transition: background var(--dur-1) ease;
 }
-/* 选中指示条是斜切母题：3px 竖条按 --skew-state 切角，与帮助面板行同源（提案 §3.1） */
+/* 选中指示条是内容族的圆头竖条：2px + 胶囊半径，与模板行同源（提案 §9 批次 4b）。
+   主题弹层不再使用斜切母题，斜切条只留在帮助面板行。 */
 .theme-option::before {
   position: absolute;
   inset: var(--space-2) auto var(--space-2) 0;
-  width: 3px;
+  width: 2px;
+  border-radius: var(--radius-pill);
   background: transparent;
-  transform: skewX(var(--skew-state));
   content: '';
   transition: background var(--dur-1) ease;
 }
@@ -2133,7 +2136,10 @@ h2 {
 .theme-option:hover .theme-option-description {
   color: var(--color-text);
 }
-.theme-option:focus-within {
+/* 焦点环只在键盘进入时出现：单选按钮是视觉隐藏的，环画在整行上。
+   这里不能用 :focus-within——打开弹层时脚本会把焦点放到选中项，鼠标用户也会
+   一直看到强调色描边，和模板栏“点一下就只剩选中态”的行为不一致。 */
+.theme-option:has(input:focus-visible) {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -2152,13 +2158,16 @@ h2 {
   font-size: var(--text-md);
   font-weight: 600;
 }
+/* 说明最多两行，不再用单行省略号截断：宁可多占一行，也不要在词语中间砍出省略号
+   （提案 §9 批次 4b）。窄屏弹层收窄后由两行截断兜底。 */
 .theme-option-description {
+  display: -webkit-box;
   overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   color: var(--color-muted);
   font-size: var(--text-sm);
   line-height: 1.35;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .theme-option.is-selected .theme-option-description {
   color: var(--color-text);
@@ -2170,7 +2179,7 @@ h2 {
   overflow: hidden;
   /* 描边向内画：外尺寸仍是 40×22，浅色主题下不与弹层底融合，也不改外框（提案 §5.12） */
   box-shadow: inset 0 0 0 1px var(--line-structure);
-  border-radius: var(--radius);
+  border-radius: var(--r-row);
 }
 .theme-preview span {
   flex: 1;
