@@ -855,7 +855,8 @@ function focusDiagnosticLine(item: (typeof diagnostics.value)[number]) {
 }
 
 function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
-  return `第 ${item.line} 行，第 ${item.column} 列`
+  // 紧凑写法：诊断行只有 38px、位置列 142–190px，逗号版会被挤成省略号（提案 §5.9）。
+  return `第 ${item.line} 行 · 第 ${item.column} 列`
 }
 </script>
 

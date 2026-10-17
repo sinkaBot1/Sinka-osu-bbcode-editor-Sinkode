@@ -303,3 +303,96 @@ test('工作区高度受视口约束，页面不滚动且预览画布承担内�
   expect(metrics.documentFits).toBe(true)
   expect(metrics.headerBottom).toBeLessThanOrEqual(metrics.workspaceBottom + 1)
 })
+
+test('诊断面板、状态胶囊与行号栏遵循仪器族规格', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  const editor = await openEmptyEditor(page)
+  await editor.click()
+  await page.keyboard.insertText('[b]')
+  await expect(page.locator('.diagnostic-count')).toContainText('个问题')
+
+  // 行号栏要在编辑器持有焦点时测：CodeMirror 只给当前行挂 .cm-activeLineGutter
+  const gutter = await page.evaluate(() => {
+    const gutters = document.querySelector<HTMLElement>('.cm-gutters')!
+    const host = document.querySelector<HTMLElement>('.editor-host')!
+    const activeGutter = document.querySelector<HTMLElement>('.cm-activeLineGutter')!
+    return {
+      borderRight: getComputedStyle(gutters).borderRightWidth,
+      background: getComputedStyle(gutters).backgroundColor,
+      editorBackground: getComputedStyle(host).backgroundColor,
+      activeBackground: getComputedStyle(activeGutter).backgroundColor,
+      activeColor: getComputedStyle(activeGutter).color,
+    }
+  })
+  // 行号栏并入编辑面：无右描边、同底色，当前行只改行号色（提案 §5.7）
+  expect(gutter.borderRight).toBe('0px')
+  expect(gutter.background).toBe(gutter.editorBackground)
+  expect(gutter.activeBackground).toBe('rgba(0, 0, 0, 0)')
+  expect(gutter.activeColor).toBe('rgb(215, 222, 232)')
+
+  await page.locator('.diagnostic-count').click()
+  await expect(page.locator('.diagnostic-row').first()).toBeVisible()
+
+  const metrics = await page.evaluate(() => {
+    const panel = document.querySelector<HTMLElement>('.diagnostic-panel')!
+    const row = document.querySelector<HTMLElement>('.diagnostic-row')!
+    const count = document.querySelector<HTMLElement>('.diagnostic-count')!
+    const host = document.querySelector<HTMLElement>('.editor-host')!
+    const bar = getComputedStyle(row, '::before')
+    return {
+      panelBorderTop: getComputedStyle(panel).borderTopWidth,
+      panelBackground: getComputedStyle(panel).backgroundColor,
+      editorBackground: getComputedStyle(host).backgroundColor,
+      rowHeight: Math.round(row.getBoundingClientRect().height),
+      rowRadius: getComputedStyle(row).borderTopLeftRadius,
+      barWidth: bar.width,
+      barRadius: bar.borderTopLeftRadius,
+      countHeight: Math.round(count.getBoundingClientRect().height),
+      countRadius: getComputedStyle(count).borderTopLeftRadius,
+    }
+  })
+
+  // 面板与编辑面同面、不画上描边：边界交给抓取条（提案 §5.9）
+  expect(metrics.panelBorderTop).toBe('0px')
+  expect(metrics.panelBackground).toBe(metrics.editorBackground)
+  // 仪器族列表行：38px、直角、2px 圆头状态条
+  expect(metrics.rowHeight).toBe(38)
+  expect(metrics.rowRadius).toBe('0px')
+  expect(metrics.barWidth).toBe('2px')
+  expect(metrics.barRadius).toBe('999px')
+  // 状态胶囊 24px（第 6.1 节控件阶梯）
+  expect(metrics.countHeight).toBe(24)
+  expect(metrics.countRadius).toBe('999px')
+
+  const row = page.locator('.diagnostic-row').first()
+  // 悬停按 §6.3 用中性浮层，不再用强调色浮层
+  await row.hover()
+  await page.waitForTimeout(200)
+  await expect(row).toHaveCSS('background-color', 'rgba(215, 222, 232, 0.09)')
+
+  // 选中（is-active）改危险色浮层 + 危险色左条：错误行用强调色会被读成“被选中”
+  await row.click()
+  await page.waitForTimeout(200)
+  const active = await row.evaluate((element) => {
+    // 用同一条 color-mix 表达式做探针：浏览器对 color-mix 的序列化形式不固定，
+    // 比字符串比解析 alpha 稳。
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--color-danger)'
+    const expected = document.createElement('div')
+    expected.style.backgroundColor = 'color-mix(in srgb, var(--color-danger) 8%, transparent)'
+    document.body.append(probe, expected)
+    const danger = getComputedStyle(probe).color
+    const expectedBackground = getComputedStyle(expected).backgroundColor
+    probe.remove()
+    expected.remove()
+    return {
+      background: getComputedStyle(element).backgroundColor,
+      expectedBackground,
+      bar: getComputedStyle(element, '::before').backgroundColor,
+      danger,
+    }
+  })
+  expect(active.bar).toBe(active.danger)
+  // 浮层取危险色 8%，不是强调色
+  expect(active.background).toBe(active.expectedBackground)
+})

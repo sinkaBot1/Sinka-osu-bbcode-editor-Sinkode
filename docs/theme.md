@@ -25,7 +25,7 @@
 
 模板界面（内容族）的浮起效果不引入新色值：卡片底用 `--color-surface`、浮层底用 `--color-surface-raised`（见 `src/app/scale.css` 的 `--surface-content` 与 `--surface-overlay`），轮廓与分隔线用 `--color-border` 和 `--color-divider-strong`。因此新增主题只要填好这两档面与两条线，模板卡片在浅色主题下也会自然变成“比框架面更亮的纸面”。
 
-浮层取色：帮助面板（仪器族）取 `--surface-content`，主题弹层与模板操作菜单（内容族浮层）取 `--surface-overlay`；详情块与输入框取 `--surface-inset`；辅助文字用 `--color-muted`，需要正文级对比度的强调文字（标签名、代码）用 `--color-accent-text`，强调色图形与焦点环才用 `--color-accent`。悬停与选中浮层只从 `--control-hover-background`、`--color-divider-strong` 与 `--color-selection-background` 三档取，不在组件里另写透明度。
+浮层取色：帮助面板（仪器族）取 `--surface-content`，主题弹层与模板操作菜单（内容族浮层）取 `--surface-overlay`；详情块与输入框取 `--surface-inset`；辅助文字用 `--color-muted`，需要正文级对比度的强调文字（标签名、代码）用 `--color-accent-text`，强调色图形与焦点环才用 `--color-accent`。悬停与选中浮层只从 `--control-hover-background`、`--color-divider-strong`、`--color-selection-background` 与 `--editor-active-line`（当前行，12% 中性）四档取；诊断行的选中态用 `color-mix` 从 `--color-danger` 派生 8%，不在组件里另写新色值。
 
 主题令牌修改后，更新本文件中受影响的现状和对比度数据，并更新主题令牌测试。主题色值不可只改组件或只改文档。
 
@@ -67,11 +67,12 @@
 | 编辑器参数值 | `#c04e00` | `#faf9f5` | `4.60:1` |
 | 编辑器无效标签 | `#e40033` | `#faf9f5` | `4.59:1` |
 | 编辑器结构符 | `#8b54d5` | `#faf9f5` | `4.61:1` |
-| 编辑器当前行底色 | `#e9dfc9` | `#faf9f5` | `1.26:1`；正文在其上为 `13.92:1` |
+| 编辑器当前行底色（12% 中性浮层） | `rgb(20 20 19 / 12%)`，合成 `#dededa` | `#faf9f5` | `1.28:1`；正文在其上为 `13.66:1`（Darkode `1.34:1` / `9.80:1`，Hollowcode `1.29:1` / `12.37:1`） |
+| 编辑器行号 | `#6c6a64` | `#faf9f5` | `5.13:1`（Darkode `6.23:1`、Hollowcode `5.30:1`） |
 | 帮助分类文字（未选中） | `#141413` | `#ecebe7`（6% 中性浮层） | `15.45:1` |
 | 帮助分类文字（选中） | `#141413` | `#f5ece6`（`--color-selection-background`） | `15.82:1` |
 | 帮助面板分类强调文字（已否决） | `#a9583e` | `#f4eae3`（12% 强调浮层） | `4.27:1`，不达 `4.5:1` |
 | 帮助行与主题选项的次级文字（悬停/选中时） | `#141413` | 各浮层底 | 取正文色后不低于 `15.45:1` |
 | 面板级辅助文字（面板面 / 内嵌面 / 浮层面；含帮助面板空状态的 10.5px 微标签与 12px 解释行） | `#6c6a64` | `#faf9f5` / `#faf9f5` / `#ffffff` | `5.13:1` / `5.13:1` / `5.41:1` |
 
-Hollowcode 的文字对比度及底色见本节测试和令牌表。当前行底色与描边属于图形层次，不使用正文 `4.5:1` 标准；Hollowcode 当前行底色与编辑器背景的对比度为 `1.13:1`，是否调整仍待项目所有者决定，当前保持现值。
+Hollowcode 的文字对比度及底色见本节测试和令牌表。当前行底色与描边属于图形层次，不使用正文 `4.5:1` 标准，但三种主题的当前行底色锁定 ≥ `1.2:1`：改用 12% 中性浮层后为 Darkode `1.34:1`、Claucode `1.28:1`、Hollowcode `1.29:1`，原先 Hollowcode `1.13:1` 的待决项随之关闭。行号颜色保持次级色而不降亮：`--color-muted` 的 68% 混色在三种主题下只有 `2.75–3.55:1`，会破 4.5:1 下限。

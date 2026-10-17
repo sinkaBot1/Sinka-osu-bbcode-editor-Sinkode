@@ -31,8 +31,8 @@ test.describe('模板、保存与复制', () => {
 
     // 本次改动的规则：悬停不得用强调色"描边"（rgb(98, 181, 255) = --color-accent），
     // 静止为中性描边的控件在悬停时必须保持中性。
-    // 说明：模板行与错误诊断行的浅蓝"背景"是这两处的既有语言（表示当前行/活动行），
-    // 不属于本次消除的"蓝框"，保持现状。
+    // 说明：模板行的浅蓝"背景"是这一处的既有语言（表示当前行），不属于本次消除的"蓝框"；
+    // 错误诊断行已改中性悬停、危险色选中（提案 §9 批次 4 裁决），这里只守它的描边中性。
     const accentBorder = 'rgb(98, 181, 255)'
     // 中性色来自 rgb(215, 222, 232) 与 --color-border #353c47 这类三通道接近的取值，
     // 通道差不超过 17；强调色蓝 #62b5ff 的差为 157，足以把蓝色描边挡在外面。
@@ -724,10 +724,13 @@ test.describe('模板、保存与复制', () => {
       const box = element.getBoundingClientRect()
       return {
         background: style.backgroundColor,
+        radius: style.borderTopLeftRadius,
         rightGap: Math.abs(control.right - box.right),
       }
     })
     expect(failureVisual.background).toBe('rgb(112, 58, 48)')
+    // 仪器族浮层取直角（提案 §5.16）
+    expect(failureVisual.radius).toBe('0px')
     expect(failureVisual.rightGap).toBeLessThanOrEqual(1)
     await expect(button).not.toHaveClass(/is-copied/)
   })

@@ -71,7 +71,7 @@
 
   /* 编辑器与语法高亮令牌；取值规则见 docs/theme.md。 */
   --editor-caret: #ffffff;
-  --editor-active-line: #202832;
+  --editor-active-line: rgb(215 222 232 / 12%);
   --editor-tooltip-background: #20242b;
   --editor-tooltip-border: #4a5565;
   --editor-tooltip-text: #d7dee8;
@@ -161,7 +161,9 @@
 
   /* 编辑器与语法高亮 */
   --editor-caret: #ffffff;
-  --editor-active-line: #202832;
+  /* 当前行是 12% 中性浮层，不再用蓝灰实色（提案 §9 批次 4 裁决）：
+     三种主题与编辑面底色的对比度 1.34 / 1.28 / 1.29:1，都过 1.2:1 地板。 */
+  --editor-active-line: rgb(215 222 232 / 12%);
   --editor-tooltip-background: #20242b;
   --editor-tooltip-border: #4a5565;
   --editor-tooltip-text: #d7dee8;
@@ -253,7 +255,7 @@
   /* 编辑器与语法高亮。浅色底下的六个语法色均满足文字对比度要求，
      结构符统一使用紫罗兰以保持同类标记的一致性；规则与实测见 docs/theme.md。 */
   --editor-caret: #141413;
-  --editor-active-line: #e9dfc9;
+  --editor-active-line: rgb(20 20 19 / 12%);
   --editor-tooltip-background: #ffffff;
   --editor-tooltip-border: #d5cab8;
   --editor-tooltip-text: #141413;
@@ -341,7 +343,7 @@
   /* 编辑器与语法高亮：深色底，语法色沿用 Darkode 取值（在近纯黑底上对比度更高）；
      补全选中态改为琥珀金底以呼应主题强调色。 */
   --editor-caret: #ffffff;
-  --editor-active-line: #141b24;
+  --editor-active-line: rgb(228 232 242 / 12%);
   --editor-tooltip-background: #1a1d24;
   --editor-tooltip-border: #3a4155;
   --editor-tooltip-text: #e4e8f2;
@@ -424,7 +426,7 @@ html.is-theme-revealing * {
 }
 *::-webkit-scrollbar-thumb {
   border: 2px solid var(--scrollbar-track);
-  border-radius: var(--legacy-radius-5);
+  border-radius: var(--radius-pill);
   background: var(--scrollbar-thumb);
 }
 *::-webkit-scrollbar-thumb:hover {
@@ -438,6 +440,27 @@ body {
 }
 button {
   font: inherit;
+}
+/* 键盘焦点环只在这里定义一次（提案 §5.16 与 §9 批次 4 裁决）。
+   容器用白名单而不是 .app-shell 一把罩住：预览正文在 .preview-content 里，它有自己的
+   与上游对齐的排版，焦点环必须保持浏览器默认。模板操作菜单与抽屉 Teleport 到 body，
+   所以按类名单独列出。四处保留本地写法：品牌入口外扩 4px；模板菜单条目、编辑器工具栏
+   按钮与溢出条目用 2px 内缩（环会被栏边裁掉）；输入框继续用 :focus，点击也要看得见。 */
+:where(
+    .app-header,
+    .template-sidebar,
+    .panel-header,
+    .editor-panel,
+    .diagnostic-panel,
+    .status-bar,
+    .help-panel,
+    .theme-popover,
+    .template-drawer,
+    .template-action-menu
+  )
+  :where(button, a[href], [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .app-shell {
@@ -533,10 +556,6 @@ button {
 .header-toggle:hover .header-toggle-tab::after {
   background: var(--color-surface-raised);
 }
-.header-toggle:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -577,10 +596,6 @@ h2 {
   color: var(--color-text);
   background: var(--control-hover-background);
 }
-.section-heading button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 .app-header-brand {
   display: flex;
   flex: 0 0 auto;
@@ -612,8 +627,8 @@ h2 {
 .brand-link:hover .brand-wordmark {
   filter: brightness(1.12);
 }
+/* 品牌入口是焦点环的例外：外扩 4px，环的圆角由品牌标志的盒子承担。 */
 .brand-link:focus-visible {
-  outline: 2px solid var(--color-accent);
   outline-offset: 4px;
   border-radius: var(--legacy-radius-4);
 }
@@ -679,10 +694,6 @@ h2 {
 .header-action.header-action-icon:hover {
   color: var(--color-muted);
 }
-.header-action:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 .header-action:disabled {
   color: var(--color-muted);
   cursor: not-allowed;
@@ -734,22 +745,59 @@ h2 {
   touch-action: none;
   background: transparent;
 }
-.resize-handle:hover,
+/* 拖拽把手不用焦点环：它本身是一条可抓的线，焦点与悬停都靠线亮起来表达（提案 §5.16）。 */
 .resize-handle:focus-visible {
-  background: var(--color-resize-indicator);
   outline: 0;
 }
 .resize-handle-vertical {
   cursor: col-resize;
 }
+/* 竖分隔条：静止看不见，悬停时 4px 中性淡浮层托着 2px 强调色细线，不再是实心色带。 */
+.resize-handle-vertical::before,
+.resize-handle-vertical::after {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  content: '';
+  transform: translateX(-50%);
+  transition: background var(--dur-1) ease;
+}
+.resize-handle-vertical::before {
+  width: var(--space-2);
+  background: transparent;
+}
+.resize-handle-vertical::after {
+  width: var(--space-1);
+  background: transparent;
+}
+.resize-handle-vertical:hover::before,
+.resize-handle-vertical:focus-visible::before {
+  background: var(--state-hover);
+}
+.resize-handle-vertical:hover::after,
+.resize-handle-vertical:focus-visible::after {
+  background: var(--color-resize-indicator);
+}
+/* 诊断面板的抓取条：12px 高、不画描边，悬停或聚焦才出现一条 2px 中性横线（提案 §5.9）。 */
 .resize-handle-horizontal {
   flex: 0 0 12px;
   min-width: 0;
   min-height: 12px;
   cursor: row-resize;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--shell-divider-background);
+}
+.resize-handle-horizontal::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: var(--space-1);
+  background: transparent;
+  content: '';
+  transform: translate(-50%, -50%);
+  transition: background var(--dur-1) ease;
+}
+.resize-handle-horizontal:hover::after,
+.resize-handle-horizontal:focus-visible::after {
+  background: var(--line-rhythm);
 }
 .diagnostic-resizer {
   margin-top: 0;
@@ -805,10 +853,6 @@ h2 {
 .template-sidebar-toggle:hover {
   color: var(--color-text);
   background: var(--state-hover);
-}
-.template-sidebar-toggle:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
 }
 .template-sidebar-panel {
   flex: 1 1 auto;
@@ -901,11 +945,6 @@ h2 {
 .mobile-template-trigger:hover,
 .mobile-template-trigger[aria-expanded='true'] {
   background: var(--control-hover-background);
-}
-.mobile-template-trigger:focus-visible,
-.template-drawer-close:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
 }
 .panel-title {
   max-width: 60%;
@@ -1002,11 +1041,6 @@ h2 {
 .template-select.is-active {
   font-weight: 600;
 }
-.template-select:focus-visible,
-.template-more:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 .template-more {
   display: grid;
   width: var(--control-xs);
@@ -1075,9 +1109,8 @@ h2 {
 .template-action-menu button:focus-visible {
   background: var(--state-hover);
 }
+/* 菜单条目贴边，焦点环用 2px 内缩，避免外扩环被浮层轮廓裁掉。 */
 .template-action-menu button:focus-visible {
-  /* 焦点环是强调色唯一允许出现在"框"上的场合，此处保持 2px 实线不变 */
-  outline: 2px solid var(--color-accent);
   outline-offset: -2px;
 }
 /* 危险项只用危险色文字与图标，不给红底（提案 §5.4） */
@@ -1252,10 +1285,6 @@ h2 {
   /* 按下回弹：只改 transform。这里不重写 transition，否则松手时会瞬间跳回。 */
   transform: scale(0.97);
 }
-.copy-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
 .copy-button.is-copied {
   color: var(--color-success);
 }
@@ -1355,7 +1384,7 @@ h2 {
   min-height: 36px;
   padding: 8px 12px;
   border: 1px solid var(--color-border);
-  border-radius: var(--legacy-radius-6);
+  border-radius: var(--radius);
   color: var(--color-danger-surface-text);
   background: var(--color-danger-surface);
   font-size: var(--text-sm);
@@ -1508,8 +1537,8 @@ h2 {
   color: var(--color-text);
   background: var(--control-hover-background);
 }
+/* 工具栏按钮 36×36 紧贴在 44px 的条里，焦点环用 2px 内缩，否则会被上下边裁掉。 */
 .editor-toolbar-button:focus-visible {
-  outline: 2px solid var(--color-accent);
   outline-offset: -2px;
 }
 .editor-toolbar-button:active {
@@ -1551,11 +1580,6 @@ h2 {
 }
 .editor-toolbar-more:hover {
   border-color: var(--color-muted);
-}
-.editor-toolbar-more:focus-visible,
-.editor-toolbar-more-item:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
 }
 /* 展开态是“活动状态”，才允许把描边与图标转成强调色。 */
 .editor-toolbar-more[aria-expanded='true'] {
@@ -1607,6 +1631,7 @@ h2 {
 .editor-toolbar-more-item:hover {
   background: var(--control-hover-background);
 }
+/* 浮层条目贴边，同样用 2px 内缩的焦点环。 */
 .editor-toolbar-more-item:focus-visible {
   outline-offset: -2px;
 }
@@ -1625,12 +1650,13 @@ h2 {
   opacity: 0;
   transform: translateY(-4px);
 }
+/* 状态胶囊：24px 与第 6.1 节的控件阶梯一致，状态栏 26px，胶囊在栏内居中。 */
 .diagnostic-count {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: 18px;
-  padding: 0 8px;
+  min-height: var(--control-xs);
+  padding: 0 var(--space-4);
   border: 0;
   border-radius: var(--radius-pill);
   color: var(--color-muted);
@@ -1651,14 +1677,15 @@ h2 {
 .diagnostic-count:has(+ span) {
   text-align: left;
 }
+/* 面板并入编辑面：与 .editor-host 同一块 --surface-inset，不画上描边，
+   边界交给顶部 12px 的抓取条（提案 §5.9 与 §9 批次 4 裁决）。 */
 .diagnostic-panel {
   flex: 0 0 auto;
   display: grid;
   grid-template-rows: 1fr;
   min-height: 0;
   overflow: hidden;
-  border-top: 1px solid var(--color-border);
-  background: var(--shell-sidebar-background);
+  background: var(--surface-inset);
   transform: translateY(0);
 }
 .diagnostic-panel-inner {
@@ -1688,19 +1715,21 @@ h2 {
   flex-direction: column;
   min-height: 0;
   overflow: auto;
-  padding: 3px 12px 9px;
+  padding: var(--space-1) var(--space-5) var(--space-4);
 }
+/* 诊断行是仪器族列表行：38px、直角；悬停按 §6.3 用中性浮层，
+   选中改危险色浮层——错误行用强调色会被读成“被选中”（提案 §9 批次 4 裁决）。 */
 .diagnostic-row {
   position: relative;
   display: grid;
   grid-template-columns: 18px minmax(142px, 190px) minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: var(--space-4);
   width: 100%;
-  min-height: 42px;
-  padding: 7px 10px 7px 12px;
+  min-height: var(--row-instrument);
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-5);
   border: 0;
-  border-radius: var(--legacy-radius-5);
+  border-radius: var(--radius);
   color: var(--color-text);
   background: transparent;
   text-align: left;
@@ -1709,23 +1738,21 @@ h2 {
 }
 .diagnostic-row::before {
   position: absolute;
-  inset: 8px auto 8px 0;
+  inset: var(--space-4) auto var(--space-4) 0;
   width: 2px;
-  border-radius: var(--legacy-radius-99);
+  border-radius: var(--radius-pill);
   background: transparent;
   content: '';
   transition: background var(--dur-1) ease;
 }
-.diagnostic-row:hover,
+.diagnostic-row:hover {
+  background: var(--state-hover);
+}
 .diagnostic-row.is-active {
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 .diagnostic-row.is-active::before {
-  background: var(--color-accent);
-}
-.diagnostic-row:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  background: var(--color-danger);
 }
 .diagnostic-row svg {
   color: var(--color-danger);
@@ -1742,7 +1769,7 @@ h2 {
   white-space: nowrap;
 }
 .diagnostic-type {
-  margin-left: 6px;
+  margin-left: var(--space-3);
   color: var(--color-muted);
   font-size: var(--text-xs);
 }
@@ -1752,23 +1779,26 @@ h2 {
 .editor-host .cm-scroller {
   overflow: auto;
 }
+/* 行号栏并入编辑面：不画右描边，底色与正文同面；当前行只在行号上转正文色，
+   行号栏自身不再铺一块底色（提案 §5.7 与 §9 批次 4 裁决）。 */
 .editor-host .cm-gutters {
-  border-right: 1px solid var(--color-border);
+  border-right: 0;
   color: var(--color-muted);
-  background: var(--shell-sidebar-background);
+  background: var(--surface-inset);
 }
 .editor-host .cm-activeLineGutter {
+  /* 覆盖 CodeMirror 基础主题的浅蓝当前行说明：行号栏只改颜色，不铺底色。 */
   color: var(--color-text);
-  background: var(--shell-gutter-active);
+  background: transparent;
 }
 .editor-host .cm-lineNumbers .cm-gutterElement {
   min-width: 36px;
-  padding: 0 8px 0 6px;
+  padding: 0 var(--space-4) 0 var(--space-3);
 }
 .status-bar {
   min-height: var(--status-h);
   gap: var(--space-5);
-  padding: 0 12px;
+  padding: 0 var(--space-5);
   border-top: 1px solid var(--color-divider-strong);
   color: var(--color-muted);
   font-size: var(--text-xs);
@@ -2381,20 +2411,21 @@ h2 {
     border-right: 0;
   }
   .preview-panel {
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-divider-strong);
   }
+  /* 窄屏允许换行，高度收到 44：两行内容 + 24px 胶囊仍然放得下（提案 §5.14）。 */
   .status-bar {
-    align-items: stretch;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 0 12px;
-    min-height: 52px;
-    padding: 5px 10px;
+    gap: 0 var(--space-5);
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
   }
   .status-bar .diagnostic-count {
-    min-height: 22px;
+    min-height: var(--control-xs);
   }
   .status-bar .save-status {
-    min-height: 22px;
+    min-height: var(--control-xs);
   }
   .status-bar .render-status,
   .status-bar > span:nth-last-child(-n + 2) {
@@ -2403,9 +2434,9 @@ h2 {
   .diagnostic-row {
     grid-template-columns: 18px minmax(0, 1fr);
     align-items: start;
-    gap: 7px;
+    gap: var(--space-3);
     min-height: 52px;
-    padding: 8px 8px 8px 10px;
+    padding: var(--space-4);
   }
   .diagnostic-row svg {
     grid-row: 1 / span 2;
@@ -2540,14 +2571,6 @@ h2 {
 
 .help-panel-close:hover {
   background: var(--state-hover);
-}
-
-.help-panel-close:focus-visible,
-.help-panel-filter:focus-visible,
-.help-panel-entry:focus-visible,
-.help-panel-copy button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
 }
 
 .help-panel-toolbar {

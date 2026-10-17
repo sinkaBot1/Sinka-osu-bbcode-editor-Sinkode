@@ -125,9 +125,6 @@
 
   /* 圆角：现状取值尚未归一到 0 / pill 与内容族三档 */
   --legacy-radius-4: 4px;
-  --legacy-radius-5: 5px;
-  --legacy-radius-6: 6px;
-  --legacy-radius-99: 99px;
   --legacy-radius-10000: 10000px;
 
   /* 字号：现状里落在上面的字号阶梯之外的三档 */

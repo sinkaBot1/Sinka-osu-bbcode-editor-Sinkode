@@ -6,6 +6,7 @@ import {
   Decoration,
   EditorView,
   highlightActiveLine,
+  highlightActiveLineGutter,
   keymap,
   ViewPlugin,
   type ViewUpdate,
@@ -80,6 +81,9 @@ export function createEditorExtensions(onUpdate: (update: ViewUpdate) => void) {
   return [
     EditorView.lineWrapping,
     highlightActiveLine(),
+    // 当前行只在行号上转正文色：行号栏与正文同面，靠颜色而不是底色区分（提案 §5.7）。
+    // 这条扩展以前没接入，theme.css 里的 .cm-activeLineGutter 规则因此一直没生效。
+    highlightActiveLineGutter(),
     EditorView.updateListener.of(onUpdate),
     highlightPlugin,
     diagnosticField,
