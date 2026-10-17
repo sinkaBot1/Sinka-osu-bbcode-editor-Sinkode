@@ -94,6 +94,7 @@
 | `npm run preview` | 本地预览 `dist/` 里的产物（需先 build） |
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run lint` | ESLint 代码规范检查 |
+| `npm run style:check` | 检查样式值只引用令牌、不写字面量（CI 会跑，本地也该跑） |
 | `npm run format` | 用 Prettier 自动格式化 |
 | `npm run format:check` | 只检查格式，不改文件 |
 | `npm run test` | 运行单元与组件测试（Vitest） |

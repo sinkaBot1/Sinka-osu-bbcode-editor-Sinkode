@@ -67,7 +67,7 @@ git push -u origin sinka/my-change   # 推到 GitHub，第一次需要 -u
 
 - 触发：推送到 `main`、以及任何 Pull Request 的更新。
 - 权限：`contents: read`（最小权限，只能读代码；第三方 action 固定在完整提交 SHA 上）。
-- 步骤（共 11 个业务步骤）：检出代码 → 安装 Node 22（带 npm 缓存）→ `npm ci` → 安装 Chromium → `format:check` → `docs:check` → `lint` → `typecheck` → `test` → `build` → `test:e2e`。
+- 步骤（共 12 步，其中 8 步是检查项）：检出代码 → 安装 Node 22（带 npm 缓存）→ `npm ci` → 安装 Chromium → `format:check` → `docs:check` → `lint` → `style:check` → `typecheck` → `test` → `build` → `test:e2e`。
 
 **怎么看结果**：
 
