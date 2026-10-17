@@ -99,4 +99,4 @@
 
 - [布局测试](../tests/e2e/layout.spec.ts)、[编辑器测试](../tests/e2e/editor.spec.ts)、[模板测试](../tests/e2e/templates.spec.ts)
 - [顶栏测试](../tests/e2e/header.spec.ts)、[帮助测试](../tests/e2e/help.spec.ts)、[开场动画测试](../tests/e2e/splash.spec.ts)
-- 动效演示保存在 `docs/dev/`，仅供本地开发复查，不作为产品规则。
+- 动效演示只在本地开发复查时使用，不入库、不作为产品规则。
