@@ -1,8 +1,18 @@
+<div align="center">
+
+<img src="logo/Sinkode-logo-mix.png" alt="Sinkode 标志" width="480" />
+
 # osu! BBCode Editor | Sinkode
 
-![质量检查](https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode/actions/workflows/ci.yml/badge.svg)
+**写 osu! 简介不用再靠猜：边写边看，复制即用。**
 
-![Sinkode 标志](logo/Sinkode-logo-name.png)
+[![质量检查](https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode/actions/workflows/ci.yml/badge.svg)](https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode/actions/workflows/ci.yml)
+
+`CodeMirror 6` · `实时预览` · `语法诊断` · `本地模板` · `中文帮助` · `无后端` · `无遥测`
+
+[快速开始](#快速开始) · [支持的标签](#第一版支持的标签) · [隐私与安全](#隐私与安全要点) · [遇到问题](#遇到问题) · [MIT 许可证](LICENSE)
+
+</div>
 
 一个只面向 osu! 个人简介（user page）的纯前端 BBCode 编辑器。它把「写 BBCode → 立刻看到接近 osu! 的效果 → 发现语法问题 → 复制到 osu!」放进同一个网页里完成：不需要登录 osu!，不上传草稿，也没有后端服务。
 
