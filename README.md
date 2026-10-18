@@ -146,9 +146,8 @@ logo/                品牌素材（仅 PNG）
 
 ## 鸣谢
 
-- **[MOBE](https://github.com/SisypheOvO/MOBE)**：Vue + TypeScript + Vite 这套技术选型，还有补全、实时预览、多模板这些功能的大致思路，都是从它那里来的，谢谢作者 SisypheOvO。标签支持它比这个项目做得全，想要完整版可以直接用 <https://mobe.sisy.cc/>。
-- **[osu-web](https://github.com/ppy/osu-web)**：预览效果是一点点对着它调的，故意做得不一样的地方都写在[兼容性说明](docs/compatibility.md)里。
-- 代码都是自己写的，没搬它们的代码和素材。
+- **[MOBE](https://github.com/SisypheOvO/MOBE)**：Vue + TypeScript + Vite 这套技术选型，还有补全、实时预览、多模板这些功能的大致思路，都是从它那里来的，谢谢作者 SisypheOvO。标签支持它比这个项目做得全，想要更加完善的编辑器功能推荐用 <https://mobe.sisy.cc/>。
+- **[osu-web](https://github.com/ppy/osu-web)**：做得不一样的地方都写在[兼容性说明](docs/compatibility.md)里。
 
 ## 参与开发
 
