@@ -96,17 +96,309 @@ function mediaElement(
   return null
 }
 
+const audioPlayingClass = 'bbcode-audio--playing'
+const audioDraggingClass = 'is-dragging'
+const audioFrames = new Map<HTMLElement, number>()
+let audioSeek: AudioSeekState | null = null
+
+interface AudioSeekState {
+  readonly player: HTMLElement
+  readonly audio: HTMLAudioElement
+  readonly progress: HTMLElement
+  readonly pointerId: number
+  ratio: number
+}
+
+type AudioTimeFormat = 'minute' | 'minute-padded' | 'hour' | 'hour-padded'
+
+// 时间格式与锁定基准的可观察输出一致：不足 10 分钟不补零分钟；
+// 1 小时以上才出现小时段，10 小时以上小时段补零。
+function audioTimeFormat(duration: number): AudioTimeFormat {
+  if (duration < 600) return 'minute'
+  if (duration < 3600) return 'minute-padded'
+  if (duration < 36000) return 'hour'
+  return 'hour-padded'
+}
+
+function padAudioUnit(value: number): string {
+  return String(value).padStart(2, '0')
+}
+
+function formatAudioTime(seconds: number, format: AudioTimeFormat): string {
+  const total = Math.max(0, Math.floor(seconds))
+  const second = total % 60
+  const minuteTotal = Math.floor(total / 60)
+  if (format === 'minute') return `${minuteTotal}:${padAudioUnit(second)}`
+  if (format === 'minute-padded') return `${padAudioUnit(minuteTotal)}:${padAudioUnit(second)}`
+  const hourTotal = Math.floor(minuteTotal / 60)
+  const minute = minuteTotal % 60
+  if (format === 'hour') return `${hourTotal}:${padAudioUnit(minute)}:${padAudioUnit(second)}`
+  return `${padAudioUnit(hourTotal)}:${padAudioUnit(minute)}:${padAudioUnit(second)}`
+}
+
+function audioPlayerAt(target: EventTarget | null): HTMLElement | null {
+  if (!(target instanceof Element)) return null
+  const player = target.closest<HTMLElement>('.bbcode-audio')
+  return player && previewRoot.value?.contains(player) ? player : null
+}
+
+function audioElementOf(player: HTMLElement): HTMLAudioElement | null {
+  const audio = player.querySelector('audio')
+  return audio instanceof HTMLAudioElement ? audio : null
+}
+
+function audioPart<T extends HTMLElement>(player: HTMLElement, selector: string): T | null {
+  const node = player.querySelector<T>(selector)
+  return node
+}
+
+function setAudioPlaying(player: HTMLElement, playing: boolean) {
+  player.classList.toggle(audioPlayingClass, playing)
+  const button = player.querySelector<HTMLButtonElement>('.bbcode-audio__play')
+  button?.setAttribute('aria-label', playing ? '暂停音频' : '播放音频')
+}
+
+// 进度条宽度与当前时间集中在一处更新：播放中的动画帧、拖动预览和暂停同步都走这里。
+function showAudioProgress(player: HTMLElement, ratio: number, duration: number) {
+  const fill = audioPart(player, '.bbcode-audio__progress-fill')
+  if (fill) fill.style.width = `${Math.min(1, Math.max(0, ratio)) * 100}%`
+  if (!Number.isFinite(duration) || duration <= 0) return
+  const current = audioPart(player, '.bbcode-audio__time--current')
+  if (current) current.textContent = formatAudioTime(ratio * duration, audioTimeFormat(duration))
+}
+
+function syncAudioProgress(player: HTMLElement, audio: HTMLAudioElement) {
+  const duration = audio.duration
+  const hasDuration = Number.isFinite(duration) && duration > 0
+  const current = audioPart(player, '.bbcode-audio__time--current')
+  const separator = audioPart(player, '.bbcode-audio__time-separator')
+  const total = audioPart(player, '.bbcode-audio__time--total')
+  if (current) current.hidden = !hasDuration
+  if (separator) separator.hidden = !hasDuration
+  if (total) {
+    total.textContent = hasDuration ? formatAudioTime(duration, audioTimeFormat(duration)) : '--:--'
+  }
+  showAudioProgress(player, hasDuration ? audio.currentTime / duration : 0, duration)
+}
+
+function stopAudioFrame(player: HTMLElement) {
+  const frame = audioFrames.get(player)
+  if (frame === undefined) return
+  window.cancelAnimationFrame(frame)
+  audioFrames.delete(player)
+}
+
+function stopAllAudioFrames() {
+  for (const frame of audioFrames.values()) window.cancelAnimationFrame(frame)
+  audioFrames.clear()
+}
+
+// 移除 DOM 不会自动停止媒体：重新渲染或卸载前必须显式暂停，否则旧音频会在后台继续播。
+function stopAllAudioPlayback() {
+  stopAllAudioFrames()
+  for (const audio of previewRoot.value?.querySelectorAll('audio') ?? []) {
+    if (!(audio instanceof HTMLAudioElement) || audio.paused) continue
+    audio.pause()
+    audio.currentTime = 0
+  }
+  if (audioSeek) {
+    audioSeek.progress.classList.remove(audioDraggingClass)
+    audioSeek = null
+  }
+}
+
+// 播放中的进度用 requestAnimationFrame 平滑推进；音频暂停、结束或离开文档时停止。
+function startAudioFrame(player: HTMLElement, audio: HTMLAudioElement) {
+  stopAudioFrame(player)
+  const tick = () => {
+    audioFrames.delete(player)
+    if (!previewRoot.value?.contains(player) || audio.paused) return
+    if (audioSeek?.player !== player) syncAudioProgress(player, audio)
+    audioFrames.set(player, window.requestAnimationFrame(tick))
+  }
+  audioFrames.set(player, window.requestAnimationFrame(tick))
+}
+
+function pauseAudio(player: HTMLElement, audio: HTMLAudioElement, reset: boolean) {
+  audio.pause()
+  if (reset) audio.currentTime = 0
+  stopAudioFrame(player)
+  setAudioPlaying(player, false)
+  syncAudioProgress(player, audio)
+}
+
+function toggleAudioPlayback(player: HTMLElement) {
+  const audio = audioElementOf(player)
+  if (!audio || !audio.getAttribute('src')) return
+
+  if (!audio.paused) {
+    pauseAudio(player, audio, false)
+    return
+  }
+
+  // 锁定基准全站共用一个音频对象：开始播放一段时，其它播放条要回到停止状态。
+  for (const other of previewRoot.value?.querySelectorAll<HTMLElement>('.bbcode-audio') ?? []) {
+    if (other === player) continue
+    const otherAudio = audioElementOf(other)
+    if (otherAudio && !otherAudio.paused) pauseAudio(other, otherAudio, true)
+  }
+
+  if (Number.isFinite(audio.duration) && audio.currentTime >= audio.duration) audio.currentTime = 0
+  player.classList.remove('preview-media-failed')
+  if (player.nextElementSibling?.classList.contains('preview-media-failure')) {
+    player.nextElementSibling.remove()
+  }
+  setAudioPlaying(player, true)
+  try {
+    const promise = audio.play()
+    void promise?.catch(() => {
+      if (!previewRoot.value?.contains(player)) return
+      setAudioPlaying(player, false)
+      stopAudioFrame(player)
+    })
+  } catch {
+    setAudioPlaying(player, false)
+  }
+}
+
+function audioSeekRatio(progress: HTMLElement, clientX: number): number {
+  const rect = progress.getBoundingClientRect()
+  if (rect.width <= 0) return 0
+  return Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+}
+
+function onAudioSeekStart(event: PointerEvent) {
+  if (event.button !== 0) return
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const progress = target.closest<HTMLElement>('.bbcode-audio__progress')
+  const player = progress ? audioPlayerAt(progress) : null
+  if (!progress || !player) return
+  const audio = audioElementOf(player)
+  // 与锁定基准一致：时长未知或为零时不接受定位。
+  if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return
+
+  event.preventDefault()
+  audioSeek?.progress.classList.remove(audioDraggingClass)
+  audioSeek = {
+    player,
+    audio,
+    progress,
+    pointerId: event.pointerId,
+    ratio: audioSeekRatio(progress, event.clientX),
+  }
+  progress.classList.add(audioDraggingClass)
+  progress.setPointerCapture?.(event.pointerId)
+  stopAudioFrame(player)
+  showAudioProgress(player, audioSeek.ratio, audio.duration)
+}
+
+function onAudioSeekMove(event: PointerEvent) {
+  const seek = audioSeek
+  if (!seek || seek.pointerId !== event.pointerId) return
+  seek.ratio = audioSeekRatio(seek.progress, event.clientX)
+  showAudioProgress(seek.player, seek.ratio, seek.audio.duration)
+}
+
+function applyAudioSeek(seek: AudioSeekState, commit: boolean) {
+  const duration = seek.audio.duration
+  if (commit && Number.isFinite(duration) && duration > 0) {
+    // 与锁定基准一致：拖到最末端时停在结尾前 0.01 秒，避免直接触发结束。
+    seek.audio.currentTime = seek.ratio >= 1 ? duration - 0.01 : seek.ratio * duration
+  }
+  syncAudioProgress(seek.player, seek.audio)
+  if (!seek.audio.paused) startAudioFrame(seek.player, seek.audio)
+}
+
+function finishAudioSeek(event: PointerEvent, commit: boolean) {
+  const seek = audioSeek
+  if (!seek || seek.pointerId !== event.pointerId) return
+  audioSeek = null
+  seek.progress.classList.remove(audioDraggingClass)
+  if (seek.progress.hasPointerCapture?.(event.pointerId)) {
+    seek.progress.releasePointerCapture(event.pointerId)
+  }
+  applyAudioSeek(seek, commit)
+}
+
+function cancelAudioSeekOnBlur() {
+  const seek = audioSeek
+  if (!seek) return
+  audioSeek = null
+  seek.progress.classList.remove(audioDraggingClass)
+  applyAudioSeek(seek, true)
+}
+
+function onAudioSeekEnd(event: PointerEvent) {
+  finishAudioSeek(event, true)
+}
+
+function onAudioSeekCancel(event: PointerEvent) {
+  finishAudioSeek(event, false)
+}
+
+function onAudioClick(event: Event) {
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const button = target.closest<HTMLElement>('.bbcode-audio__play')
+  if (!button) return
+  const player = audioPlayerAt(button)
+  if (player) toggleAudioPlayback(player)
+}
+
+// 媒体事件不冒泡，用捕获阶段统一接收，避免每次重新渲染都给新元素挂监听。
+function onAudioMediaEvent(event: Event) {
+  const audio = event.target
+  if (!(audio instanceof HTMLAudioElement)) return
+  const player = audio.closest<HTMLElement>('.bbcode-audio')
+  if (!player || !previewRoot.value?.contains(player)) return
+
+  if (event.type === 'playing') {
+    player.classList.remove('preview-media-failed')
+    setAudioPlaying(player, true)
+    syncAudioProgress(player, audio)
+    startAudioFrame(player, audio)
+    return
+  }
+  if (event.type === 'pause') {
+    setAudioPlaying(player, false)
+    stopAudioFrame(player)
+    syncAudioProgress(player, audio)
+    return
+  }
+  if (event.type === 'ended') {
+    audio.currentTime = 0
+    setAudioPlaying(player, false)
+    stopAudioFrame(player)
+    syncAudioProgress(player, audio)
+    return
+  }
+  if (event.type === 'loadedmetadata' || event.type === 'durationchange') {
+    syncAudioProgress(player, audio)
+    return
+  }
+  // 播放中的时间由动画帧更新，这里只补上暂停状态下的定位同步。
+  if (audio.paused) syncAudioProgress(player, audio)
+}
+
 function markMediaFailure(event: Event) {
   const element = mediaElement(event.target)
   if (!element || !previewRoot.value?.contains(element)) return
-  element.classList.add('preview-media-failed')
-  if (element.nextElementSibling?.classList.contains('preview-media-failure')) return
+  const player =
+    element instanceof HTMLAudioElement ? element.closest<HTMLElement>('.bbcode-audio') : null
+  const marked = player ?? element
+  if (player) {
+    stopAudioFrame(player)
+    setAudioPlaying(player, false)
+  }
+  marked.classList.add('preview-media-failed')
+  if (marked.nextElementSibling?.classList.contains('preview-media-failure')) return
 
   const status = document.createElement('span')
   status.className = 'preview-media-failure'
   status.setAttribute('role', 'status')
   status.textContent = '媒体加载失败'
-  element.insertAdjacentElement('afterend', status)
+  marked.insertAdjacentElement('afterend', status)
 }
 
 function toggleSpoilerbox(event: Event) {
@@ -297,33 +589,69 @@ function onDocumentScroll(event: Event) {
 
 onMounted(() => {
   previewRoot.value?.addEventListener('click', toggleSpoilerbox)
+  previewRoot.value?.addEventListener('click', onAudioClick)
+  previewRoot.value?.addEventListener('pointerdown', onAudioSeekStart)
+  previewRoot.value?.addEventListener('pointermove', onAudioSeekMove)
+  previewRoot.value?.addEventListener('pointerup', onAudioSeekEnd)
+  previewRoot.value?.addEventListener('pointercancel', onAudioSeekCancel)
   previewRoot.value?.addEventListener('error', markMediaFailure, true)
+  for (const type of [
+    'loadedmetadata',
+    'durationchange',
+    'playing',
+    'pause',
+    'ended',
+    'timeupdate',
+  ]) {
+    previewRoot.value?.addEventListener(type, onAudioMediaEvent, true)
+  }
   previewRoot.value?.addEventListener('mouseover', onRegionPointerOver)
   previewRoot.value?.addEventListener('mouseout', onRegionPointerOut)
   previewRoot.value?.addEventListener('focusin', onRegionFocusIn)
   previewRoot.value?.addEventListener('focusout', onRegionFocusOut)
+  window.addEventListener('blur', cancelAudioSeekOnBlur)
   window.addEventListener('resize', hideTooltip)
   // 捕获阶段：滚动事件不冒泡，这里用于覆盖预览自身与任意祖先滚动容器的滚动。
   document.addEventListener('scroll', onDocumentScroll, true)
 })
 
-// 预览内容重渲染后原来的热区元素已经脱离文档，气泡必须收起，不能留在屏幕上。
+// 预览内容重渲染后原来的热区和播放器已经脱离文档，气泡与播放必须同步收尾。
 watch(
   () => props.result?.sanitizedHtml,
-  () => hideTooltip(),
+  () => {
+    hideTooltip()
+    stopAllAudioPlayback()
+  },
 )
 
 onBeforeUnmount(() => {
   previewRoot.value?.removeEventListener('click', toggleSpoilerbox)
+  previewRoot.value?.removeEventListener('click', onAudioClick)
+  previewRoot.value?.removeEventListener('pointerdown', onAudioSeekStart)
+  previewRoot.value?.removeEventListener('pointermove', onAudioSeekMove)
+  previewRoot.value?.removeEventListener('pointerup', onAudioSeekEnd)
+  previewRoot.value?.removeEventListener('pointercancel', onAudioSeekCancel)
   previewRoot.value?.removeEventListener('error', markMediaFailure, true)
+  for (const type of [
+    'loadedmetadata',
+    'durationchange',
+    'playing',
+    'pause',
+    'ended',
+    'timeupdate',
+  ]) {
+    previewRoot.value?.removeEventListener(type, onAudioMediaEvent, true)
+  }
   previewRoot.value?.removeEventListener('mouseover', onRegionPointerOver)
   previewRoot.value?.removeEventListener('mouseout', onRegionPointerOut)
   previewRoot.value?.removeEventListener('focusin', onRegionFocusIn)
   previewRoot.value?.removeEventListener('focusout', onRegionFocusOut)
+  window.removeEventListener('blur', cancelAudioSeekOnBlur)
   window.removeEventListener('resize', hideTooltip)
   document.removeEventListener('scroll', onDocumentScroll, true)
   cancelTooltipTimers()
   stopWatchingTooltipAnchor()
+  stopAllAudioPlayback()
 })
 </script>
 

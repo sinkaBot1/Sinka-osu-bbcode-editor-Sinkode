@@ -1,6 +1,28 @@
 import { expect, test } from '@playwright/test'
 import { openEmptyEditor } from './helpers'
 
+// 播放验收用本机构造的静音 WAV 由路由就地返回，不访问站外音频。
+function silentWav(seconds: number): Buffer {
+  const sampleRate = 8000
+  const dataSize = seconds * sampleRate
+  const buffer = Buffer.alloc(44 + dataSize)
+  buffer.write('RIFF', 0)
+  buffer.writeUInt32LE(36 + dataSize, 4)
+  buffer.write('WAVE', 8)
+  buffer.write('fmt ', 12)
+  buffer.writeUInt32LE(16, 16)
+  buffer.writeUInt16LE(1, 20)
+  buffer.writeUInt16LE(1, 22)
+  buffer.writeUInt32LE(sampleRate, 24)
+  buffer.writeUInt32LE(sampleRate, 28)
+  buffer.writeUInt16LE(1, 32)
+  buffer.writeUInt16LE(8, 34)
+  buffer.write('data', 36)
+  buffer.writeUInt32LE(dataSize, 40)
+  buffer.fill(128, 44)
+  return buffer
+}
+
 // 气泡与箭头由父容器的 opacity 统一淡入淡出（visibility 全程 visible），
 // 所以"隐藏"要按计算透明度判断，不能用 toBeHidden。
 async function expectBubbleHidden(bubble: import('@playwright/test').Locator) {
@@ -561,7 +583,7 @@ test.describe('安全实时预览', () => {
     const styles = await page.locator('.preview-content').evaluate((root) => {
       const content = root.querySelector(':scope > div')
       const sized = root.querySelector('span[style*="font-size:200%"]')
-      const audio = root.querySelector('audio')
+      const player = root.querySelector('.bbcode-audio')
       const iframe = root.querySelector('iframe')
       return {
         fontFamily: content ? getComputedStyle(content).fontFamily : '',
@@ -572,7 +594,7 @@ test.describe('安全实时预览', () => {
             ? Number.parseFloat(getComputedStyle(sized).fontSize) /
               Number.parseFloat(getComputedStyle(content).fontSize)
             : 0,
-        audioMarginLeft: audio ? getComputedStyle(audio).marginLeft : '',
+        playerMarginLeft: player ? getComputedStyle(player).marginLeft : '',
         iframeMarginLeft: iframe ? getComputedStyle(iframe).marginLeft : '',
       }
     })
@@ -580,7 +602,7 @@ test.describe('安全实时预览', () => {
     expect(styles.baseFontSize).toBe(14)
     expect(styles.sizedFontSize).toBe(28)
     expect(styles.sizedRatio).toBeCloseTo(2, 2)
-    expect(styles.audioMarginLeft).toBe('0px')
+    expect(styles.playerMarginLeft).toBe('0px')
     expect(styles.iframeMarginLeft).toBe('0px')
   })
 
@@ -616,19 +638,177 @@ test.describe('安全实时预览', () => {
     const attributes = await page.locator('.preview-content').evaluate((root) => {
       const link = root.querySelector('a[href="https://example.com/page"]')
       const audio = root.querySelector('audio')
+      const player = root.querySelector('.bbcode-audio')
+      const playButton = root.querySelector('.bbcode-audio__play')
       const iframe = root.querySelector('iframe')
       return {
         linkTarget: link?.getAttribute('target') ?? '',
         linkRel: link?.getAttribute('rel') ?? '',
-        audioControls: audio?.hasAttribute('controls') ?? false,
         audioSrc: audio?.getAttribute('src') ?? '',
+        audioPreload: audio?.getAttribute('preload') ?? '',
+        audioControls: audio?.hasAttribute('controls') ?? false,
+        playerExists: player !== null,
+        playLabel: playButton?.getAttribute('aria-label') ?? '',
         iframeSrc: iframe?.getAttribute('src') ?? '',
       }
     })
     expect(attributes.linkTarget).toBe('_blank')
     expect(attributes.linkRel).toBe('noopener noreferrer')
-    expect(attributes.audioControls).toBe(true)
     expect(attributes.audioSrc).toBe('https://example.com/audio.mp3')
+    expect(attributes.audioPreload).toBe('none')
+    // 终态是自定义播放条，浏览器原生控件不出来。
+    expect(attributes.audioControls).toBe(false)
+    expect(attributes.playerExists).toBe(true)
+    expect(attributes.playLabel).toBe('播放音频')
     expect(attributes.iframeSrc).toBe('https://www.youtube.com/embed/abcDEF12345?rel=0')
+  })
+
+  test('audio 渲染为 osu! 页面播放条，并可播放、暂停与定位', async ({ page }) => {
+    await openEmptyEditor(page)
+    // 在统一站外拦截之后注册：后注册的路由优先，用本机生成的静音 WAV 充当音频资源。
+    // 响应必须带长度和 Accept-Ranges，浏览器才会把媒体标记为可定位。
+    await page.route('https://example.com/audio/player.wav', (route) => {
+      const body = silentWav(2)
+      return route.fulfill({
+        status: 200,
+        headers: {
+          'Content-Type': 'audio/wav',
+          'Content-Length': String(body.length),
+          'Accept-Ranges': 'bytes',
+        },
+        body,
+      })
+    })
+    await page.setViewportSize({ width: 2560, height: 1000 })
+    const audioRequests: string[] = []
+    page.on('request', (request) => {
+      if (request.url() === 'https://example.com/audio/player.wav')
+        audioRequests.push(request.url())
+    })
+    await page.locator('.cm-content').click()
+    await page.keyboard.insertText('[audio]https://example.com/audio/player.wav[/audio]')
+    await expect(page.locator('.status-bar .render-status')).toContainText('已更新')
+
+    const player = page.locator('.preview-content .bbcode-audio')
+    await expect(player).toHaveCount(1)
+    const playButton = player.locator('.bbcode-audio__play')
+    const progress = player.locator('.bbcode-audio__progress')
+
+    const metrics = await player.evaluate((element) => {
+      const style = getComputedStyle(element)
+      const times = element.querySelector<HTMLElement>('.bbcode-audio__times')!
+      const progressBar = element.querySelector<HTMLElement>('.bbcode-audio__progress')!
+      const button = element.querySelector<HTMLElement>('.bbcode-audio__play')!
+      const audio = element.querySelector<HTMLAudioElement>('audio')!
+      const rect = element.getBoundingClientRect()
+      return {
+        display: style.display,
+        height: rect.height,
+        width: rect.width,
+        marginLeft: style.marginLeft,
+        padding: style.padding,
+        timeFontSize: getComputedStyle(times).fontSize,
+        progressHeight: progressBar.getBoundingClientRect().height,
+        buttonWidth: button.getBoundingClientRect().width,
+        total: element.querySelector('.bbcode-audio__time--total')?.textContent,
+        currentHidden:
+          element.querySelector('.bbcode-audio__time--current')?.hasAttribute('hidden') ?? false,
+        controls: audio.hasAttribute('controls'),
+        preload: audio.getAttribute('preload'),
+        src: audio.getAttribute('src'),
+      }
+    })
+    // 尺寸、字号与进度条形态对应锁定基准的玩家页播放器（docs/compatibility.md 第 5.3 节）。
+    expect(metrics.display).toBe('inline-flex')
+    expect(metrics.height).toBe(40)
+    expect(metrics.width).toBe(520)
+    expect(metrics.marginLeft).toBe('0px')
+    expect(metrics.padding).toBe('5px 10px')
+    expect(metrics.timeFontSize).toBe('12px')
+    expect(metrics.progressHeight).toBe(2)
+    expect(metrics.buttonWidth).toBe(30)
+    expect(metrics.total).toBe('--:--')
+    expect(metrics.currentHidden).toBe(true)
+    expect(metrics.controls).toBe(false)
+    expect(metrics.preload).toBe('none')
+    expect(metrics.src).toBe('https://example.com/audio/player.wav')
+    // preload=none：在点击播放之前不发起音频请求。
+    expect(audioRequests).toEqual([])
+
+    await playButton.click()
+    await expect(player).toHaveClass(/bbcode-audio--playing/)
+    await expect(playButton).toHaveAttribute('aria-label', '暂停音频')
+    await expect.poll(() => audioRequests.length).toBeGreaterThan(0)
+    await expect(player.locator('.bbcode-audio__time--total')).toHaveText('0:02')
+    await expect(player.locator('.bbcode-audio__time--current')).not.toHaveAttribute('hidden', '')
+    await expect
+      .poll(async () =>
+        Number.parseFloat(
+          await player.locator('.bbcode-audio__progress-fill').evaluate((element) => {
+            return (element as HTMLElement).style.width || '0'
+          }),
+        ),
+      )
+      .toBeGreaterThan(0)
+
+    await playButton.click()
+    await expect(player).not.toHaveClass(/bbcode-audio--playing/)
+    await expect(playButton).toHaveAttribute('aria-label', '播放音频')
+
+    // 进度条悬停增高到 6px；点击 75% 位置把播放位置定位到约 1.5 秒（总长 2 秒）。
+    await progress.hover()
+    await expect
+      .poll(() => progress.evaluate((element) => element.getBoundingClientRect().height))
+      .toBe(6)
+    const box = await progress.boundingBox()
+    if (!box) throw new Error('缺少进度条几何信息')
+    await page.mouse.click(box.x + box.width * 0.75, box.y + box.height / 2)
+    await expect
+      .poll(() => player.locator('audio').evaluate((element) => element.currentTime))
+      .toBeGreaterThan(1.2)
+    await expect(player.locator('.bbcode-audio__time--current')).toHaveText('0:01')
+  })
+
+  test('youtube 与相邻 audio 之间只保留一个换行，不产生空行', async ({ page }) => {
+    await openEmptyEditor(page)
+    await page.setViewportSize({ width: 2560, height: 1000 })
+    await page.locator('.cm-content').click()
+    await page.keyboard.insertText(
+      '[heading][color=#ff66aa][b]媒体区 · YouTube · 音频[/b][/color][/heading]\n\n[youtube]abcDEF12345[/youtube]\n[audio]https://example.com/audio.mp3[/audio]',
+    )
+    await expect(page.locator('.status-bar .render-status')).toContainText('已更新')
+
+    const layout = await page.locator('.preview-content').evaluate((root) => {
+      const content = root.querySelector(':scope > div')!
+      const heading = content.querySelector('h2')!
+      const iframe = content.querySelector('iframe')!
+      const player = content.querySelector('.bbcode-audio')!
+      const style = getComputedStyle(iframe)
+      const rect = (element: Element) => element.getBoundingClientRect()
+      return {
+        lineHeight: Number.parseFloat(getComputedStyle(content).lineHeight),
+        iframeDisplay: style.display,
+        iframeMaxWidth: style.maxWidth,
+        iframeMargin: style.margin,
+        iframeBorderWidth: style.borderTopWidth,
+        iframeWidth: rect(iframe).width,
+        iframeHeight: rect(iframe).height,
+        headingToIframe: rect(iframe).top - rect(heading).bottom,
+        iframeToPlayer: rect(player).top - rect(iframe).bottom,
+      }
+    })
+
+    // 与锁定基准的 BBCode 内嵌视频一致：行内块、16:9、最宽 425px、无外边距和边框。
+    expect(layout.iframeDisplay).toBe('inline-block')
+    expect(layout.iframeMaxWidth).toBe('425px')
+    expect(layout.iframeMargin).toBe('0px')
+    expect(layout.iframeBorderWidth).toBe('0px')
+    expect(layout.iframeWidth).toBeCloseTo(425, 1)
+    expect(layout.iframeHeight).toBeCloseTo(425 * (9 / 16), 1)
+    // 标题后的一行来自输入里的空行（一个 <br>）；youtube 与 audio 之间只有一个换行，
+    // 行内块只结束当前行，因此间距必须小于一个行高，不能多出整行空白。
+    expect(layout.headingToIframe).toBeCloseTo(layout.lineHeight, 1)
+    expect(layout.iframeToPlayer).toBeLessThan(layout.lineHeight)
+    expect(layout.iframeToPlayer).toBeGreaterThanOrEqual(0)
   })
 })

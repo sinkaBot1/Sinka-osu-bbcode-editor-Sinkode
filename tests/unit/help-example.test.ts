@@ -17,7 +17,7 @@ describe('帮助效果示意', () => {
       img: 'img',
       email: 'a[href="mailto:user@example.com"]',
       youtube: '.help-example-video',
-      audio: 'audio[controls]',
+      audio: '.bbcode-audio',
       imagemap: '.preview-imagemap-region',
       centre: '.bbcode-centre',
       code: 'pre code',
@@ -50,7 +50,12 @@ describe('帮助效果示意', () => {
       if (name === 'img' || name === 'imagemap') {
         expect(wrapper.get('img').attributes('src')).toBe(exampleImage)
       }
-      if (name === 'audio') expect(wrapper.get('audio').attributes('src')).toBeUndefined()
+      if (name === 'audio') {
+        expect(wrapper.get('audio').attributes('src')).toBeUndefined()
+        expect(wrapper.get('audio').attributes('preload')).toBe('none')
+        // 帮助示意里的播放键不可点击，避免误以为示例会请求远程音频。
+        expect(wrapper.get('.bbcode-audio__play').attributes('disabled')).toBeDefined()
+      }
       for (const link of wrapper.findAll('a')) {
         expect(link.attributes('target')).toBe('_blank')
         expect(link.attributes('rel')).toContain('noopener')

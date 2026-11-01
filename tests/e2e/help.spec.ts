@@ -531,7 +531,11 @@ test.describe('BBCode 参考面板', () => {
           'https://example.com/',
         )
       }
-      if (name === 'audio') await expect(effect.locator('audio')).toHaveAttribute('controls', '')
+      if (name === 'audio') {
+        await expect(effect.locator('.bbcode-audio')).toBeVisible()
+        await expect(effect.locator('.bbcode-audio__play')).toBeDisabled()
+        await expect(effect.locator('audio')).toHaveAttribute('preload', 'none')
+      }
       if (name === 'youtube') await expect(effect.locator('.help-example-video')).toBeVisible()
       await expect.poll(() => detail.evaluate((element) => element.getAnimations().length)).toBe(0)
     }

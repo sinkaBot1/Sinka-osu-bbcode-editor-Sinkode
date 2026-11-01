@@ -223,6 +223,24 @@ function youtubeId(value: string): string | undefined {
   return undefined
 }
 
+// 锁定基准的显示阶段先输出带原生控件的 <audio>，随后由站点脚本把它替换成统一的页面
+// 播放器：40px 高、最宽 520px 的行内播放条（播放键 + 进度条 + 时间）。这里直接输出
+// 替换后的终态结构，播放状态由预览容器接管（见 docs/compatibility.md 第 5.3 节）。
+function renderAudioPlayer(url: string): string {
+  return [
+    '<div class="bbcode-audio">',
+    '<button type="button" class="bbcode-audio__play" aria-label="播放音频"></button>',
+    '<div class="bbcode-audio__progress"><span class="bbcode-audio__progress-fill"></span></div>',
+    '<div class="bbcode-audio__times">',
+    '<span class="bbcode-audio__time bbcode-audio__time--current" hidden>0:00</span>',
+    '<span class="bbcode-audio__time-separator" hidden>/</span>',
+    '<span class="bbcode-audio__time bbcode-audio__time--total">--:--</span>',
+    '</div>',
+    `<audio preload="none" src="${escapeHtml(url)}"></audio>`,
+    '</div>',
+  ].join('')
+}
+
 function renderNode(
   source: string,
   pair: Pair,
@@ -276,7 +294,7 @@ function renderNode(
       const target = validateUrl(rawContent, 'media')
       media.push({ kind: 'audio', url: target.value, allowed: target.allowed })
       return target.allowed
-        ? `<audio controls src="${escapeHtml(target.value)}"></audio>`
+        ? renderAudioPlayer(target.value)
         : escapeHtml(source.slice(open.from, close.to))
     }
     case 'youtube': {

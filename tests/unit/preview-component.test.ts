@@ -57,6 +57,73 @@ describe('预览面板', () => {
     expect(image.classes()).toContain('preview-media-failed')
   })
 
+  it('音频播放条按播放键切换状态，并同步时长与进度', async () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function (
+      this: HTMLMediaElement,
+    ) {
+      Object.defineProperty(this, 'paused', { configurable: true, value: false })
+      this.dispatchEvent(new Event('playing'))
+      return Promise.resolve()
+    })
+    const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(function (
+      this: HTMLMediaElement,
+    ) {
+      Object.defineProperty(this, 'paused', { configurable: true, value: true })
+      this.dispatchEvent(new Event('pause'))
+    })
+
+    try {
+      const wrapper = mount(PreviewPane, {
+        props: { result: compileForPreview('[audio]https://example.com/a.mp3[/audio]') },
+      })
+      const player = wrapper.get('.bbcode-audio')
+      const button = wrapper.get('.bbcode-audio__play')
+      const audio = wrapper.get('audio').element as HTMLAudioElement
+      Object.defineProperty(audio, 'duration', { configurable: true, value: 125 })
+
+      expect(button.attributes('aria-label')).toBe('播放音频')
+      expect(wrapper.get('.bbcode-audio__time--total').text()).toBe('--:--')
+      expect(wrapper.get('.bbcode-audio__time--current').attributes('hidden')).toBeDefined()
+
+      await button.trigger('click')
+      expect(play).toHaveBeenCalledTimes(1)
+      expect(player.classes()).toContain('bbcode-audio--playing')
+      expect(button.attributes('aria-label')).toBe('暂停音频')
+      expect(wrapper.get('.bbcode-audio__time--total').text()).toBe('2:05')
+      expect(wrapper.get('.bbcode-audio__time--current').attributes('hidden')).toBeUndefined()
+
+      await button.trigger('click')
+      expect(pause).toHaveBeenCalled()
+      expect(player.classes()).not.toContain('bbcode-audio--playing')
+      expect(button.attributes('aria-label')).toBe('播放音频')
+
+      // 时长格式与锁定基准一致：跨过 10 分钟后分钟数补零，跨过 1 小时后出现小时段。
+      Object.defineProperty(audio, 'duration', { configurable: true, value: 754 })
+      audio.dispatchEvent(new Event('durationchange'))
+      expect(wrapper.get('.bbcode-audio__time--total').text()).toBe('12:34')
+      Object.defineProperty(audio, 'duration', { configurable: true, value: 4000 })
+      audio.dispatchEvent(new Event('durationchange'))
+      expect(wrapper.get('.bbcode-audio__time--total').text()).toBe('1:06:40')
+      wrapper.unmount()
+    } finally {
+      vi.restoreAllMocks()
+    }
+  })
+
+  it('音频加载失败时在播放条下方显示失败状态', async () => {
+    const wrapper = mount(PreviewPane, {
+      props: { result: compileForPreview('[audio]https://example.com/missing.mp3[/audio]') },
+    })
+    const audio = wrapper.get('audio')
+    audio.element.dispatchEvent(new Event('error'))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.get('.bbcode-audio').classes()).toContain('preview-media-failed')
+    expect(wrapper.get('.bbcode-audio__play').attributes('aria-label')).toBe('播放音频')
+    expect(wrapper.text()).toContain('媒体加载失败')
+    wrapper.unmount()
+  })
+
   it('imagemap 热区与图片共享同一容器，且不依赖图片自然尺寸', () => {
     const result = compileForPreview(
       '[imagemap]\nhttps://example.com/map.png\n10 20 30 40 https://example.com/area 热区\n5 5 10 10 #\n[/imagemap]',

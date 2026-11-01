@@ -1848,18 +1848,141 @@ h2 {
   height: auto;
   margin: 12px auto;
 }
-.preview-content audio {
-  display: block;
-  width: min(100%, 520px);
-  margin: 12px 0;
+/* [audio] 的终态播放器：osu! 显示阶段先输出原生音频元素，再由站点脚本替换成
+   40px 高、最宽 520px 的行内播放条。尺寸、字号和进度条形态按锁定基准记录，
+   颜色按本项目主题令牌取值（见 docs/compatibility.md 的 D-18）。 */
+.preview-content .bbcode-audio {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  height: 40px;
+  padding: 5px 10px;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  text-align: left;
 }
+.preview-content .bbcode-audio audio {
+  display: none;
+}
+.preview-content .bbcode-audio__play {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  line-height: 30px;
+  text-align: center;
+  cursor: pointer;
+}
+/* 播放键用几何图形而不是图标字体：三角形在悬停时换成暂停的两条竖条。 */
+.preview-content .bbcode-audio__play::before {
+  content: '';
+  display: inline-block;
+  vertical-align: middle;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 9px solid currentColor;
+}
+.preview-content .bbcode-audio--playing .bbcode-audio__play::before {
+  width: 9px;
+  height: 12px;
+  margin-left: 0;
+  border: 0;
+  background: linear-gradient(
+    to right,
+    currentColor 0 3px,
+    transparent 3px 6px,
+    currentColor 6px 9px
+  );
+}
+.preview-content .bbcode-audio__play:hover:not(:disabled) {
+  color: var(--color-accent);
+}
+.preview-content .bbcode-audio__play:disabled {
+  color: var(--color-muted);
+  cursor: default;
+}
+.preview-content .bbcode-audio__progress {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  margin: 0 5px 0 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  cursor: pointer;
+  touch-action: none;
+  transition: height var(--dur-1);
+}
+/* 2px 高的进度条需要更大的指针命中区，悬停时再增高到 6px 并显示拖动圆点。 */
+.preview-content .bbcode-audio__progress::before {
+  content: '';
+  position: absolute;
+  inset: -10px -5px;
+}
+.preview-content .bbcode-audio__progress:hover,
+.preview-content .bbcode-audio__progress.is-dragging {
+  height: 6px;
+}
+.preview-content .bbcode-audio__progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: inherit;
+  background: var(--color-accent);
+  pointer-events: none;
+}
+.preview-content .bbcode-audio__progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity var(--dur-1);
+}
+.preview-content .bbcode-audio__progress:hover .bbcode-audio__progress-fill::after,
+.preview-content .bbcode-audio__progress.is-dragging .bbcode-audio__progress-fill::after {
+  opacity: 1;
+}
+.preview-content .bbcode-audio__times {
+  display: flex;
+  flex: none;
+  align-items: center;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.preview-content .bbcode-audio__time {
+  min-width: 33px;
+  margin: 0 5px;
+  text-align: right;
+}
+.preview-content .bbcode-audio__time--total {
+  color: var(--color-muted);
+}
+.preview-content .bbcode-audio__time-separator {
+  color: var(--color-text);
+}
+/* YouTube 嵌入与锁定基准的 .u-embed-wide--bbcode 一致：行内块、最宽 425px、
+   16:9、无外边距和边框。行内块不会被相邻的 <br> 拆成独立块，因此 [youtube]
+   下一行的 [audio] 不会多出一个空行。背景仅作为未加载时的占位面。 */
 .preview-content iframe {
-  display: block;
-  width: min(100%, 560px);
+  display: inline-block;
+  width: 100%;
+  max-width: 425px;
   aspect-ratio: 16 / 9;
   height: auto;
-  margin: 16px 0;
-  border: 1px solid var(--color-border);
+  margin: 0;
+  border: 0;
   background: var(--preview-iframe-background);
 }
 .preview-content blockquote {

@@ -2,7 +2,8 @@
   "case": "audio-basic",
   "status": "asserted",
   "observations": [
-    "[audio]地址[/audio] 输出可播放的音频元素，src 为原始地址。"
+    "[audio]地址[/audio] 输出播放器的终态结构：40px 高、最宽 520px 的行内播放条，含播放键、进度条与当前/总时长。",
+    "播放由播放条内的音频元素负责，preload=none：点击播放才开始请求资源，播放条本身不显示原生控件。"
   ],
   "expectedAssertions": {
     "sourceUnchanged": true,
@@ -72,7 +73,7 @@
     ],
     "diagnostics": [],
     "preview": {
-      "html": "<audio controls=\"\" src=\"https://example.com/audio/bgm.mp3\"></audio><br>",
+      "html": "<div class=\"bbcode-audio\"><button type=\"button\" class=\"bbcode-audio__play\" aria-label=\"播放音频\"></button><div class=\"bbcode-audio__progress\"><span class=\"bbcode-audio__progress-fill\"></span></div><div class=\"bbcode-audio__times\"><span class=\"bbcode-audio__time bbcode-audio__time--current\" hidden=\"\">0:00</span><span class=\"bbcode-audio__time-separator\" hidden=\"\">/</span><span class=\"bbcode-audio__time bbcode-audio__time--total\">--:--</span></div><audio preload=\"none\" src=\"https://example.com/audio/bgm.mp3\"></audio></div><br>",
       "media": [
         {
           "kind": "audio",

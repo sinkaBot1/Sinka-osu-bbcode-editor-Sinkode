@@ -9,9 +9,23 @@
   "upstreamEvidence": [
     {
       "path": "tests/Libraries/bbcode_examples/basic_audio.html",
-      "note": "上游自带样例：audio 输出音频播放元素（controls、preload=none）"
+      "note": "显示阶段的音频元素：controls、data-modifiers=bbcode、preload=none，src 为原地址"
+    },
+    {
+      "path": "resources/js/core/osu-audio/main.ts",
+      "note": "站点脚本把音频元素替换成页面播放器（播放键、进度条、当前/总时长），并按 data-modifiers 加上 bbcode 修饰"
+    },
+    {
+      "path": "resources/css/bem/audio-player.less",
+      "note": "播放器终态的尺寸与形态：40px 高、最宽 520px、行内 flex、2px/6px 进度条、12px 时间文字"
+    },
+    {
+      "path": "resources/css/bem/play-button.less",
+      "note": "播放键图标随播放状态在播放与暂停之间切换"
     }
   ],
-  "intentionalDifferences": [],
-  "notes": ""
+  "intentionalDifferences": [
+    "D-18"
+  ],
+  "notes": "预览直接输出站点脚本替换后的终态；颜色、字体、失败状态与动效差异见 D-18。"
 }

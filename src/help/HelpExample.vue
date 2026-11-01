@@ -17,10 +17,13 @@ const example = computed(() => {
     image.src = exampleImage
     image.alt = '本地示意图'
   }
+  for (const player of template.content.querySelectorAll('.bbcode-audio')) {
+    const button = player.querySelector('button')
+    if (button) button.disabled = true
+  }
   for (const audio of template.content.querySelectorAll('audio')) {
     audio.removeAttribute('src')
     audio.preload = 'none'
-    audio.setAttribute('aria-label', '音频控件示意，不播放远程音频')
   }
   for (const iframe of template.content.querySelectorAll('iframe')) {
     const placeholder = document.createElement('div')

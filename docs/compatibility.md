@@ -39,6 +39,11 @@
 - `resources/css/bem/page-extra.less`（正文基准 `font-size: @font-size--title-small`）
 - `resources/css/bem/bbcode-spoilerbox.less`
 - `resources/js/core/spoilerbox.ts`（显示层交互：折叠盒点击展开/收起，slideDown/slideUp 未传时长）
+- `resources/js/core/osu-audio/main.ts`（显示层交互：把所有音频元素替换为页面播放器，并负责播放、暂停、定位与时间显示）
+- `resources/js/core/osu-audio/time-format.ts`（播放器的当前时间与总时长格式）
+- `resources/css/bem/audio-player.less`（播放器尺寸、进度条与时间排版）
+- `resources/css/bem/play-button.less`（播放键图标随播放状态切换）
+- `resources/css/utilities.less`（`.u-embed-wide` 与 `--bbcode` 修饰：内嵌视频为行内块、16:9、最宽 425px）
 - `resources/css/bem/imagemap.less`
 - `resources/css/bem/osu-page.less`
 - `resources/css/bootstrap-variables.less`
@@ -138,6 +143,17 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 20. **折叠盒（`[box]`、`[spoilerbox]`）的上下间距来源**：上游折叠盒本体没有外边距规则——`resources/css/bem/bbcode-spoilerbox.less`（全文 52 行）只定义图标变量、展开状态、`__link` 的行内布局，以及 `__body` 的 `display: none`、`margin-top: 10px`、`padding-left: 20px`；`resources/css/bbcode.less`（全文 144 行）也没有盒体或相邻块的外边距规则。上游输出样例 `tests/Libraries/bbcode_examples/box_with_surrounding_newlines.html`、`spoilerbox_with_surrounding_newlines.html` 中，盒体 `<div>` 直接与相邻文本或 `<br />` 相接，没有额外间隔元素。可观察结论：折叠盒与相邻内容的间距全部来自换行元素——紧贴场景为 `0`，空行场景为 `1` 个行高（14px × 1.5 = 21px）。
     本项目盒体外边距为 `0`，紧贴场景间距为 `0`、空行场景为 `21px`，由 `tests/e2e/typography.spec.ts` 锁定。收起标题的 `min-height: 24px` 与上游不同，见 §6.4。
 
+### 5.3 媒体嵌入与音频播放器（第 21–22 条）
+
+21. **`[audio]` 的最终渲染是客户端播放器替换**：显示阶段先输出 `<audio controls="controls" data-modifiers="bbcode" preload="none" src="…">`（上游样例 `basic_audio.html`）；站点脚本随后把页面里所有音频元素替换为统一的页面播放器（`resources/js/core/osu-audio/main.ts`，`data-modifiers` 变成 `audio-player--bbcode` 修饰）。可观察的终态是：
+    - 容器为 `40px` 高、宽度取容器 `100%` 且最宽 `520px` 的行内播放条，内边距 `5px 10px`，背景 `--hsl-b2`，内容左对齐；
+    - 左侧是播放/暂停键，图标 `16px`（`play-button.less` 按 `data-audio-state` 在播放与暂停之间切换），悬停变亮；
+    - 中间进度条高 `2px`，悬停或拖动时变为 `6px` 并显示 `14px` 圆点，进度色 `--hsl-h1`，轨道色 `--hsl-b6`；
+    - 右侧是 `12px` 等宽数字的当前时间与总时长；总时长未知时显示 `--:--`，当前时间与 `/` 分隔符隐藏；不足 10 分钟不补零分钟，1 小时以上才出现小时段（`osu-audio/time-format.ts`）；
+    - 播放由站点共用的音频对象负责：点击播放才请求资源，开始播放另一段时前一段回到停止状态，播放结束后回到 `0` 并显示播放键；拖动定位在指针松开或窗口失焦时结束。
+    本项目预览直接输出这一终态结构，并由预览容器接管播放、暂停、进度与定位；与上游的差异（配色、字体、播放键图形、失败状态和动效时长）登记为 D-18。
+22. **`[youtube]` 嵌入的排版**：显示阶段输出 `<iframe class="u-embed-wide u-embed-wide--bbcode" …>`（`BBCodeFromDB.php` 的 `parseYoutube`）。`.u-embed-wide` 默认是宽度 `100%`、`16:9` 的块级元素，但 `--bbcode` 修饰把它改成 `display: inline-block`，并把最大宽度限制为 `425px`，没有外边距和边框（`resources/css/utilities.less`）。行内块与相邻换行的组合只结束当前行：输入里 `[/youtube]` 与下一行 `[audio]` 之间的一个换行不会显示成空行；如果把它按块级元素排版，这个换行会被浏览器当成独立的匿名块，`[audio]` 上方就会多出一整行。本项目预览按行内块、`16:9`、最宽 `425px` 渲染，视频未加载时的占位底色使用主题令牌 `--preview-iframe-background`。
+
 ## 6. 已知有意差异（本项目 ≠ 锁定上游）
 
 安全优先：安全要求与 osu! 可见行为冲突时优先保护用户，差异必须在此登记。
@@ -154,13 +170,14 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 | D-08 | 保存阶段规范化               | 保存时剥离不匹配引用标记等（`remove_quotes/`）                                                                                                                                                              | 本地编辑器与预览不做任何规范化                                                                                                                                                      | `remove_quotes/` 上游样例；本项目编辑器和预览无服务器保存步骤 |
 | D-09 | imagemap 热区可见性          | 锁定基准将 `x y w h` 解释为百分比并把热区输出为绝对定位热区元素，热区默认不可见                                                                                                                             | 预览让实际可点击热区自身显示粉色 50% 透明背景与粉色边框，点击由热区元素自身负责；保证“看到的位置”等于“点击的位置”                                                                                       | [imagemap-basic](../tests/fixtures/osu-web/imagemap-basic/metadata.json)、[预览测试](../tests/e2e/preview.spec.ts) |
 | D-10 | 预览字体                     | `Inter, sans-serif`，14px 正文与行高 1.5（§5 第 15 条）                                                                                                                                                     | 已对齐；当前字体及加载证据见 §6.2                                                                                                                                                                       | [字体测量测试](../tests/e2e/font-size-measure.spec.ts)、[heading-basic](../tests/fixtures/osu-web/heading-basic/metadata.json) |
-| D-11 | 媒体默认对齐                 | 锁定基准媒体按内容流默认左对齐（固定样例 `audio-basic`、`youtube-id-forms`）                                                                                                                                | audio 和 YouTube iframe 默认左对齐；图片继续按内容区规则显示                                                                                                                                            | [预览测试](../tests/e2e/preview.spec.ts)、[audio-basic](../tests/fixtures/osu-web/audio-basic/metadata.json)、[youtube-id-forms](../tests/fixtures/osu-web/youtube-id-forms/metadata.json) |
+| D-11 | 媒体默认对齐                 | 锁定基准媒体按内容流默认左对齐（固定样例 `audio-basic`、`youtube-id-forms`）；YouTube 嵌入为行内块，最宽 `425px`（`resources/css/utilities.less`）                                                          | `[audio]` 播放条与 YouTube iframe 默认左对齐；YouTube iframe 同为行内块、`16:9`、最宽 `425px`；图片继续按内容区规则显示                                                                                  | [预览测试](../tests/e2e/preview.spec.ts)、[audio-basic](../tests/fixtures/osu-web/audio-basic/metadata.json)、[youtube-id-forms](../tests/fixtures/osu-web/youtube-id-forms/metadata.json) |
 | D-12 | size 视觉缩放               | `[size=N]` 相对 14px 基准按百分比显示（`basic_size.html`）                                                                                                                                                  | 200/150/30 分别为 28/21/4.2px，见 §6.2                                                                                                                                                          | [size-boundary-200](../tests/fixtures/osu-web/size-boundary-200/metadata.json)、[size-over-range-250](../tests/fixtures/osu-web/size-over-range-250/metadata.json)、[字体测量测试](../tests/e2e/font-size-measure.spec.ts) |
 | D-13 | spoiler 揭示方式             | osu! 默认黑色遮盖，只有被文字选区覆盖的部分显示                                                                                                                                       | 预览默认黑色文字和背景；使用浏览器 `::selection` 只显示当前选中的那一小段，不切换整段状态                                                                                                               | [spoiler-inline](../tests/fixtures/osu-web/spoiler-inline/metadata.json)、[预览测试](../tests/e2e/preview.spec.ts) |
 | D-14 | spoilerbox/box 外观          | 上游字符式折叠标题与内容（`resources/css/bem/bbcode-spoilerbox.less`）                                                                                                                                      | 预览无背景、边框和卡片填充，使用可点击的字符标题、主题令牌驱动的标题文字和展开内容；保留原生展开/收起语义                                                                                                                     | [spoilerbox-basic](../tests/fixtures/osu-web/spoilerbox-basic/metadata.json)、[box-with-title](../tests/fixtures/osu-web/box-with-title/metadata.json)、[预览测试](../tests/e2e/preview.spec.ts) |
 | D-15 | 折叠展开/收起动画            | 点击标题后对盒体执行 jQuery `slideDown`/`slideUp`，未传时长，取 jQuery 默认 400ms 与 `swing` 缓动；盒体初始 `display:none`（`resources/js/core/spoilerbox.ts`、`resources/css/bem/bbcode-spoilerbox.less`） | 预览用 Web Animations API 在 400ms 内动画盒体高度与上间距，结束后释放内联样式并写入 `hidden`；`swing` 以 CSS 标准 `ease-in-out` 近似，未复制上游代码                                                    | [spoilerbox-basic](../tests/fixtures/osu-web/spoilerbox-basic/metadata.json)、[预览测试](../tests/e2e/preview.spec.ts) |
 | D-16 | 交叉嵌套等病态输入的配对近似 | 保存阶段按标签类型各自成对识别（`app/Libraries/BBCodeForDB.php`），成对成功的标签即使相互交叠也各自渲染，交叠 HTML 由浏览器容错解析；未配对的标签保留为可见文本（`unclosed-bold`、`stray-close-tag`）       | 预览配对只承认能构成严格嵌套的组合：结束标签与最近一层同名开始标签配对，中间未闭合的标签自身保留为可见文本，其内部已配对成功的后代仍按原位渲染；因此 `[b]…[i]…[/b]…[/i]` 只渲染 `b`，`i` 保留为可见文本 | [crossed-nesting](../tests/fixtures/osu-web/crossed-nesting/metadata.json)、[领域测试](../tests/unit/bbcode-domain.test.ts) |
 | D-17 | imagemap 热区说明文字的承载方式 | 热区说明文字写进节点的 `title` 属性（`resources/js/components/time-with-tooltip.tsx` 记录同一约定）；鼠标停顿后由网页统一浮层渲染带箭头的黑底白字气泡，浏览器原生提示不再出现 | 说明文字输出为 `aria-label`（`title` 不再出现），鼠标停顿 200ms 后按热区位置显示同一外观的自绘气泡：默认在热区上方、箭头朝下，上方空间不足时翻到下方、箭头朝上，箭头始终对准热区中心；移出后 150ms 淡出；键盘聚焦热区立即显示，热区离开视口（页面滚动、面板内滚动、窗口缩放）或内容重渲染时收起；气泡与箭头都不参与指针命中 | [imagemap-basic](../tests/fixtures/osu-web/imagemap-basic/metadata.json)、[预览测试](../tests/e2e/preview.spec.ts)、[帮助测试](../tests/e2e/help.spec.ts) |
+| D-18 | audio 播放器外观与状态 | 站点脚本把音频元素替换为页面播放器：`40px` 高、最宽 `520px` 的行内播放条；播放键用 FontAwesome 图标，背景 `--hsl-b2`、轨道 `--hsl-b6`、进度 `--hsl-h1`、文字 `--hsl-c1/c2`，时间用站点 UI 字体；播放失败只停止播放、不显示失败状态；进度条悬停增高用 `100ms` 过渡（`resources/css/bem/audio-player.less`、`play-button.less`、`colors.less`、`variables.less`） | 预览直接输出同一终态结构与尺寸（`40px` 高、最宽 `520px`、`2px`/`6px` 进度条、`12px` 时间），播放键改用 CSS 绘制的三角形与双竖条；颜色改用 `--color-surface-raised`、`--color-border`、`--color-accent`、`--color-text`、`--color-muted`，字体沿用预览正文的 Inter；播放失败时在播放条下方显示本项目的媒体失败状态；进度条悬停用主题时长令牌 `--dur-1`（`120ms`） | [audio-basic](../tests/fixtures/osu-web/audio-basic/metadata.json)、[预览测试](../tests/e2e/preview.spec.ts) |
 
 ### 6.1 box / spoilerbox 行为
 
@@ -202,6 +219,8 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 - `[box]`、`[spoilerbox]` 标题使用 `--preview-box-title`，折叠箭头继承标题文字颜色。
 - 行内剧透默认使用黑色文字和背景；选中部分按主题强调色显示。
 - imagemap 热区保持可见的粉色边框和半透明底色。说明文字使用 `aria-label`，并显示黑底白字的自绘气泡；气泡尺寸、定位和动效见 D-17 与[专项证据](evidence/imagemap-tooltip-2026-10-03/README.md)。
+- `[audio]` 输出 `40px` 高、最宽 `520px` 的行内播放条：`--color-surface-raised` 背景、`--color-border` 进度轨、`--color-accent` 进度与播放键悬停色、`--color-text` 播放键与当前时间、`--color-muted` 总时长；播放失败时在播放条下方显示媒体失败状态（D-18）。
+- `[youtube]` 嵌入为行内块、`16:9`、最宽 `425px`，没有外边距和边框；未加载时显示 `--preview-iframe-background` 占位底色，视频加载后由播放器自身覆盖。
 - 预览画布、卡片、引用、代码块、标题和媒体错误状态都使用 `--preview-*` 主题令牌。
 - 预览正文单独放开斜体合成（`font-synthesis: style`）：外壳在 `:root` 声明 `font-synthesis: none` 以避免界面字体使用合成字形，而该声明会继承进预览正文；中文字符回退到没有斜体字面的系统字体，禁止合成时 `[i]` 的中文部分会显示为正体。放开后拉丁字符仍使用 Inter 的真实斜体字面，只有中文字符由浏览器合成，与浏览器默认值本身允许合成的行为一致；对应[排版测试](../tests/e2e/typography.spec.ts)。
 
