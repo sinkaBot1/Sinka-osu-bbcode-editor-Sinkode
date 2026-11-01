@@ -87,7 +87,7 @@ test.describe('安全实时预览', () => {
     await expect(spoiler).not.toHaveClass(/is-revealed/)
   })
 
-  test('折叠标题与箭头取自主题令牌，不再是固定粉色', async ({ page }) => {
+  test('折叠标题与箭头取自主题令牌，不写固定色值', async ({ page }) => {
     await openEmptyEditor(page)
     await page.locator('.cm-content').click()
     await page.keyboard.insertText('[spoilerbox]折叠内容[/spoilerbox][box=标题]盒内内容[/box]')
@@ -150,7 +150,7 @@ test.describe('安全实时预览', () => {
         selectionColor: selected.color,
       }
     })
-    // 遮盖色不再是 osu! 粉（#b33672）；选中底色由主题强调色派生
+    // 遮盖色是黑色，不是 osu! 粉（#b33672）；选中底色由主题强调色派生
     expect(styles.background).toBe('rgb(0, 0, 0)')
     expect(styles.color).toBe('rgb(0, 0, 0)')
     expect(styles.selectionColor).toBe('rgb(255, 255, 255)')

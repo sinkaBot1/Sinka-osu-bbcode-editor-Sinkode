@@ -57,7 +57,7 @@
 | 特殊内容 | `code`、`c`、`quote`、`list`、`spoiler`、`spoilerbox` |
 | osu! 相关 | `heading`、`notice`、`box`、`profile` |
 
-第一版**不包含**：`[left]`、`[right]`、已废弃的 `[google]`、`[lucky]`、旧版标题写法、云同步、账号登录、媒体上传与移动端交互。范围外标签会按「未知标签」诊断，不会被静默丢弃。计划中的工作见[路线与已知限制](docs/roadmap.md)。
+第一版**不包含**：`[left]`、`[right]`、已废弃的 `[google]`、`[lucky]`、旧版标题写法、云同步、账号登录、媒体上传。范围外标签会按「未知标签」诊断，不会被静默丢弃；完整范围见[范围与已知限制](docs/roadmap.md)。
 
 ## 隐私与安全（要点）
 
@@ -70,7 +70,7 @@
 ## 环境要求
 
 - **Node.js 22 或更高版本**（同时会得到 `npm`）。Windows、macOS、Linux 均可。
-- 桌面端最新版 Chrome、Edge 或 Firefox。移动端浏览器属于后续版本范围，第一版不作兼容承诺。
+- 仅支持桌面端浏览器：最新版 Chrome、Edge 或 Firefox。
 - 不需要其他全局工具；不需要 Docker、数据库或任何账号。
 
 ## 快速开始
@@ -133,7 +133,7 @@ tests/
   fixtures/osu-web/  锁定的 osu-web 行为固定样例（输入、期望、证据说明）
   unit/              单元与组件测试
   e2e/               浏览器端到端流程
-docs/                兼容性、测试、部署、工作台、主题、图标、字体与路线文档
+docs/                兼容性、测试、部署、工作台、主题、图标、字体与范围限制文档
 scripts/             仓库维护脚本（文档检查、样例断言生成）
 logo/                品牌素材（仅 PNG）
 ```
@@ -165,13 +165,13 @@ logo/                品牌素材（仅 PNG）
 - [协作规则](AGENTS.md)：改代码前必须遵守的约定，规则冲突时以它为准。
 - [兼容性说明](docs/compatibility.md)：锁定的 osu-web 基准、可观察行为与有意差异。
 - [测试说明](docs/testing.md)：测试分层、六条固定命令、新增固定样例的完整步骤。
-- [路线与已知限制](docs/roadmap.md)：还没做的事、已知短板和待裁决项。
+- [范围与已知限制](docs/roadmap.md)：当前范围与已知限制。
 
 界面相关的规则（工作台、主题、图标、编辑器字体）也在同一份索引里按任务列出。
 
 ## 部署与发布现状
 
-- 在线站点：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名，`www` 自动跳转裸域名）；`https://osusinkode.top/` 只做跳转到主站。
+- 在线站点：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名，`www` 自动跳转裸域名）。
 - 发布由 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) 完成：`npm ci` → `npm run build` → 上传 `dist/` → 部署；质量检查仍由 [`ci.yml`](.github/workflows/ci.yml) 负责。
 - 站点在域名根路径发布，因此 `vite.config.ts` 固定 `base: '/'`；改回 `github.io` 项目页形式时必须同步改成 `/<仓库名>/`，否则线上白屏。
 
@@ -186,4 +186,4 @@ logo/                品牌素材（仅 PNG）
 | 页面打开是空白 | 按 `F12` 打开开发者工具查看 Console 报错；先确认 `npm run dev` 仍在运行 |
 | 刷新后模板不见了 | 模板存在浏览器本地：检查是否使用了无痕窗口、是否清理过站点数据，或换过浏览器/设备 |
 
-更多排查入口：[测试说明](docs/testing.md)（测试失败怎么定位）、[兼容性说明](docs/compatibility.md)（预览与 osu! 不一致时）、[路线与已知限制](docs/roadmap.md)（还没做什么）。
+更多排查入口：[测试说明](docs/testing.md)（测试失败怎么定位）、[兼容性说明](docs/compatibility.md)（预览与 osu! 不一致时）、[范围与已知限制](docs/roadmap.md)（项目范围与已知限制）。

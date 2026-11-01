@@ -8,7 +8,7 @@ async function render(page: Page, source: string) {
   await expect(page.locator('.status-bar .render-status')).toContainText('已更新')
 }
 
-test.describe('正文排版对齐（依据 docs/compatibility.md §5 第 19、20 条）', () => {
+test.describe('正文排版对齐（依据兼容性说明的排版事实）', () => {
   test('正文行高为 14px × 1.5 = 21px', async ({ page }) => {
     await render(page, '第一行\n第二行')
 

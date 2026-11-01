@@ -73,7 +73,7 @@ for (const width of [390, 820, 1440]) {
         pageFits: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
         singleRow: style.flexWrap === 'nowrap' && element.scrollHeight <= element.clientHeight + 1,
         buttonCount: buttons.length,
-        // 裁决 A：视觉与命中区同为 36，不做「视觉小、热区大」的重叠热区。
+        // 视觉与命中区同为 36，不做「视觉小、热区大」的重叠热区。
         buttonsAreDecisionSize: buttons.every((button) => {
           const rect = button.getBoundingClientRect()
           return Math.round(rect.width) === 36 && Math.round(rect.height) === 36
@@ -324,7 +324,7 @@ test('诊断面板、状态胶囊与行号栏遵循仪器族规格', async ({ pa
       activeColor: getComputedStyle(activeGutter).color,
     }
   })
-  // 行号栏并入编辑面：无右描边、同底色，当前行只改行号色（提案 §5.7）
+  // 行号栏与编辑面同面：无右描边、同底色，当前行只改行号色
   expect(gutter.borderRight).toBe('0px')
   expect(gutter.background).toBe(gutter.editorBackground)
   expect(gutter.activeBackground).toBe('rgba(0, 0, 0, 0)')
@@ -352,7 +352,7 @@ test('诊断面板、状态胶囊与行号栏遵循仪器族规格', async ({ pa
     }
   })
 
-  // 面板与编辑面同面、不画上描边：边界交给抓取条（提案 §5.9）
+  // 面板与编辑面同面、不画上描边：边界交给抓取条
   expect(metrics.panelBorderTop).toBe('0px')
   expect(metrics.panelBackground).toBe(metrics.editorBackground)
   // 仪器族列表行：38px、直角、2px 圆头状态条
@@ -365,7 +365,7 @@ test('诊断面板、状态胶囊与行号栏遵循仪器族规格', async ({ pa
   expect(metrics.countRadius).toBe('999px')
 
   const row = page.locator('.diagnostic-row').first()
-  // 悬停按 §6.3 用中性浮层，不再用强调色浮层
+  // 悬停用中性浮层，不用强调色浮层
   await row.hover()
   await page.waitForTimeout(200)
   await expect(row).toHaveCSS('background-color', 'rgba(215, 222, 232, 0.09)')

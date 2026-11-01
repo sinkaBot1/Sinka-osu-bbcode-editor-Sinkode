@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { installNetworkIsolation } from './helpers'
+import { clearEditor, installNetworkIsolation } from './helpers'
 
 test.describe('BBCode 参考面板', () => {
   test.beforeEach(async ({ page }) => {
@@ -41,9 +41,9 @@ test.describe('BBCode 参考面板', () => {
     await expect(page.locator('.cm-content').textContent()).resolves.toBe(editorSourceBefore)
   })
 
-  // 批次 3 规格（提案 §5.11 与 §9 批次 3 裁决）：头部 56 并吸收说明、分类胶囊、
-  // 行 38 不画线、详情内嵌面、微标签取阶梯值。这里锁住可被数值验证的那几项。
-  test('头部、分类、行与详情按批次 3 规格渲染', async ({ page }) => {
+  // 帮助面板规格：头部 56 并吸收说明、分类胶囊、行 38 不画线、
+  // 详情内嵌面、微标签取阶梯值。这里锁住可被数值验证的那几项。
+  test('头部、分类、行与详情按仪器族浮层规格渲染', async ({ page }) => {
     await page.getByRole('button', { name: '打开帮助', exact: true }).click()
     const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
     await expect(panel).toBeVisible()
@@ -64,13 +64,13 @@ test.describe('BBCode 参考面板', () => {
     })
     expect(header.height).toBeCloseTo(56, 0)
     expect(header.border).toBe('0px')
-    // 头部并入面板面：不再是独立的 --color-header 色带，自身不铺底色
+    // 头部与面板同面：自身不铺底色，也不是独立的 --color-header 色带
     expect(header.background).toBe('rgba(0, 0, 0, 0)')
     expect(header.titleSize).toBe('13px')
     expect(header.titleWeight).toBe('600')
     expect(header.noteSize).toBe('11px')
     expect(header.noteText).toContain('诊断区')
-    // 滚动区里原来那块“参考说明”已并进头部
+    // 头部只保留一行说明，滚动区里没有“参考说明”块
     await expect(panel.locator('.help-panel-note')).toHaveCount(0)
 
     const pill = await panel
@@ -127,7 +127,7 @@ test.describe('BBCode 参考面板', () => {
         copyBorder: getComputedStyle(copy).borderTopWidth,
       }
     })
-    // 详情块是内嵌面，不再用分隔线划开；写法框只留轮廓
+    // 详情块是内嵌面，不用分隔线划开；写法框只留轮廓
     expect(detail.border).toBe('0px')
     expect(detail.background).not.toBe('rgba(0, 0, 0, 0)')
     expect(detail.syntaxBackground).toBe('rgba(0, 0, 0, 0)')
@@ -137,9 +137,9 @@ test.describe('BBCode 参考面板', () => {
     expect(detail.copyBorder).toBe('0px')
   })
 
-  // 批次 4a 规格（提案 §5.16 与 §9 批次 4a 裁决）：空状态是“斜切短线 + 微标签 + 一句解释”，
-  // 左对齐、无图标、无动作按钮、无描边。这里锁住可被数值验证的那几项。
-  test('搜索无结果时按批次 4a 规格渲染空状态', async ({ page }) => {
+  // 空状态规格：“斜切短线 + 微标签 + 一句解释”，左对齐、无图标、
+  // 无动作按钮、无描边。这里锁住可被数值验证的那几项。
+  test('搜索无结果时按空状态规格渲染', async ({ page }) => {
     await page.getByRole('button', { name: '打开帮助', exact: true }).click()
     const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
     await panel.locator('.help-panel-search input').fill('不存在的标签')
@@ -352,7 +352,7 @@ test.describe('BBCode 参考面板', () => {
       }
     })
 
-    // 浮层退出统一取 --dur-exit 160ms（批次 3 收口，批次 2 的模板菜单已是先例）
+    // 浮层退出统一取 --dur-exit 160ms
     expect(leaveMotion.durations).toEqual(expect.arrayContaining([160]))
     expect(leaveMotion.easings).toEqual(expect.arrayContaining(['cubic-bezier(0.22, 1, 0.36, 1)']))
     expect(leaveMotion.properties).toEqual(expect.arrayContaining(['opacity', 'transform']))
@@ -505,10 +505,7 @@ test.describe('BBCode 参考面板', () => {
 
   test('媒体示意显示本地图片、热区与控件，不请求第三方资源', async ({ page }) => {
     const editor = page.locator('.cm-content')
-    await editor.click()
-    await page.keyboard.press('ControlOrMeta+a')
-    await page.keyboard.press('Delete')
-    await expect(page.locator('.preview-placeholder')).toBeVisible()
+    await clearEditor(page, editor)
     const requests: string[] = []
     page.on('request', (request) => {
       if (/^https?:\/\/(?!127\.0\.0\.1|localhost)/.test(request.url())) requests.push(request.url())

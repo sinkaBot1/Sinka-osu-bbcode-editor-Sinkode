@@ -13,5 +13,5 @@
     }
   ],
   "intentionalDifferences": [],
-  "notes": "上游 basic_size 样例未直接包含 30；30–200 的渲染范围以显示阶段的夹取行为为准（见 docs/compatibility.md 第 5 节事实 1），30 恰为下边界。"
+  "notes": "上游 basic_size 样例未直接包含 30；30–200 的渲染范围以显示阶段的夹取行为为准（见 docs/compatibility.md 的 size 边界事实），30 恰为下边界。"
 }

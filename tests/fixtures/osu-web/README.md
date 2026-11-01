@@ -23,7 +23,7 @@
 | `covers` | 该 case 覆盖的第一版标签（小写） |
 | `basisSha` / `basisDate` | 锁定提交与其日期 |
 | `upstreamEvidence` | `{ path, note }[]`，路径相对 osu-web 仓库根；无上游自带样例时注明并给出替代证据 |
-| `intentionalDifferences` | 差异编号（`docs/compatibility.md` 第 6 节的 D-XX），无则空数组 |
+| `intentionalDifferences` | 差异编号（`D-XX`，登记在 `docs/compatibility.md` 的差异表），无则空数组 |
 | `notes` | 补充说明 |
 
 ### expected.json 字段

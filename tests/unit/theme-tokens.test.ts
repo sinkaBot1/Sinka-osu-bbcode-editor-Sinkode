@@ -25,7 +25,7 @@ const darkode = blockTokens("\\[data-theme='darkode'\\]")
 const claucode = blockTokens("\\[data-theme='claucode'\\]")
 const hollowcode = blockTokens("\\[data-theme='hollowcode'\\]")
 
-// 三个主题块的令牌集合与文字口径由断言锁定（docs/theme.md §1.1、§6）
+// 三个主题块的令牌集合与文字口径由断言锁定（docs/theme.md §1、§6）
 const themeBlocks = [
   ['darkode', darkode],
   ['claucode', claucode],
@@ -54,7 +54,7 @@ function contrastRatio(a: string, b: string): number {
   return (Math.max(luminanceA, luminanceB) + 0.05) / (Math.min(luminanceA, luminanceB) + 0.05)
 }
 
-// --editor-active-line 是带 alpha 的中性浮层：先合成到底色上再算对比度（提案 §9 批次 4 裁决）
+// --editor-active-line 是带 alpha 的中性浮层：先合成到底色上再算对比度
 function parseOverlay(value: string): { channels: number[]; alpha: number } {
   const match = /rgba?\(([^)]+)\)/.exec(value)
   if (!match) throw new Error(`不是 rgb() 浮层：${value}`)
@@ -172,7 +172,7 @@ describe('主题令牌契约', () => {
   })
 
   it('编辑器行号取次级色，三种主题都达到 4.5:1', () => {
-    // 行号不降亮：68% 混色实测只有 2.75–3.55:1，会破文字口径（提案 §9 批次 4 裁决）
+    // 行号不降亮：68% 混色实测只有 2.75–3.55:1，会破文字口径
     for (const [id, block] of themeBlocks) {
       const ratio = contrastRatio(
         token(block, '--color-muted'),

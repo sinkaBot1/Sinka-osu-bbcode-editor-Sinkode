@@ -125,7 +125,7 @@ function renderText(value: string, autoLinks: boolean): string {
 }
 
 // 块级标签贴边换行的吸收规则。规则本身是锁定基准的可观察行为事实，
-// 记录在 docs/compatibility.md §5 第 17 条，这里只按自己的区间模型实现。
+// 记录在 docs/compatibility.md 的块级标签换行规则中，这里只按自己的区间模型实现。
 type BoundaryTrim = 'none' | 'newline' | 'newlines' | 'whitespace'
 
 interface BoundaryPolicy {

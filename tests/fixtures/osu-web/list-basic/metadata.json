@@ -13,5 +13,5 @@
     }
   ],
   "intentionalDifferences": [],
-  "notes": "嵌套子列表渲染为列表项内部的嵌套列表；列表标题结构与无序列表元素类型仍与上游不同，见 docs/compatibility.md §6.3。"
+  "notes": "嵌套子列表渲染为列表项内部的嵌套列表；列表标题结构与无序列表元素类型与上游不同（当前保持现状），见 docs/compatibility.md 的列表结构差异。"
 }

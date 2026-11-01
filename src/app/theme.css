@@ -58,8 +58,8 @@
   --preview-tooltip-max-width: 280px;
   /* 折叠盒（[box]、[spoilerbox]）标题使用主题强调色，可随主题整体替换。 */
   --preview-box-title: var(--color-accent);
-  /* 以下六项按既有裁决**不随主题变化**：spoiler 遮盖（D-13）、热区粉色（D-09）、
-     悬停气泡外观（D-17）。取值在所有主题下相同，依据见 docs/theme.md §2.8。 */
+  /* 以下六项**不随主题变化**：spoiler 遮盖（D-13）、热区粉色（D-09）、
+     悬停气泡外观（D-17）。取值在所有主题下相同。 */
   --preview-spoiler-cover: #000;
   --preview-spoiler-cover-text: #000;
   --preview-spoiler-selection-background: color-mix(in srgb, var(--color-accent) 60%, transparent);
@@ -161,7 +161,7 @@
 
   /* 编辑器与语法高亮 */
   --editor-caret: #ffffff;
-  /* 当前行是 12% 中性浮层，不再用蓝灰实色（提案 §9 批次 4 裁决）：
+  /* 当前行是 12% 中性浮层：
      三种主题与编辑面底色的对比度 1.34 / 1.28 / 1.29:1，都过 1.2:1 地板。 */
   --editor-active-line: rgb(215 222 232 / 12%);
   --editor-tooltip-background: #20242b;
@@ -217,7 +217,7 @@
   --color-diagnostic-location: #3d3d3a;
 
   /* 中性层：深色下的"正文色 9% 浅浮层"在奶油底上不可见，
-     浅色主题必须换成暖黑的低透明度浮层，取值见 docs/theme.md §2.3。 */
+     浅色主题必须换成暖黑的低透明度浮层。 */
   --control-hover-background: rgb(20 20 19 / 6%);
   --color-selection-background: rgb(204 120 92 / 10%);
   --color-divider-strong: rgb(20 20 19 / 16%);
@@ -441,7 +441,7 @@ body {
 button {
   font: inherit;
 }
-/* 键盘焦点环只在这里定义一次（提案 §5.16 与 §9 批次 4 裁决）。
+/* 键盘焦点环只在这里定义一次。
    容器用白名单而不是 .app-shell 一把罩住：预览正文在 .preview-content 里，它有自己的
    与上游对齐的排版，焦点环必须保持浏览器默认。模板操作菜单与抽屉 Teleport 到 body，
    所以按类名单独列出。四处保留本地写法：品牌入口外扩 4px；模板菜单条目、编辑器工具栏
@@ -485,7 +485,7 @@ button {
   height: 100%;
   overflow: hidden;
 }
-/* 顶栏并入框架面：只保留下边 1px 结构线，不再是一条独立底色的横条（提案 §5.1）。 */
+/* 顶栏与框架同面：只保留下边 1px 结构线。 */
 .app-header {
   flex: 0 0 var(--shell-header-h);
   display: flex;
@@ -745,14 +745,14 @@ h2 {
   touch-action: none;
   background: transparent;
 }
-/* 拖拽把手不用焦点环：它本身是一条可抓的线，焦点与悬停都靠线亮起来表达（提案 §5.16）。 */
+/* 拖拽把手不用焦点环：它本身是一条可抓的线，焦点与悬停都靠线亮起来表达。 */
 .resize-handle:focus-visible {
   outline: 0;
 }
 .resize-handle-vertical {
   cursor: col-resize;
 }
-/* 竖分隔条：静止看不见，悬停时 4px 中性淡浮层托着 2px 强调色细线，不再是实心色带。 */
+/* 竖分隔条：静止看不见，悬停时 4px 中性淡浮层托着 2px 强调色细线。 */
 .resize-handle-vertical::before,
 .resize-handle-vertical::after {
   position: absolute;
@@ -777,7 +777,7 @@ h2 {
 .resize-handle-vertical:focus-visible::after {
   background: var(--color-resize-indicator);
 }
-/* 诊断面板的抓取条：12px 高、不画描边，悬停或聚焦才出现一条 2px 中性横线（提案 §5.9）。 */
+/* 诊断面板的抓取条：12px 高、不画描边，悬停或聚焦才出现一条 2px 中性横线。 */
 .resize-handle-horizontal {
   flex: 0 0 12px;
   min-width: 0;
@@ -807,8 +807,8 @@ h2 {
 .preview-panel {
   min-width: 0;
 }
-/* 模板栏是内容族：整栏是一块浮起的内容卡片（提案 §3.3 与 §5.2）。
-   卡片边缘本身就是与编辑面的分界，因此不再画右描边；右内边距留 2px 是因为
+/* 模板栏是内容族：整栏是一块浮起的内容卡片。
+   卡片边缘本身就是与编辑面的分界，因此不画右描边；右内边距留 2px 是因为
    旁边的 8px 分隔条本身已经是空的，再叠 8px 会读成一条 16px 的沟。 */
 .template-sidebar {
   min-height: 0;
@@ -873,7 +873,7 @@ h2 {
   height: var(--control-xs);
   border-radius: var(--r-row);
 }
-/* 标题右侧的等宽计数：内容族的“无衬线标题 + 等宽计数”分工（提案 §3.3） */
+/* 标题右侧的等宽计数：内容族的“无衬线标题 + 等宽计数”分工 */
 .template-sidebar-count {
   margin-left: var(--space-2);
   color: var(--color-muted);
@@ -993,7 +993,7 @@ h2 {
   margin-block-end: 0;
 }
 /* 模板行：内容行高度 34、圆角 8；选中态是强调浮层 + 2px 圆头竖条，
-   与仪器族的 3px 斜切竖条是有意的差异（提案 §9 裁决 G）。 */
+   与仪器族的 3px 斜切竖条是有意的差异。 */
 .template-row {
   position: relative;
   display: grid;
@@ -1058,8 +1058,8 @@ h2 {
   color: var(--color-text);
   background: var(--state-hover);
 }
-/* 模板操作菜单：内容族浮层，圆角 10 + 投影；主题弹层并入内容族后同为圆角 + 投影，
-   两者的差别只在半径（10 与 12）与服务对象（提案 §3.3 细则 1 与 §5.4）。 */
+/* 模板操作菜单：内容族浮层，圆角 10 + 投影；主题弹层同为圆角 + 投影，
+   两者的差别只在半径（10 与 12）与服务对象。 */
 .template-action-menu {
   position: fixed;
   z-index: var(--z-overlay);
@@ -1113,7 +1113,7 @@ h2 {
 .template-action-menu button:focus-visible {
   outline-offset: -2px;
 }
-/* 危险项只用危险色文字与图标，不给红底（提案 §5.4） */
+/* 危险项只用危险色文字与图标，不给红底 */
 .template-action-menu button.danger,
 .template-action-menu button.danger svg {
   color: var(--color-danger);
@@ -1151,7 +1151,7 @@ h2 {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-1) var(--space-3);
 }
-/* 输入框属“浮层轮廓”一类：静止是结构线，:focus 才转强调色并加 2px 焦点环（提案 §5.3）。
+/* 输入框属“浮层轮廓”一类：静止是结构线，:focus 才转强调色并加 2px 焦点环。
    用 :focus 而不是 :focus-visible——文本输入框获得焦点就该看得见。 */
 .template-rename input {
   min-width: 0;
@@ -1261,14 +1261,14 @@ h2 {
   font-size: var(--text-base);
   cursor: pointer;
   touch-action: manipulation;
-  /* 90ms 的按下回弹：只改绘制，不改热区与排版（docs/ui-icon-system.md §10.1） */
+  /* 90ms 的按下回弹：只改绘制，不改热区与排版 */
   transition:
     background-color var(--dur-1) ease,
     color var(--dur-1) ease,
     transform var(--legacy-dur-90) var(--ease);
 }
 /* 触控目标补到面板头高度：视觉高度 26px，热区用伪元素外扩到 40px，
-   不撑高 40px 的面板头（docs/ui-icon-system.md §4.1）。 */
+   不撑高 40px 的面板头。 */
 .copy-button::after {
   content: '';
   position: absolute;
@@ -1288,9 +1288,8 @@ h2 {
 .copy-button.is-copied {
   color: var(--color-success);
 }
-/* 两条图标常驻 DOM、叠在同一格：换图标时有可动画对象，且不产生位移
-   （docs/ui-icon-system.md §10.2）。状态规则必须写在静止规则之后——
-   两处选择器同特异性时后写的胜出。 */
+/* 两条图标常驻 DOM、叠在同一格：换图标时有可动画对象，且不产生位移。
+   状态规则必须写在静止规则之后——两处选择器同特异性时后写的胜出。 */
 .copy-icon {
   position: relative;
   display: inline-grid;
@@ -1316,7 +1315,7 @@ h2 {
 }
 /* 两种状态的文字叠在同一格里：按钮宽度由较长的一条决定，
    「复制 BBCode」与「已复制」互相切换时不产生位移。
-   渐出时长取当前可见那条的 transition，渐入取即将出现那条的（§10.2）。 */
+   渐出时长取当前可见那条的 transition，渐入取即将出现那条的。 */
 .copy-button-label {
   display: inline-grid;
   justify-items: center;
@@ -1420,7 +1419,7 @@ h2 {
   border-radius: var(--radius-pill);
   background: currentcolor;
 }
-/* 已保存只用一个成功色圆点加正文色文字，不再把整段文字涂成彩色（提案 §5.8）。 */
+/* 已保存只用一个成功色圆点加正文色文字。 */
 .save-status--saved {
   color: var(--color-muted);
 }
@@ -1445,7 +1444,7 @@ h2 {
   min-height: 0;
 }
 .panel-header {
-  /* 面板头与顶栏一起并入框架面：下边界改由编辑面/画布的面差承担，不再画色带与描边。
+  /* 面板头与顶栏同面：下边界由编辑面/画布的面差承担，不画色带与描边。
      高度按 --panel-head-h 40px；窄屏的模板抽屉入口仍是 44 的触控方块，会把它撑到 44。 */
   min-height: var(--panel-head-h);
   padding: 0 14px;
@@ -1456,7 +1455,7 @@ h2 {
 .panel-header > span:first-child {
   font-weight: 600;
 }
-/* 开合把手贴在顶栏右下角，落在这一侧时预览面板头给它让出 70px（提案 §5.1）。 */
+/* 开合把手贴在顶栏右下角，落在这一侧时预览面板头给它让出 70px。 */
 .preview-panel > .panel-header {
   padding-right: 70px;
 }
@@ -1470,8 +1469,8 @@ h2 {
   overflow: hidden;
   background: var(--shell-inset-background);
 }
-/* 工具栏与编辑正文合并为同一块 --surface-inset：不再画下描边与独立底色，
-   分隔交给 1×16 斜线；36×36 按钮加上下各 4px 正好落在 --toolbar-h 44 里（提案 §5.6）。 */
+/* 工具栏与编辑正文共用同一块 --surface-inset：不画下描边与独立底色，
+   分隔交给 1×16 斜线；36×36 按钮加上下各 4px 正好落在 --toolbar-h 44 里。 */
 .editor-toolbar-shell {
   position: relative;
   flex: 0 0 auto;
@@ -1489,7 +1488,7 @@ h2 {
   overflow-y: hidden;
   padding: 0 var(--space-4);
   /* 44px 的条里再挤一条横向滚动条会把按钮压成贴顶；“还有内容”由右侧遮罩与溢出按钮提示，
-     触控板横滑、Shift + 滚轮和溢出浮层仍然可达全部按钮（提案 §9 批次 1b 裁决）。 */
+     触控板横滑、Shift + 滚轮和溢出浮层仍然可达全部按钮。 */
   scrollbar-width: none;
   background: var(--surface-inset);
 }
@@ -1546,7 +1545,7 @@ h2 {
   color: var(--color-background);
 }
 /* 遮罩用 color-mix 从同一块面派生到 0% 透明：直接写 transparent 会让插值经过纯黑，
-   深色底上留下一条灰带（提案 §5.6）。 */
+   深色底上留下一条灰带。 */
 .editor-toolbar-fade {
   position: absolute;
   top: 0;
@@ -1678,7 +1677,7 @@ h2 {
   text-align: left;
 }
 /* 面板并入编辑面：与 .editor-host 同一块 --surface-inset，不画上描边，
-   边界交给顶部 12px 的抓取条（提案 §5.9 与 §9 批次 4 裁决）。 */
+   边界交给顶部 12px 的抓取条。 */
 .diagnostic-panel {
   flex: 0 0 auto;
   display: grid;
@@ -1717,8 +1716,8 @@ h2 {
   overflow: auto;
   padding: var(--space-1) var(--space-5) var(--space-4);
 }
-/* 诊断行是仪器族列表行：38px、直角；悬停按 §6.3 用中性浮层，
-   选中改危险色浮层——错误行用强调色会被读成“被选中”（提案 §9 批次 4 裁决）。 */
+/* 诊断行是仪器族列表行：38px、直角；悬停用中性浮层，
+   选中用危险色浮层——错误行用强调色会被读成“被选中”。 */
 .diagnostic-row {
   position: relative;
   display: grid;
@@ -1779,8 +1778,8 @@ h2 {
 .editor-host .cm-scroller {
   overflow: auto;
 }
-/* 行号栏并入编辑面：不画右描边，底色与正文同面；当前行只在行号上转正文色，
-   行号栏自身不再铺一块底色（提案 §5.7 与 §9 批次 4 裁决）。 */
+/* 行号栏与编辑正文同面：不画右描边，底色一致；当前行只在行号上转正文色，
+   行号栏自身不铺底色。 */
 .editor-host .cm-gutters {
   border-right: 0;
   color: var(--color-muted);
@@ -2075,9 +2074,8 @@ h2 {
 .preview-placeholder {
   margin: 0;
 }
-/* 主题弹层：内容族浮层——12 圆角 + 投影，与模板栏卡片同族（提案 §9 批次 4b）。
-   它曾经是“直角 + 无投影”的仪器族浮层；项目所有者裁定它本质是一组“选一项”的
-   卡片列表，所以整块换成模板栏那套规格，与帮助面板的直角无投影不再一致。 */
+/* 主题弹层：内容族浮层——12 圆角 + 投影，与模板栏卡片同族。
+   它本质是一组“选一项”的卡片列表，因此取模板栏那套规格，与帮助面板的直角无投影不同。 */
 .theme-popover {
   position: fixed;
   top: var(--theme-popover-top, 80px);
@@ -2147,8 +2145,8 @@ h2 {
   cursor: pointer;
   transition: background var(--dur-1) ease;
 }
-/* 选中指示条是内容族的圆头竖条：2px + 胶囊半径，与模板行同源（提案 §9 批次 4b）。
-   主题弹层不再使用斜切母题，斜切条只留在帮助面板行。 */
+/* 选中指示条是内容族的圆头竖条：2px + 胶囊半径，与模板行同源。
+   斜切条只留在帮助面板行。 */
 .theme-option::before {
   position: absolute;
   inset: var(--space-2) auto var(--space-2) 0;
@@ -2162,7 +2160,7 @@ h2 {
   background: var(--state-hover);
 }
 /* 悬停时次级文字升到正文色：9% 中性浮层会把 12px 的次级文字压到 4.5:1 以下
-   （三条主题实测 3.62–4.79:1），这也是提案 §6.3 对悬停的定义。 */
+   （三条主题实测 3.62–4.79:1）。 */
 .theme-option:hover .theme-option-description {
   color: var(--color-text);
 }
@@ -2188,8 +2186,8 @@ h2 {
   font-size: var(--text-md);
   font-weight: 600;
 }
-/* 说明最多两行，不再用单行省略号截断：宁可多占一行，也不要在词语中间砍出省略号
-   （提案 §9 批次 4b）。窄屏弹层收窄后由两行截断兜底。 */
+/* 说明最多两行：宁可多占一行，也不要在词语中间砍出省略号。
+   窄屏弹层收窄后由两行截断兜底。 */
 .theme-option-description {
   display: -webkit-box;
   overflow: hidden;
@@ -2207,7 +2205,7 @@ h2 {
   width: 40px;
   height: 22px;
   overflow: hidden;
-  /* 描边向内画：外尺寸仍是 40×22，浅色主题下不与弹层底融合，也不改外框（提案 §5.12） */
+  /* 描边向内画：外尺寸仍是 40×22，浅色主题下不与弹层底融合，也不改外框 */
   box-shadow: inset 0 0 0 1px var(--line-structure);
   border-radius: var(--r-row);
 }
@@ -2244,8 +2242,8 @@ h2 {
   line-height: 1.4;
 }
 
-/* 窄屏模板抽屉是内容族：抽屉本身就是一块浮起的内容卡片（提案 §5.13）。
-   右侧上下圆角 12，底色并入 --surface-content；不再画右描边，边界由卡片边缘与投影承担。
+/* 窄屏模板抽屉是内容族：抽屉本身就是一块浮起的内容卡片。
+   右侧上下圆角 12，底色取 --surface-content；不画右描边，边界由卡片边缘与投影承担。
    遮罩保持 --z-panel：模板操作菜单已在 --z-overlay，抽屉抬到同一档会让层级交给 DOM 顺序。 */
 .template-drawer-backdrop {
   position: fixed;
@@ -2265,7 +2263,7 @@ h2 {
   border-radius: 0 var(--r-card) var(--r-card) 0;
   background: var(--surface-content);
   /* 内容族里唯一不套 --elevation-content 的投影：左侧抽屉需要侧向偏移，
-     向下偏移的浮层投影在这里读不出方向（提案 §9 批次 3 裁决）。 */
+     向下偏移的浮层投影在这里读不出方向。 */
   box-shadow: var(--shadow-drawer);
 }
 .template-drawer-header {
@@ -2367,7 +2365,7 @@ h2 {
 }
 .template-drawer-enter-from .template-drawer,
 .template-drawer-leave-to .template-drawer {
-  /* 入场位移由 24px 收到 16px：卡片比面板轻，横向滑动不需要那么远（提案 §5.13） */
+  /* 入场位移 16px：卡片比面板轻，横向滑动不需要那么远 */
   transform: translateX(calc(var(--space-6) * -1));
 }
 
@@ -2386,7 +2384,7 @@ h2 {
     grid-template-columns: 1fr;
     overflow-y: auto;
   }
-  /* 单列时开合把手落在编辑器面板头这一侧，同样预留 70px（不再用 calc(20vw + 16px) 补偿）。 */
+  /* 单列时开合把手落在编辑器面板头这一侧，同样预留 70px。 */
   .editor-panel > .panel-header {
     padding-right: 70px;
   }
@@ -2413,7 +2411,7 @@ h2 {
   .preview-panel {
     border-top: 1px solid var(--color-divider-strong);
   }
-  /* 窄屏允许换行，高度收到 44：两行内容 + 24px 胶囊仍然放得下（提案 §5.14）。 */
+  /* 窄屏允许换行，高度 44px：两行内容 + 24px 胶囊仍然放得下。 */
   .status-bar {
     align-items: center;
     flex-wrap: wrap;
@@ -2474,7 +2472,7 @@ h2 {
     transition-duration: var(--dur-1);
   }
 
-  /* 复制按钮的按下回弹与对勾弹出（docs/ui-icon-system.md §10.2）：
+  /* 复制按钮的按下回弹与对勾弹出：
      反馈照常出现，只是不再运动。 */
   .copy-button,
   .copy-button .copy-icon > svg,
@@ -2486,8 +2484,8 @@ h2 {
   }
 }
 
-/* 帮助面板：仪器族浮层——直角、无投影，只留左外轮廓一条线（提案 §5.11）。
-   头部、搜索区、列表、详情之间不再画分隔线，面差与留白承担分区（批次 2 的先例）。 */
+/* 帮助面板：仪器族浮层——直角、无投影，只留左外轮廓一条线。
+   头部、搜索区、列表、详情之间不画分隔线，面差与留白承担分区。 */
 .help-panel {
   position: fixed;
   top: var(--help-top, var(--header-expanded-height, 56px));
@@ -2545,7 +2543,7 @@ h2 {
   font-weight: 600;
 }
 
-/* 滚动区原来的“参考说明”块并进头部，只留一行 11px 说明（提案 §5.11） */
+/* 参考说明并入面板头部，只留一行 11px 说明 */
 .help-panel-heading p {
   margin: var(--space-1) 0 0;
   color: var(--color-muted);
@@ -2592,7 +2590,7 @@ h2 {
 }
 
 /* 输入框属“浮层轮廓”一类：静止是结构线，获得焦点才转强调色并加 2px 焦点环，
-   与模板重命名输入框一致（提案 §6.2） */
+   与模板重命名输入框一致。 */
 .help-panel-search input {
   width: 100%;
   min-height: var(--control-md);
@@ -2624,7 +2622,7 @@ h2 {
 }
 
 /* 分类是胶囊：静止就是带中性浮层底的已成形控件，选中换成强调浮层。
-   文字统一取正文色——次级色在中性底上只有 3.89–4.53:1，压不过 4.5:1（提案 §9 批次 3 裁决）；
+   文字统一取正文色——次级色在中性底上只有 3.89–4.53:1，压不过 4.5:1；
    选中态靠浮层色相与 600 字重两处区分，不靠颜色单独表达。 */
 .help-panel-filter {
   min-height: var(--control-xs);
@@ -2657,8 +2655,8 @@ h2 {
   padding: 0 var(--space-5) var(--space-7);
 }
 
-/* 微标签是仪器族的第二声音：10.5px、600、汉字 0.2em 字距（提案 §6.1）。
-   列表小标题、详情小标题、计数统一取这一档，不再另立 10px / 0.06em。 */
+/* 微标签是仪器族的第二声音：10.5px、600、汉字 0.2em 字距。
+   列表小标题、详情小标题、计数统一取这一档，不另立 10px / 0.06em。 */
 .help-panel-section-heading {
   display: flex;
   align-items: baseline;
@@ -2689,7 +2687,7 @@ h2 {
   list-style: none;
 }
 
-/* 行高 38、无行间描边；选中是强调浮层 + 3px 斜切竖条（提案 §5.11 与 §3.1） */
+/* 行高 38、无行间描边；选中是强调浮层 + 3px 斜切竖条 */
 .help-panel-entry {
   position: relative;
   display: grid;
@@ -2721,7 +2719,7 @@ h2 {
 }
 
 /* 悬停与选中都把次级文字升到正文色：浮层会把 11px 的说明行压到 4.5:1 以下
-   （9% 中性底 4.32:1，强调底 4.20–4.69:1），这也是提案 §6.3 对悬停的定义。 */
+   （9% 中性底 4.32:1，强调底 4.20–4.69:1）。 */
 .help-panel-entry:hover .help-panel-entry-copy span,
 .help-panel-entry.is-active .help-panel-entry-copy span {
   color: var(--color-text);
@@ -2779,7 +2777,7 @@ h2 {
   transition-duration: var(--dur-3);
 }
 
-/* 空状态（提案 §5.16 与 §9 批次 4a 裁决）：仪器族——斜切节奏线 + 微标签 + 一句可执行解释。
+/* 空状态：仪器族——斜切节奏线 + 微标签 + 一句可执行解释。
    不放图标、不放动作按钮、不画描边，零新增色值；左对齐与列表共用同一阅读起点。 */
 .help-panel-empty {
   display: grid;
@@ -2813,7 +2811,7 @@ h2 {
   line-height: 1.6;
 }
 
-/* 详情块是内嵌面：没有分隔线，用 --surface-inset 与面板面分开（提案 §5.11） */
+/* 详情块是内嵌面：没有分隔线，用 --surface-inset 与面板面分开 */
 .help-panel-detail {
   margin: 0 0 var(--space-2);
   padding: var(--space-4) var(--space-5) var(--space-5);
@@ -2901,7 +2899,7 @@ h2 {
   letter-spacing: var(--tracking-label);
 }
 
-/* 写法框在详情的内嵌面上，不再自己铺一层面：只靠 1px 轮廓界定（提案 §6.2 第 2 类线） */
+/* 写法框在详情的内嵌面上，不自己铺一层面：只靠 1px 轮廓界定 */
 .help-panel-syntax {
   margin: 0;
   padding: var(--space-3) var(--space-4);
@@ -2975,7 +2973,7 @@ h2 {
   margin-top: var(--space-5);
 }
 
-/* 复制示例：仪器族主按钮，28 高、直角、无描边，悬停只加中性浮层（提案 §5.11） */
+/* 复制示例：仪器族主按钮，28 高、直角、无描边，悬停只加中性浮层 */
 .help-panel-copy button {
   display: inline-flex;
   min-height: var(--control-sm);

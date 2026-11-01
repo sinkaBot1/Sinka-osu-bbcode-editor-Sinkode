@@ -14,7 +14,7 @@
 //      不得写 ms/s 时长（0ms、0s 除外），不得写 cubic-bezier()；
 //   2. 引用到的 var(--x) 必须在 theme.css 或 scale.css 中声明，或由脚本/组件在运行时写入
 //      （运行时令牌从 src 下的 .ts/.vue 里采集），防止令牌名手误；
-//   3. --legacy-* 是批次 0 的迁移期占位：已无引用的占位给出提示，下一步就该删掉那一行。
+//   3. --legacy-* 是迁移期占位：已无引用的占位给出提示，这类行应连行删除。
 //
 // 只做静态文本检查，不联网、不启动浏览器。
 
@@ -153,7 +153,7 @@ function checkLegacyUsage(referenced) {
   const css = stripComments(readFileSync(scaleFile, 'utf8'))
   for (const match of css.matchAll(/(--legacy-[a-z0-9-]+)\s*:/g)) {
     if (referenced.has(match[1])) continue
-    notice(scaleFile, `${match[1]} 已无引用：后续批次把用量换成阶梯令牌后应连行删除`)
+    notice(scaleFile, `${match[1]} 已无引用：占位应连行删除`)
   }
 }
 

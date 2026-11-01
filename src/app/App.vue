@@ -362,7 +362,7 @@ function endResize() {
 
 // ---- 编辑器工具栏 ----
 // 17 个动作只在这里定义一次，工具栏与「被裁按钮」浮层共用同一份来源，
-// 避免两处各写一遍后出现漏项、顺序漂移或标签不一致（提案 §5.6）。
+// 避免两处各写一遍后出现漏项、顺序漂移或标签不一致。
 type ToolbarAction = {
   key: string
   label: string
@@ -855,7 +855,7 @@ function focusDiagnosticLine(item: (typeof diagnostics.value)[number]) {
 }
 
 function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
-  // 紧凑写法：诊断行只有 38px、位置列 142–190px，逗号版会被挤成省略号（提案 §5.9）。
+  // 紧凑写法：诊断行只有 38px、位置列 142–190px，逗号版会被挤成省略号。
   return `第 ${item.line} 行 · 第 ${item.column} 列`
 }
 </script>

@@ -18,7 +18,7 @@
 | 图片、YouTube、音频 | `Image`、`SquarePlay`、`Music2` | 编辑器工具栏 |
 | 代码、引用、列表、剧透 | `Code2`、`Quote`、`List`、`EyeOff` | 编辑器工具栏 |
 | 复制 BBCode | `Copy`，成功时 `Check` | 编辑器面板头部 |
-| 模板、编辑、预览、帮助、主题 | `PanelLeft`、`Code2`、`Eye`、`CircleHelp`、`Moon` | 模板栏、移动端、顶栏 |
+| 模板、编辑、预览、帮助、主题 | `PanelLeft`、`Code2`、`Eye`、`CircleHelp`、`Moon` | 模板栏、窄屏、顶栏 |
 | 展开、关闭、菜单 | `ChevronUp`、`X`、`Menu` | 顶栏、面板、窄屏 |
 | 主题已选择、错误、已保存 | `Check`、`CircleAlert`、`CheckCircle2` | 主题菜单、诊断、状态反馈 |
 | 新建、重命名、复制、删除、恢复 | `Plus`、`Pencil`、`Copy`、`Trash2`、`RotateCcw` | 模板操作 |

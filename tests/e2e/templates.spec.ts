@@ -29,10 +29,10 @@ test.describe('模板、保存与复制', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     const editor = await openEmptyEditor(page)
 
-    // 本次改动的规则：悬停不得用强调色"描边"（rgb(98, 181, 255) = --color-accent），
+    // 规则：悬停不得用强调色"描边"（rgb(98, 181, 255) = --color-accent），
     // 静止为中性描边的控件在悬停时必须保持中性。
-    // 说明：模板行的浅蓝"背景"是这一处的既有语言（表示当前行），不属于本次消除的"蓝框"；
-    // 错误诊断行已改中性悬停、危险色选中（提案 §9 批次 4 裁决），这里只守它的描边中性。
+    // 模板行的浅蓝"背景"表示当前行，不算描边；错误诊断行是中性悬停、危险色选中，
+    // 这里只守它的描边中性。
     const accentBorder = 'rgb(98, 181, 255)'
     // 中性色来自 rgb(215, 222, 232) 与 --color-border #353c47 这类三通道接近的取值，
     // 通道差不超过 17；强调色蓝 #62b5ff 的差为 157，足以把蓝色描边挡在外面。
@@ -82,7 +82,7 @@ test.describe('模板、保存与复制', () => {
     // 复制按钮只在该条目展开后的详情里渲染
     await page.locator('.help-panel-entry').first().click()
     await expectNeutralHover('.help-panel-copy button', '帮助面板复制示例')
-    // 选中态不再用强调色描边：靠 --color-selection-background 浮层与 600 字重表达，
+    // 选中态靠 --color-selection-background 浮层与 600 字重表达，不描强调色边；
     // 文字取正文色（强调文字压在 12% 强调浮层上只有 4.27:1，见 theme.md §6）。
     const activeFilter = page.locator('.help-panel-filter.is-active')
     await expect(activeFilter).toHaveCSS('border-top-width', '0px')
@@ -138,7 +138,7 @@ test.describe('模板、保存与复制', () => {
     const createButton = page.getByTitle('新建模板')
     await expect(createButton).toBeVisible()
 
-    // 模板栏的标题行按钮归内容族（提案 §5.2）：24×24、圆角 8、无描边，
+    // 模板栏的标题行按钮归内容族：24×24、圆角 8、无描边，
     // 悬停只加中性浮层，不引入强调色边框。
     await createButton.hover()
     const hoverColors = await createButton.evaluate((element) => {
@@ -202,7 +202,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.getByTitle('恢复默认示例')).toContainText('恢复默认示例')
   })
 
-  test('模板卡片、行与浮层按内容族规格渲染（批次 2）', async ({ page }) => {
+  test('模板卡片、行与浮层按内容族规格渲染', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await openEditor(page)
 
@@ -322,7 +322,7 @@ test.describe('模板、保存与复制', () => {
     await openEditor(page)
     const resizeHandle = page.getByRole('separator', { name: '调整模板栏宽度' })
     const more = page.getByRole('button', { name: '更多操作：默认示例' })
-    // 模板卡片四周留了边距（提案 §5.2），卡片可见宽度因此比栅格列宽小 10px。
+    // 模板卡片四周留了边距，卡片可见宽度因此比栅格列宽小 10px。
     // 拖拽手柄控制的是栅格列宽，所以拖动距离与断言都按 --template-width 计算。
     const columnWidth = () =>
       page.evaluate(() =>
@@ -650,9 +650,8 @@ test.describe('模板、保存与复制', () => {
     const button = page.getByRole('button', { name: '复制 BBCode' })
     await expect(button).toBeVisible()
 
-    // 静止：不描边、不铺底。它是这个面板头的主行动，文字取 --color-text 而不是次级色
-    // （提案 §5.5 与第 9 节裁决 E；改造前是 1px --color-border 描边 + --color-surface 实心底，
-    //   而实心底与面板头底完全相同 1.00:1、描边只有 1.40:1，那个"框"在视觉上并不成立）
+    // 静止：不描边、不铺底。它是这个面板头的主行动，文字取 --color-text 而不是次级色：
+    // 实心底与面板头底相同（1.00:1）、描边只有 1.40:1，框在视觉上并不成立。
     const resting = await button.evaluate((element) => {
       const style = getComputedStyle(element)
       return {
@@ -729,7 +728,7 @@ test.describe('模板、保存与复制', () => {
       }
     })
     expect(failureVisual.background).toBe('rgb(112, 58, 48)')
-    // 仪器族浮层取直角（提案 §5.16）
+    // 仪器族浮层取直角
     expect(failureVisual.radius).toBe('0px')
     expect(failureVisual.rightGap).toBeLessThanOrEqual(1)
     await expect(button).not.toHaveClass(/is-copied/)
@@ -963,7 +962,7 @@ for (const viewport of [
     expect(layout.width).toBeLessThanOrEqual(viewport.width)
     expect(layout.fits).toBe(true)
     expect(layout.transition).toContain('cubic-bezier')
-    // 批次 3：抽屉是内容族卡片——右侧 12 圆角、不画右描边、保留侧向投影，
+    // 抽屉是内容族卡片——右侧 12 圆角、不画右描边、保留侧向投影，
     // 头部 56 且不铺色带，关闭按钮视觉 24、命中区仍是 44。
     expect(layout.radius).toBe('12px')
     expect(layout.borderRight).toBe('0px')

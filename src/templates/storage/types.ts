@@ -42,7 +42,7 @@ export const THEMES: readonly ThemeOption[] = [
 
 export const DEFAULT_THEME_ID = 'darkode'
 
-// 主题切换动效的可配置时长。规则与取值理由见 docs/theme.md §4.3。
+// 主题切换动效的可配置时长。规则与取值理由见 docs/theme.md §4。
 export const DEFAULT_THEME_REVEAL_DURATION = 900
 export const MIN_THEME_REVEAL_DURATION = 0
 export const MAX_THEME_REVEAL_DURATION = 5000

@@ -75,7 +75,7 @@ onBeforeUnmount(clearTimer)
       @click="copySource"
     >
       <!-- 两条图标常驻 DOM、叠在同一格：v-if 换 DOM 会让非活动那条不在渲染树里，
-           没有可动画对象（docs/ui-icon-system.md §10）。显隐由 .is-copied 驱动。 -->
+           没有可动画对象。显隐由 .is-copied 驱动。 -->
       <span class="copy-icon" aria-hidden="true">
         <Copy :size="14" :stroke-width="2" />
         <Check :size="14" :stroke-width="2" />

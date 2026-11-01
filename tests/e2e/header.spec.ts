@@ -3,7 +3,7 @@ import { installNetworkIsolation } from './helpers'
 
 const osProfileUrl = 'https://osu.ppy.sh/users/21614712'
 // 这个链接指向所有者本人的 osu! 主页，其 osu! 用户名是 SINKA0；
-// Sinkode 是产品名，两者不可互换（见 docs/ui-icon-system.md §6.2 的名字口径）。
+// Sinkode 是产品名，两者不可互换。
 const OS_PROFILE_LINK_NAME = '在 osu! 打开 SINKA0 的主页（新标签页）'
 const OS_PROFILE_TITLE = '在 osu! 打开 SINKA0 的主页'
 const repositoryUrl = 'https://github.com/sinkaBot1/Sinka-osu-bbcode-editor-Sinkode'
@@ -69,8 +69,7 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   await expect(selectedOption).toHaveClass(/is-selected/)
   await expect(selectedOption.locator('.theme-option-check')).toBeVisible()
   await expect(themeOptions.filter({ hasText: 'Claucode' })).not.toHaveClass(/is-selected/)
-  // 色板显示各选项自己的配色，与当前生效主题无关（见 docs/theme.md §3）：
-  // 修复前这里三格引用的是"当前主题"的令牌，两个选项会长得一模一样。
+  // 色板显示各选项自己的配色，与当前生效主题无关（见 docs/theme.md §3）。
   const swatches = await dialog.evaluate((element) => {
     const read = (id: string) =>
       [...element.querySelectorAll(`.theme-preview[data-theme-sample="${id}"] span`)].map(
@@ -109,13 +108,13 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   })
   expect(optionStyle.borderStyle).toBe('none')
   expect(optionStyle.boxShadow).toBe('none')
-  // 批次 4b：选项并入内容族——8 圆角行、44 高的触控目标、2px 圆头竖条（不再斜切）
+  // 选项取内容族规格：8 圆角行、44 高的触控目标、2px 圆头竖条
   expect(optionStyle.radius).toBe('8px')
   expect(optionStyle.minHeight).toBe('44px')
   expect(optionStyle.barWidth).toBe('2px')
   expect(optionStyle.barRadius).toBe('999px')
   expect(optionStyle.barTransform).toBe('none')
-  // 说明文字换行显示，不再用省略号截断
+  // 说明文字换行显示，不用省略号截断
   expect(optionStyle.descriptionWhiteSpace).toBe('normal')
   expect(optionStyle.descriptionClipped).toBe(false)
   // 弹层是内容族浮层：12 圆角 + 投影，层级归到 --z-overlay（30）
@@ -139,7 +138,7 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   expect(popoverStyle.shadow).not.toBe('none')
   expect(popoverStyle.zIndex).toBe('30')
   expect(popoverStyle.padding).toBe('12px')
-  // 批次 4b：加宽到 360，三条主题说明才能在单行内读完
+  // 宽 360，三条主题说明才能在单行内读完
   expect(popoverStyle.width).toBe('360px')
   // 关闭按钮收到 24px，与模板栏标题行动作同规格
   expect(popoverStyle.closeWidth).toBe('24px')
@@ -489,7 +488,7 @@ for (const width of [320, 1440]) {
         easing: getComputedStyle(element.parentElement!).transitionTimingFunction,
       }
     })
-    // 把手贴在顶栏右下角：右边缘距视口右侧 16px，不再压在任何面板头上（提案 §5.1）。
+    // 把手贴在顶栏右下角：右边缘距视口右侧 16px，不压在任何面板头上。
     expect(width - placement.right).toBeCloseTo(16, 0)
     expect(placement.centerX).toBeCloseTo(width - 39, 0)
     expect(placement.width).toBeGreaterThanOrEqual(44)
@@ -619,7 +618,7 @@ test('极窄屏顶栏保持单行 56px，收起后再展开高度不变', async 
     .poll(() => dock.evaluate((element) => element.getBoundingClientRect().height))
     .toBeLessThan(1)
 
-  // 收起期间切到极窄屏：顶栏不换行，展开高度仍是固定的一档（提案 §5.1）
+  // 收起期间切到极窄屏：顶栏不换行，展开高度仍是固定的一档
   await page.setViewportSize({ width: 320, height: 900 })
   await expect
     .poll(() =>

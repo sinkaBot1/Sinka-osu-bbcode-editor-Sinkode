@@ -1,6 +1,6 @@
 # 兼容性基准与许可证隔离
 
-> 本文记录当前锁定基准、可观察行为、预览测量和兼容差异。待裁决项见 §6.3、§6.4 与[路线与已知限制](roadmap.md)。
+> 本文记录当前锁定基准、可观察行为、预览测量和兼容差异。当前保持现状的差异见 §6.3、§6.4；其他已知限制见[范围与已知限制](roadmap.md)。
 > 基准提交：`61b0a41431395f86ff68fa12744f3266448ec885`
 > 上游许可证：AGPL-3.0（osu-web）；本项目许可证：MIT
 > 更换基准提交时，更新证据索引并重跑全部固定样例。
@@ -71,7 +71,7 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 
 ### 4.2 当前实现
 
-正文最大宽度为 **890px**，由 `--osu-profile-content-max-width: 890px` 实现，并由[预览端到端测试](../tests/e2e/preview.spec.ts)锁定。测量使用本项目独立编写的最小等价页面，保留四级盒模型关系；在覆盖式滚动条环境中复核为 `890px`。传统占位滚动条环境仍需实际检查。
+正文最大宽度为 **890px**，由 `--osu-profile-content-max-width: 890px` 实现，并由[预览端到端测试](../tests/e2e/preview.spec.ts)锁定。测量使用本项目独立编写的最小等价页面，保留四级盒模型关系；在覆盖式滚动条环境中复核为 `890px`；传统占位滚动条环境未纳入本次测量。
 
 ### 4.3 图片与其他布局约束（源码证据）
 
@@ -90,7 +90,7 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 2. **color 参数识别**：颜色名称（如 `white`）与 6 位十六进制（大小写均可）可识别；**3 位十六进制（如 `#fff`）不被识别**，整段标签原样保留为文本（上游样例 `basic_color`）。
 3. **未知/未识别结构原样保留**：无法识别的标签与参数形态在输出中保持为可见文本（上游样例 `basic_color` 的 `#fff` 行、`img_empty`、`invalid_email_url`、`imagemap_invalid_content_escape`、`imagemap_multi_first_invalid`、`box_with_bbcode_title` 第三段）。
 4. **空 `[img]`**：`[img][/img]` 不产生图片元素，整体原样保留（`img_empty`）。
-5. **youtube 归一**：多种 URL 形态（watch、shorts、embed、youtu.be、裸 ID、移动端域名）都归一为 11 位视频 ID，输出为统一嵌入框架，固定携带 `rel=0`（`basic_youtube`）。
+5. **youtube 归一**：多种 URL 形态（watch、shorts、embed、youtu.be、`m.youtube.com`、裸 ID）都归一为 11 位视频 ID，输出为统一嵌入框架，固定携带 `rel=0`（`basic_youtube`）。
 6. **list 首行标题**：`[list]` 后紧跟的首行文本（非 `[*]` 开头）被提取为独立的标题列表元素，其余项正常渲染；无参 `[list]` 输出带 `unordered` 类的无序列表语义，`[list=1]` 输出有序列表语义（`basic_list`、`list_title`）。
 7. **code 换行剥离**：`[code]` 内容前后各一个换行会被剥离，内部换行保留，输出为 `pre` 语义（`code_with_surrounding_newlines`）；存储阶段 code 内容不解析内部 BBCode。
 8. **box 标题**：`box` 标题中可以包含 BBCode（会被解析）、可转义的 `[`（`\[`），标题缺少右括号时整段不解析（`box_with_bbcode_title`）；box 可嵌套（`box_nested`），`spoilerbox` 是无标题 box，默认标题文本为 "SPOILER"（`spoilerbox_with_surrounding_newlines`）。
@@ -136,7 +136,7 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 上表中的 `--hsl-*` 变量由 `resources/css/colors.less` 定义（`b1` 10%/40%、`b5` 10%/15%、`c1` 40%/100%、`c2` 40%/90%、`l1` 40%/80%，含义为饱和度/亮度；色相默认 osu! 粉 `333` 且可由用户自定义）。因此**数值型排版**（间距、字号、粗细、边框宽度）是稳定事实，**具体颜色**随色相设置变化。本项目预览对齐排版数值，配色按项目主题令牌设置（见 §6.4）。
 
 20. **折叠盒（`[box]`、`[spoilerbox]`）的上下间距来源**：上游折叠盒本体没有外边距规则——`resources/css/bem/bbcode-spoilerbox.less`（全文 52 行）只定义图标变量、展开状态、`__link` 的行内布局，以及 `__body` 的 `display: none`、`margin-top: 10px`、`padding-left: 20px`；`resources/css/bbcode.less`（全文 144 行）也没有盒体或相邻块的外边距规则。上游输出样例 `tests/Libraries/bbcode_examples/box_with_surrounding_newlines.html`、`spoilerbox_with_surrounding_newlines.html` 中，盒体 `<div>` 直接与相邻文本或 `<br />` 相接，没有额外间隔元素。可观察结论：折叠盒与相邻内容的间距全部来自换行元素——紧贴场景为 `0`，空行场景为 `1` 个行高（14px × 1.5 = 21px）。
-    本项目盒体外边距为 `0`，紧贴场景间距为 `0`、空行场景为 `21px`，由 `tests/e2e/typography.spec.ts` 锁定。收起标题的 `min-height: 24px` 为独立待复核项，见 §6.4。
+    本项目盒体外边距为 `0`，紧贴场景间距为 `0`、空行场景为 `21px`，由 `tests/e2e/typography.spec.ts` 锁定。收起标题的 `min-height: 24px` 与上游不同，见 §6.4。
 
 ## 6. 已知有意差异（本项目 ≠ 锁定上游）
 
@@ -185,14 +185,14 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 - 证据：[同视口测量测试](../tests/e2e/font-size-measure.spec.ts)、[预览测试](../tests/e2e/preview.spec.ts)。测试同时验证本地 Inter 字体已加载。
 - `inter-ui` 锁定 3.19.3，采用公开 OFL-1.1 包的 latin 子集，CJK 字形回退系统 `sans-serif`；素材来源遵守许可证隔离。
 
-### 6.3 列表结构待决项
+### 6.3 列表结构差异
 
-以下两项影响预览 DOM 结构，当前记录的可见样式一致。项目所有者尚未裁决，保持现状，暂不登记为 D 编号差异：
+以下两项影响预览 DOM 结构，当前记录的可见样式一致；保持现状，未登记为 D 编号差异：
 
 - **列表标题结构**：上游把 `[list]` 后紧跟的首行文本包成独立的无符号列表元素（`list_title.html` 证据），本项目当前把标题文本直接放在列表元素内部，不额外包裹。上游证据：`tests/Libraries/bbcode_examples/list_title.html`。
 - **无序列表元素类型**：上游无参 `[list]` 输出有序列表元素并附加 `unordered` 类，再由样式表改为圆点（`resources/css/bbcode.less` 的 `.unordered { list-style-type: disc }`）；本项目输出语义化的无序列表元素，视觉一致但元素类型不同（屏幕阅读器语义因此更准确）。上游的 disc 规则不区分嵌套深度，本项目预览同样对所有层级的 `ul` 固定 `list-style-type: disc`、有序列表固定 `decimal`（若缺少该显式规则，浏览器 UA 默认会把嵌套 `ul` 显示为空心圆 `circle`、更深层为 `square`，与上游视觉不符），由 `tests/e2e/typography.spec.ts` 的嵌套列表用例锁定。上游证据：`tests/Libraries/bbcode_examples/basic_list.html`、`resources/css/bbcode.less`。
 
-### 6.4 预览外观规则与待决项
+### 6.4 预览外观规则与当前差异
 
 预览颜色由主题令牌管理，取值见[主题与切换动效](theme.md)。本项目不复制 osu-web 的色板；预览颜色随 Darkode、Claucode 和 Hollowcode 主题使用各自的令牌。
 
@@ -205,12 +205,12 @@ osu-web 为 AGPL-3.0，本项目为 MIT。隔离原则：**只复现可观察行
 - 预览画布、卡片、引用、代码块、标题和媒体错误状态都使用 `--preview-*` 主题令牌。
 - 预览正文单独放开斜体合成（`font-synthesis: style`）：外壳在 `:root` 声明 `font-synthesis: none` 以避免界面字体使用合成字形，而该声明会继承进预览正文；中文字符回退到没有斜体字面的系统字体，禁止合成时 `[i]` 的中文部分会显示为正体。放开后拉丁字符仍使用 Inter 的真实斜体字面，只有中文字符由浏览器合成，与浏览器默认值本身允许合成的行为一致；对应[排版测试](../tests/e2e/typography.spec.ts)。
 
-待裁决的排版项：
+当前保持现状的排版项：
 
-- **块级外边距**：上游块级元素的上外边距为 `0`，下外边距取默认样式（引用块约 `20px`，`pre` 和列表约 `10px`）；本项目当前块级容器上下各 `16px`，列表和段落为 `12px`。空行与块组合的整体留白不同，裁决前保持现状。
+- **块级外边距**：上游块级元素的上外边距为 `0`，下外边距取默认样式（引用块约 `20px`，`pre` 和列表约 `10px`）；本项目当前块级容器上下各 `16px`，列表和段落为 `12px`。空行与块组合的整体留白不同，当前保持现状。
 - **列表标题结构与无序列表元素类型**：见 §6.3。
-- **折叠盒标题高度**：当前 `min-height: 24px`，上游没有该属性；裁决前保持现状。盒体外边距为 `0`，固定样例与排版测试见 §5 第 20 条。
-- **候选菜单阴影**：边界和可见度尚待复核，复核前保持现状。
+- **折叠盒标题高度**：当前 `min-height: 24px`，上游没有该属性；当前保持现状。盒体外边距为 `0`，固定样例与排版测试见 §5 第 20 条。
+- **候选菜单阴影**：尚无复核记录，当前保持现状。
 
 ## 7. 差异记录模板（新增差异时使用）
 
