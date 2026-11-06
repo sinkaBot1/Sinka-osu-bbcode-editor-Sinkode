@@ -23,6 +23,7 @@ import {
   PanelLeft,
   Quote,
   Redo2,
+  ScanLine,
   SquarePlay,
   Strikethrough,
   Underline,
@@ -34,13 +35,20 @@ import { EditorView, type ViewUpdate } from '@codemirror/view'
 import type { PreviewResult } from '../bbcode/compatibility'
 import { diagnoseDocument, type DiagnosticCode } from '../bbcode/diagnostics'
 import {
+  clearIndicatorLine,
   createEditorState,
   replaceEditorDocument,
+  setIndicatorLine,
   snapshotForView,
   tagAllowsValue,
 } from '../editor'
 import { wrapTag, undoCommand, redoCommand } from '../editor'
-import { PreviewPane, createPreviewScheduler } from '../preview'
+import {
+  IndicatorLine,
+  PreviewPane,
+  createPreviewScheduler,
+  shouldFollowIndicator,
+} from '../preview'
 import {
   CopyButton,
   SaveStatus,
@@ -101,12 +109,20 @@ const diagnosticTypeLabels: Record<DiagnosticCode, string> = {
   INVALID_URL: '链接错误',
 }
 const previewResult = ref<PreviewResult | null>(null)
+const indicatorLine = ref<number | null>(null)
+const indicatorAnnouncement = ref('')
+const indicatorToggleElement = ref<HTMLButtonElement | null>(null)
+let lastDocEditAt = 0
 const previewStatus = ref<'idle' | 'rendering' | 'ready'>('idle')
 const previewStatusText = computed(() => {
   if (previewStatus.value === 'rendering') return '渲染中...'
   if (previewStatus.value === 'ready') return '已更新'
   return '等待内容'
 })
+const indicatorAvailable = computed(() => Boolean(previewResult.value?.lineAnchors.length))
+const indicatorReadout = computed(() =>
+  indicatorLine.value === null ? '第 — 行' : `第 ${indicatorLine.value} 行`,
+)
 const activeTemplateName = computed(() => workspace.activeTemplate?.name ?? '未命名模板')
 const templateWidth = ref(210)
 const templateSidebarOpen = ref(true)
@@ -215,6 +231,7 @@ function handleEditorUpdate(update: ViewUpdate) {
     snapshot.value = snapshotForView(update.view)
   }
   if (update.docChanged) {
+    lastDocEditAt = Date.now()
     const source = update.state.doc.toString()
     previewScheduler.schedule(source)
     workspace.updateActiveContent(source)
@@ -228,9 +245,46 @@ function createEditorStateFor(doc: string) {
 function replaceDocument(source: string) {
   if (!editorView) return
   replaceEditorDocument(editorView, source, handleEditorUpdate)
+  // setState 会重建全部扩展，指示行字段随之归零；先清空会话行号，
+  // 等预览重新测量后由 IndicatorLine 发回新行号，避免把旧行号套到新文档。
+  indicatorLine.value = null
+  lastDocEditAt = 0
   snapshot.value = snapshotForView(editorView)
   previewScheduler.schedule(source)
   editorView.focus()
+}
+
+function handleIndicatorLine(payload: { line: number | null; follow: boolean; animate: boolean }) {
+  indicatorLine.value = payload.line
+  if (!editorView) return
+  if (payload.line === null) {
+    clearIndicatorLine(editorView)
+    return
+  }
+  // 输入后的短暂窗口内只更新高亮、不抢滚动，避免打字时编辑器被预览拖着走。
+  setIndicatorLine(editorView, payload.line, {
+    scroll: shouldFollowIndicator(payload.follow, lastDocEditAt),
+    animate: shouldFollowIndicator(payload.animate, lastDocEditAt),
+  })
+}
+
+function commitIndicatorRatio(value: number) {
+  void workspace.setIndicatorRatio(value)
+}
+
+async function toggleIndicator() {
+  if (!indicatorAvailable.value) return
+  const next = !workspace.indicatorEnabled
+  await workspace.setIndicatorEnabled(next)
+  indicatorAnnouncement.value = ''
+  if (!next) {
+    indicatorLine.value = null
+    if (editorView) clearIndicatorLine(editorView)
+  }
+}
+
+function focusIndicatorToggle() {
+  indicatorToggleElement.value?.focus()
 }
 
 async function handleSelectTemplate(id: string) {
@@ -822,6 +876,11 @@ onMounted(async () => {
     state: createEditorStateFor(activeTemplate?.content ?? ''),
     parent: editorHost.value,
   })
+  // 若恢复的开关在编辑器创建前已经测量出目标行，这里补一次高亮；
+  // 首次开启按规则只应用高亮、不自动滚动。
+  if (workspace.indicatorEnabled && indicatorLine.value !== null) {
+    setIndicatorLine(editorView, indicatorLine.value, { scroll: false, animate: false })
+  }
   snapshot.value = snapshotForView(editorView)
   previewScheduler.schedule(editorView.state.doc.toString())
   document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -1188,10 +1247,40 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
       <section class="preview-panel" aria-label="预览">
         <div class="panel-header">
           <span>预览</span>
-          <span class="panel-status">{{ previewStatusText }}</span>
+          <div class="panel-header-actions preview-header-actions">
+            <span class="panel-status">{{ previewStatusText }}</span>
+            <span v-if="workspace.indicatorEnabled" class="indicator-readout" aria-hidden="true">
+              {{ indicatorReadout }}
+            </span>
+            <button
+              ref="indicatorToggleElement"
+              class="panel-indicator-toggle"
+              type="button"
+              title="显示源码行指示线"
+              aria-label="显示源码行指示线"
+              :aria-pressed="workspace.indicatorEnabled"
+              :disabled="!indicatorAvailable"
+              @click="toggleIndicator"
+            >
+              <ScanLine :size="16" :stroke-width="2" aria-hidden="true" />
+            </button>
+          </div>
+          <span class="visually-hidden" role="status">{{ indicatorAnnouncement }}</span>
         </div>
-        <div class="preview-canvas">
-          <PreviewPane :result="previewResult" />
+        <div class="preview-stage">
+          <div class="preview-canvas">
+            <PreviewPane :result="previewResult" />
+          </div>
+          <IndicatorLine
+            v-if="workspace.indicatorEnabled"
+            :anchors="previewResult?.lineAnchors ?? []"
+            :line-count="snapshot.lineCount"
+            :ratio="workspace.indicatorRatio"
+            @commit:ratio="commitIndicatorRatio"
+            @line-change="handleIndicatorLine"
+            @announce="indicatorAnnouncement = $event"
+            @escape="focusIndicatorToggle"
+          />
         </div>
       </section>
     </main>

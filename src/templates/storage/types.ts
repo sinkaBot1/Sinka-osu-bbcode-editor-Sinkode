@@ -15,6 +15,10 @@ export interface WorkspaceSettings {
   selectedThemeId: string
   /** 主题切换圆揭示动画的时长（毫秒）。0 表示不做动画、直接切换。 */
   themeRevealDuration: number
+  /** 预览源码行指示线是否开启；默认关闭。 */
+  indicatorEnabled: boolean
+  /** 指示线在预览画布中的垂直比例，范围 0–1；默认 0.5（首次开启居中）。 */
+  indicatorRatio: number
   lastMobileView: MobileView | null
 }
 
@@ -54,6 +58,22 @@ export const MAX_THEME_REVEAL_DURATION = 5000
 export function normalizeThemeRevealDuration(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_THEME_REVEAL_DURATION
   return Math.min(MAX_THEME_REVEAL_DURATION, Math.max(MIN_THEME_REVEAL_DURATION, Math.round(value)))
+}
+
+// 源码行指示线的持久化默认值。旧数据没有这两个字段时必须回落到默认值，
+// 不能让 undefined 直接进入滑块或按钮状态。
+export const DEFAULT_INDICATOR_ENABLED = false
+export const DEFAULT_INDICATOR_RATIO = 0.5
+export const MIN_INDICATOR_RATIO = 0
+export const MAX_INDICATOR_RATIO = 1
+
+export function normalizeIndicatorEnabled(value: unknown): boolean {
+  return typeof value === 'boolean' ? value : DEFAULT_INDICATOR_ENABLED
+}
+
+export function normalizeIndicatorRatio(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_INDICATOR_RATIO
+  return Math.min(MAX_INDICATOR_RATIO, Math.max(MIN_INDICATOR_RATIO, value))
 }
 
 export interface WorkspaceRecord extends WorkspaceSettings {

@@ -20,7 +20,8 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 固定样例（数据） | `tests/fixtures/osu-web/` | 由单元测试与脚本读取 | 锁定 osu-web 行为的「输入 → 期望」证据 |
 | 单元测试 | `tests/unit/*.test.ts` | `npm run test` | 扫描器、诊断、预览兼容管线、URL 策略、清洗、存储、命名、字素簇 |
 | 组件测试 | `tests/unit/*.test.ts`（Vue Test Utils） | `npm run test` | 工具栏、状态栏、模板界面、预览交互、帮助面板 |
-| 端到端测试 | `tests/e2e/*.spec.ts` | `npm run test:e2e` | 真实浏览器里的首次使用、保存恢复、复制、键盘、布局、隐私拦截 |
+| 行锚点测试 | `tests/unit/indicator-anchors.test.ts` | `npm run test` | 编译期锚点表与清理后 DOM 的一致性；几何仍只放在端到端 |
+| 端到端测试 | `tests/e2e/*.spec.ts` | `npm run test:e2e` | 真实浏览器里的首次使用、保存恢复、复制、键盘、布局、预览扫描线、隐私拦截 |
 | 生产产物验收 | 同上，入口不同 | `npm run test:e2e:preview` | 同一套用例针对 `dist/` 构建产物运行 |
 | 人工发布验收 | 无自动脚本 | 人工 | 真实第三方媒体、目标浏览器、公开地址烟测（发布前阶段） |
 
@@ -123,6 +124,7 @@ npm run test:e2e                         # 端到端未受影响
 - 按名称过滤：`npx vitest run -t "删除最后一个模板"`。
 - 组件测试直接挂载 `src/` 下的 Vue 组件；需要 IndexedDB 时用 `fake-indexeddb`（已在 `tests/unit/setup.ts` 全局启用），不要依赖真实浏览器数据库。
 - 断言「原文不变」时，比较的是编辑器原文或输入字符串本身，例如 `expect(scan.source).toBe(input)` / 重新读取 `input.bbcode` 逐字节比对。
+- 行锚点属于纯数据，可在 jsdom 里验证：把 `sanitizedHtml` 放进 DOM，按与运行时相同的文本索引规则（排除音频播放器内部时间文字和媒体失败提示）解析 `lineAnchors` 的文本偏移、`<br>` 序号、块/媒体选择器序号。`tests/unit/indicator-anchors.test.ts` 同时遍历全部固定样例做可解析性检查；`Range.getClientRects()`、行盒顶与滚动换算仍只能放端到端。
 
 ## 6. 增加端到端测试
 
@@ -130,6 +132,7 @@ npm run test:e2e                         # 端到端未受影响
 - 执行前遵守[协作规则](../AGENTS.md#供应链隐私与网络)：默认不访问真实外网，确认测试入口已隔离；依赖或浏览器缺失时不能自动下载，确需联网须先取得所有者明确同意。
 - 用 `tests/e2e/helpers.ts` 的 `openEditor()` / `openEmptyEditor()` 打开页面：在导航前安装浏览器上下文级站外请求拦截，覆盖主页面、iframe 和新窗口的首次导航。仅精确匹配 `127.0.0.1`、`localhost`、`[::1]` 的本机服务允许真实连接；站外导航由本地空 HTML 响应接管，其它站外资源返回空响应。站外 WebSocket 直接关闭、不连接服务器，测试配置禁止 Service Worker 绕过拦截。媒体专项样例仍使用本地替身内容，整个验收不访问真实图床、YouTube、osu! 或 GitHub。
 - `tests/e2e/network-isolation.spec.ts` 用第二层阻断保护验证新窗口首次导航与伪装本机域名：隔离失效时由保护层中止请求并让断言失败，不发出真实站外连接。该保护层只用于离线验收，不改变软件实际外链与媒体行为，也不调整 TLS、签名或依赖完整性检查。
+- 预览扫描线的几何断言放在 `tests/e2e/indicator-line.spec.ts`：同帧比较扫描线与画布比例、2px 线体、40×28 端帽、8px 命中带，以及高亮块与目标 `.cm-line` 的 top/left/width/height（容差 `0.001px`）。该文件继续使用 `openEditor()` 的上下文级站外拦截；图片与 iframe 使用本地替身，不访问真实媒体。
 - 顶栏外链用例使用上述上下文级隔离，固定目标为项目所有者的 osu! 主页与项目 GitHub 仓库；验证链接属性、打开后的目标 URL、当前页面不被替换，以及新窗口显示统一隔离提供的空白页面。这些断言验证软件的外链行为，不验证站外网站是否在线。当前隔离不是系统级断网，新增测试必须在导航前调用统一隔离入口。
 - 常用命令：
 

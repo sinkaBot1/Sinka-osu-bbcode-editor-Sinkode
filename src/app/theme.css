@@ -72,6 +72,8 @@
   /* 编辑器与语法高亮令牌；取值规则见 docs/theme.md。 */
   --editor-caret: #ffffff;
   --editor-active-line: rgb(215 222 232 / 12%);
+  /* 指示行整行强调块：与当前行同强度、靠色相区分（见 docs/theme.md §6）。 */
+  --editor-indicator-line: color-mix(in srgb, var(--color-accent) 16%, transparent);
   --editor-tooltip-background: #20242b;
   --editor-tooltip-border: #4a5565;
   --editor-tooltip-text: #d7dee8;
@@ -164,6 +166,7 @@
   /* 当前行是 12% 中性浮层：
      三种主题与编辑面底色的对比度 1.34 / 1.28 / 1.29:1，都过 1.2:1 地板。 */
   --editor-active-line: rgb(215 222 232 / 12%);
+  --editor-indicator-line: color-mix(in srgb, var(--color-accent) 16%, transparent);
   --editor-tooltip-background: #20242b;
   --editor-tooltip-border: #4a5565;
   --editor-tooltip-text: #d7dee8;
@@ -256,6 +259,7 @@
      结构符统一使用紫罗兰以保持同类标记的一致性；规则与实测见 docs/theme.md。 */
   --editor-caret: #141413;
   --editor-active-line: rgb(20 20 19 / 12%);
+  --editor-indicator-line: color-mix(in srgb, var(--color-accent) 26%, transparent);
   --editor-tooltip-background: #ffffff;
   --editor-tooltip-border: #d5cab8;
   --editor-tooltip-text: #141413;
@@ -344,6 +348,7 @@
      补全选中态改为琥珀金底以呼应主题强调色。 */
   --editor-caret: #ffffff;
   --editor-active-line: rgb(228 232 242 / 12%);
+  --editor-indicator-line: color-mix(in srgb, var(--color-accent) 15%, transparent);
   --editor-tooltip-background: #1a1d24;
   --editor-tooltip-border: #3a4155;
   --editor-tooltip-text: #e4e8f2;
@@ -1463,6 +1468,42 @@ h2 {
   color: var(--color-muted);
   font-size: var(--text-xs);
 }
+.preview-header-actions {
+  min-width: 0;
+  gap: var(--space-4);
+}
+.indicator-readout {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* 面板头的源码行指示线开关：24×28 仪器族图标按钮，落在 70px 预留区左缘。 */
+.panel-indicator-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-xs);
+  height: var(--control-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--color-muted);
+  background: transparent;
+  cursor: pointer;
+}
+.panel-indicator-toggle:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--state-hover);
+}
+.panel-indicator-toggle[aria-pressed='true'] {
+  color: var(--color-accent-text);
+  background: var(--state-selected);
+}
+.panel-indicator-toggle:disabled {
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
 .editor-host {
   flex: 1;
   min-height: 0;
@@ -1777,6 +1818,9 @@ h2 {
 }
 .editor-host .cm-scroller {
   overflow: auto;
+  /* 指示行高亮块用负 z-index 沉到正文与当前行底色之下；
+     isolation 建立独立层叠上下文，避免它沉到编辑面背景之后。 */
+  isolation: isolate;
 }
 /* 行号栏与编辑正文同面：不画右描边，底色一致；当前行只在行号上转正文色，
    行号栏自身不铺底色。 */
@@ -1793,6 +1837,42 @@ h2 {
 .editor-host .cm-lineNumbers .cm-gutterElement {
   min-width: 36px;
   padding: 0 var(--space-4) 0 var(--space-3);
+  transition: color var(--dur-2) var(--ease);
+}
+/* 源码行指示线：只移动一个绝对定位块，行间才有过渡；不进入行装饰，
+   因此不改变选区、撤销历史或诊断。 */
+.cm-indicator-band {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--z-editor-band);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  background-image: linear-gradient(var(--editor-indicator-line), var(--editor-indicator-line));
+  box-shadow: inset var(--space-1) 0 0 var(--color-accent);
+  opacity: 0;
+  transition:
+    transform var(--dur-2) var(--ease),
+    height var(--dur-2) var(--ease),
+    opacity var(--dur-1) ease;
+  will-change: transform;
+}
+.cm-indicator-band[data-visible='true'] {
+  opacity: 1;
+}
+.cm-indicator-band.is-snapping {
+  transition: none;
+}
+/* 行号尾迹：扫过的行号短暂转强调文字色；当前行走 CodeMirror 原生 gutter 类。
+   尾迹上升用 --dur-1，淡回用 --dur-2，避免快速滑动时颜色还没升起就被移除。 */
+.editor-host .cm-indicator-gutter-swept {
+  color: var(--color-accent-text);
+  transition-duration: var(--dur-1);
+}
+.editor-host .cm-indicator-gutter-current {
+  color: var(--color-accent-text);
+  font-weight: 600;
 }
 .status-bar {
   min-height: var(--status-h);
@@ -1806,11 +1886,113 @@ h2 {
 .status-bar > span {
   white-space: nowrap;
 }
+/* 预览画布外包一层定位容器：画布仍负责滚动，扫描线覆盖层不进入滚动内容。 */
+.preview-stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  /* 扫描线端帽在 0% / 100% 时会伸出画布；裁在舞台内，避免盖住面板头的开合把手。 */
+  overflow: hidden;
+}
 .preview-canvas {
   flex: 1;
   overflow: auto;
   padding: 24px;
   background: var(--preview-canvas-background);
+}
+/* 扫描线覆盖层：只让线体命中带接收指针事件，其余区域透传预览点击。
+   层叠顺序靠 DOM 顺序压住画布，imagemap 气泡的 --z-tooltip 仍在它之上。 */
+.preview-indicator {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.preview-indicator__hit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--space-4);
+  transform: translateY(-50%);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: ns-resize;
+}
+.preview-indicator__hit:focus-visible {
+  outline: none;
+}
+.preview-indicator__line {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: var(--space-1);
+  background: var(--color-accent);
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: background-color var(--dur-1) ease;
+}
+.preview-indicator__handle {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: calc(var(--space-8) + var(--space-6));
+  height: var(--control-sm);
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  cursor: ns-resize;
+  transform: translateY(-50%);
+  transition: background-color var(--dur-1) ease;
+}
+.preview-indicator__handle--start {
+  left: var(--space-1);
+}
+.preview-indicator__handle--end {
+  right: var(--space-1);
+}
+.preview-indicator__hit:hover .preview-indicator__handle {
+  background: color-mix(in srgb, var(--color-accent) 86%, var(--color-on-accent));
+}
+.preview-indicator__hit.is-dragging .preview-indicator__handle {
+  background: color-mix(in srgb, var(--color-accent) 80%, var(--color-on-accent));
+}
+.preview-indicator__hit:focus-visible .preview-indicator__handle {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.preview-indicator__grip {
+  display: grid;
+  gap: var(--space-1);
+  width: calc(var(--space-6) + var(--space-2));
+  pointer-events: none;
+}
+.preview-indicator__grip i {
+  display: block;
+  height: var(--space-1);
+  background: var(--color-on-accent);
+}
+.preview-indicator__label {
+  position: absolute;
+  top: calc(-1 * (var(--space-7) + var(--space-1)));
+  right: calc(var(--space-8) + var(--space-7) + var(--space-4));
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) ease;
+}
+.preview-indicator__hit:hover .preview-indicator__label,
+.preview-indicator__hit:focus-visible .preview-indicator__label,
+.preview-indicator__hit.is-dragging .preview-indicator__label {
+  opacity: 1;
 }
 .preview-content {
   --preview-frame-inset: 42px;
@@ -2510,6 +2692,13 @@ h2 {
   /* 单列时开合把手落在编辑器面板头这一侧，同样预留 70px。 */
   .editor-panel > .panel-header {
     padding-right: 70px;
+  }
+  /* 预览面板头在单列时不再被把手占用，收回预留并隐藏状态文字，给读数与开关留空间。 */
+  .preview-panel > .panel-header {
+    padding-right: var(--space-5);
+  }
+  .preview-header-actions .panel-status {
+    display: none;
   }
   .mobile-template-trigger {
     display: inline-flex;

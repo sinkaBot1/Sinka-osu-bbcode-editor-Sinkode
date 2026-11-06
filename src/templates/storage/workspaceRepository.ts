@@ -2,8 +2,12 @@ import { openDB, type IDBPDatabase } from 'idb'
 import { DEFAULT_EXAMPLE_CONTENT, DEFAULT_EXAMPLE_NAME } from '../defaultExample'
 import { NEW_TEMPLATE_NAME, uniqueName } from './naming'
 import {
+  DEFAULT_INDICATOR_ENABLED,
+  DEFAULT_INDICATOR_RATIO,
   DEFAULT_THEME_ID,
   DEFAULT_THEME_REVEAL_DURATION,
+  normalizeIndicatorEnabled,
+  normalizeIndicatorRatio,
   normalizeThemeRevealDuration,
   WORKSPACE_RECORD_KEY,
   type EditorDatabase,
@@ -94,6 +98,8 @@ export function createWorkspaceRepository(
       activeTemplateId,
       selectedThemeId: DEFAULT_THEME_ID,
       themeRevealDuration: DEFAULT_THEME_REVEAL_DURATION,
+      indicatorEnabled: DEFAULT_INDICATOR_ENABLED,
+      indicatorRatio: DEFAULT_INDICATOR_RATIO,
       lastMobileView: null,
     }
   }
@@ -110,6 +116,8 @@ export function createWorkspaceRepository(
       // 旧数据没有该字段，必须在这里收敛：load() 只在整条记录缺失时才套默认值，
       // 字段级缺失会原样透出 undefined。
       themeRevealDuration: normalizeThemeRevealDuration(workspace.themeRevealDuration),
+      indicatorEnabled: normalizeIndicatorEnabled(workspace.indicatorEnabled),
+      indicatorRatio: normalizeIndicatorRatio(workspace.indicatorRatio),
       lastMobileView: workspace.lastMobileView,
     }
   }
@@ -204,6 +212,10 @@ export function createWorkspaceRepository(
         themeRevealDuration: normalizeThemeRevealDuration(
           settings.themeRevealDuration ?? current?.themeRevealDuration,
         ),
+        indicatorEnabled: normalizeIndicatorEnabled(
+          settings.indicatorEnabled ?? current?.indicatorEnabled,
+        ),
+        indicatorRatio: normalizeIndicatorRatio(settings.indicatorRatio ?? current?.indicatorRatio),
         lastMobileView:
           settings.lastMobileView !== undefined
             ? settings.lastMobileView

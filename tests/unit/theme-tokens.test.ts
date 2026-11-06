@@ -182,6 +182,29 @@ describe('主题令牌契约', () => {
     }
   })
 
+  it('指示行底色由强调色派生，三主题都达到 1.2:1 并与当前行同档', () => {
+    // 指示行是 color-mix 的强调色浮层：先从令牌取百分比，再合成到编辑面底色上。
+    for (const [id, block] of themeBlocks) {
+      const value = token(block, '--editor-indicator-line')
+      expect(value).toContain('color-mix(in srgb, var(--color-accent)')
+      const match = /var\(--color-accent\)\s+(\d+)%/.exec(value)
+      expect(match, `${id} 的指示行令牌缺少强调色百分比`).not.toBeNull()
+      const background = token(block, '--shell-inset-background')
+      const accent = token(block, '--color-accent')
+      const channels = [1, 3, 5].map((index) => parseInt(accent.slice(index, index + 2), 16))
+      const line = compositeOver({ channels, alpha: Number(match![1]) / 100 }, background)
+      const ratio = contrastRatio(line, background)
+      expect(
+        ratio,
+        `${id} 的指示行底色 ${line} 对 ${background} 只有 ${ratio.toFixed(3)}:1`,
+      ).toBeGreaterThanOrEqual(1.2)
+      // 浅色主题整行染色会压低语法文字对比度；锁定既有约 3.5:1 的下限，防止再变淡。
+      expect(contrastRatio(token(block, '--color-text'), line)).toBeGreaterThanOrEqual(3)
+    }
+    expect(themeDoc).toContain('--editor-indicator-line')
+    expect(themeDoc).toContain('1.30:1')
+  })
+
   it('Darkode 的六个语法色在深色编辑器底上仍 ≥ 4.5:1', () => {
     const background = token(darkode, '--shell-inset-background')
     for (const name of syntaxTokens) {

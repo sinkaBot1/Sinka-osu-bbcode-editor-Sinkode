@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import {
   DEFAULT_EXAMPLE_NAME,
+  DEFAULT_INDICATOR_ENABLED,
+  DEFAULT_INDICATOR_RATIO,
   DEFAULT_THEME_ID,
   DEFAULT_THEME_REVEAL_DURATION,
   MAX_THEME_REVEAL_DURATION,
@@ -32,6 +34,8 @@ function createStubRepository(
     templates: [makeRecord({ name: DEFAULT_EXAMPLE_NAME, content: '示例内容' })],
     selectedThemeId: DEFAULT_THEME_ID,
     themeRevealDuration: DEFAULT_THEME_REVEAL_DURATION,
+    indicatorEnabled: DEFAULT_INDICATOR_ENABLED,
+    indicatorRatio: DEFAULT_INDICATOR_RATIO,
     lastMobileView: null,
     activeTemplateId: '',
     ...initial,
@@ -240,6 +244,45 @@ describe('工作区 Pinia store', () => {
     await store.initialize(repository)
 
     expect(store.themeRevealDuration).toBe(DEFAULT_THEME_REVEAL_DURATION)
+  })
+
+  it('指示线开关与比例初始化读取持久化值，写入时收敛并持久化', async () => {
+    const { repository, savedSettings } = createStubRepository({
+      indicatorEnabled: true,
+      indicatorRatio: 0.34,
+    })
+    const store = makeStore()
+    await store.initialize(repository)
+
+    expect(store.indicatorEnabled).toBe(true)
+    expect(store.indicatorRatio).toBe(0.34)
+
+    await store.setIndicatorEnabled(false)
+    expect(store.indicatorEnabled).toBe(false)
+    expect(savedSettings.at(-1)).toEqual({ indicatorEnabled: false })
+
+    await store.setIndicatorRatio(0.8)
+    expect(store.indicatorRatio).toBe(0.8)
+    expect(savedSettings.at(-1)).toEqual({ indicatorRatio: 0.8 })
+
+    await store.setIndicatorRatio(2)
+    expect(store.indicatorRatio).toBe(1)
+
+    const writes = savedSettings.length
+    await store.setIndicatorRatio(1)
+    expect(savedSettings.length).toBe(writes)
+  })
+
+  it('旧数据缺少指示线字段时回落到默认值（失败路径）', async () => {
+    const { repository } = createStubRepository({
+      indicatorEnabled: undefined as unknown as boolean,
+      indicatorRatio: undefined as unknown as number,
+    })
+    const store = makeStore()
+    await store.initialize(repository)
+
+    expect(store.indicatorEnabled).toBe(DEFAULT_INDICATOR_ENABLED)
+    expect(store.indicatorRatio).toBe(DEFAULT_INDICATOR_RATIO)
   })
 
   it('本地存储不可用时进入内存工作区并拒绝写入（失败路径）', async () => {

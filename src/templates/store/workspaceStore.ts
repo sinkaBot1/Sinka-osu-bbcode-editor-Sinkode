@@ -9,8 +9,12 @@ import {
 } from '../storage/workspaceRepository'
 import type { LocalWorkspace, MobileView, TemplateRecord } from '../storage/types'
 import {
+  DEFAULT_INDICATOR_ENABLED,
+  DEFAULT_INDICATOR_RATIO,
   DEFAULT_THEME_ID,
   DEFAULT_THEME_REVEAL_DURATION,
+  normalizeIndicatorEnabled,
+  normalizeIndicatorRatio,
   normalizeThemeRevealDuration,
 } from '../storage/types'
 import {
@@ -36,6 +40,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const activeTemplateId = ref<string | null>(null)
   const selectedThemeId = ref(DEFAULT_THEME_ID)
   const themeRevealDuration = ref(DEFAULT_THEME_REVEAL_DURATION)
+  const indicatorEnabled = ref(DEFAULT_INDICATOR_ENABLED)
+  const indicatorRatio = ref(DEFAULT_INDICATOR_RATIO)
   const lastMobileView = ref<MobileView | null>(null)
   const loadState = ref<WorkspaceLoadState>('loading')
   const storageAvailable = ref(true)
@@ -113,6 +119,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     // 这里再收敛一次，不依赖 repository 已经规范化过：自定义 repository
     // 或旧数据可能给出 undefined / 越界值，直接赋值会让动画时长失控。
     themeRevealDuration.value = normalizeThemeRevealDuration(workspace.themeRevealDuration)
+    indicatorEnabled.value = normalizeIndicatorEnabled(workspace.indicatorEnabled)
+    indicatorRatio.value = normalizeIndicatorRatio(workspace.indicatorRatio)
     lastMobileView.value = workspace.lastMobileView
   }
 
@@ -259,6 +267,22 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     await runManagementWrite(() => repository.value.saveSettings({ themeRevealDuration: next }))
   }
 
+  // 指示线的开关与比例只在确认动作后落库：拖动过程中由预览层持续更新界面，
+  // 松手/键盘停稳时才调用这里，避免每次 pointermove 都排队写 IndexedDB。
+  async function setIndicatorEnabled(value: boolean) {
+    const next = normalizeIndicatorEnabled(value)
+    if (next === indicatorEnabled.value) return
+    indicatorEnabled.value = next
+    await runManagementWrite(() => repository.value.saveSettings({ indicatorEnabled: next }))
+  }
+
+  async function setIndicatorRatio(value: number) {
+    const next = normalizeIndicatorRatio(value)
+    if (next === indicatorRatio.value) return
+    indicatorRatio.value = next
+    await runManagementWrite(() => repository.value.saveSettings({ indicatorRatio: next }))
+  }
+
   async function restoreDefaultExample(): Promise<TemplateRecord> {
     return addTemplate(DEFAULT_EXAMPLE_NAME, DEFAULT_EXAMPLE_CONTENT)
   }
@@ -278,6 +302,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     activeTemplateId,
     selectedThemeId,
     themeRevealDuration,
+    indicatorEnabled,
+    indicatorRatio,
     lastMobileView,
     loadState,
     storageAvailable,
@@ -294,6 +320,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     selectTemplate,
     selectTheme,
     setThemeRevealDuration,
+    setIndicatorEnabled,
+    setIndicatorRatio,
     restoreDefaultExample,
     flushPendingSave,
     dispose,

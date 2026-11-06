@@ -3,10 +3,16 @@ import {
   DATABASE_VERSION,
   DEFAULT_EXAMPLE_CONTENT,
   DEFAULT_EXAMPLE_NAME,
+  DEFAULT_INDICATOR_ENABLED,
+  DEFAULT_INDICATOR_RATIO,
   DEFAULT_THEME_REVEAL_DURATION,
+  MAX_INDICATOR_RATIO,
   MAX_THEME_REVEAL_DURATION,
+  MIN_INDICATOR_RATIO,
   MIN_THEME_REVEAL_DURATION,
   createWorkspaceRepository,
+  normalizeIndicatorEnabled,
+  normalizeIndicatorRatio,
   normalizeThemeRevealDuration,
   type TemplateRecord,
   type WorkspaceRepository,
@@ -49,6 +55,8 @@ describe('本地工作区存储（schema v1）', () => {
     expect(workspace.templates[0].name).toBe(DEFAULT_EXAMPLE_NAME)
     expect(workspace.templates[0].content).toBe(DEFAULT_EXAMPLE_CONTENT)
     expect(workspace.activeTemplateId).toBe(workspace.templates[0].id)
+    expect(workspace.indicatorEnabled).toBe(DEFAULT_INDICATOR_ENABLED)
+    expect(workspace.indicatorRatio).toBe(DEFAULT_INDICATOR_RATIO)
 
     const again = await repository.load()
     expect(again.templates).toHaveLength(1)
@@ -138,6 +146,8 @@ describe('本地工作区存储（schema v1）', () => {
       activeTemplateId: second.id,
       selectedThemeId: 'darkode',
       themeRevealDuration: 1200,
+      indicatorEnabled: true,
+      indicatorRatio: 0.25,
       lastMobileView: 'preview',
     })
 
@@ -145,7 +155,68 @@ describe('本地工作区存储（schema v1）', () => {
     expect(workspace.activeTemplateId).toBe(second.id)
     expect(workspace.selectedThemeId).toBe('darkode')
     expect(workspace.themeRevealDuration).toBe(1200)
+    expect(workspace.indicatorEnabled).toBe(true)
+    expect(workspace.indicatorRatio).toBe(0.25)
     expect(workspace.lastMobileView).toBe('preview')
+  })
+
+  it('指示线设置支持显式 false/0，且只改其它字段时保留现值', async () => {
+    const { repository } = makeRepository()
+    await repository.load()
+
+    await repository.saveSettings({ indicatorEnabled: true, indicatorRatio: 0.8 })
+    await repository.saveSettings({ indicatorEnabled: false, indicatorRatio: 0 })
+    let workspace = await repository.load()
+    expect(workspace.indicatorEnabled).toBe(false)
+    expect(workspace.indicatorRatio).toBe(0)
+
+    await repository.saveSettings({ selectedThemeId: 'claucode' })
+    workspace = await repository.load()
+    expect(workspace.indicatorEnabled).toBe(false)
+    expect(workspace.indicatorRatio).toBe(0)
+  })
+
+  it('旧工作区缺少指示线字段时回落到默认值', async () => {
+    const { repository, databaseName } = makeRepository()
+    const base = await repository.load()
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(databaseName, DATABASE_VERSION)
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction('workspace', 'readwrite')
+      transaction.objectStore('workspace').put({
+        key: 'workspace',
+        schemaVersion: DATABASE_VERSION,
+        activeTemplateId: base.activeTemplateId,
+        selectedThemeId: 'darkode',
+        themeRevealDuration: 900,
+        lastMobileView: null,
+      })
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+    })
+    database.close()
+
+    const workspace = await repository.load()
+    expect(workspace.indicatorEnabled).toBe(DEFAULT_INDICATOR_ENABLED)
+    expect(workspace.indicatorRatio).toBe(DEFAULT_INDICATOR_RATIO)
+  })
+
+  it('normalizeIndicatorEnabled 只接受布尔值，normalizeIndicatorRatio 收敛到 0–1', () => {
+    expect(normalizeIndicatorEnabled(undefined)).toBe(DEFAULT_INDICATOR_ENABLED)
+    expect(normalizeIndicatorEnabled('true')).toBe(DEFAULT_INDICATOR_ENABLED)
+    expect(normalizeIndicatorEnabled(1)).toBe(DEFAULT_INDICATOR_ENABLED)
+    expect(normalizeIndicatorEnabled(true)).toBe(true)
+    expect(normalizeIndicatorEnabled(false)).toBe(false)
+
+    expect(normalizeIndicatorRatio(undefined)).toBe(DEFAULT_INDICATOR_RATIO)
+    expect(normalizeIndicatorRatio(Number.NaN)).toBe(DEFAULT_INDICATOR_RATIO)
+    expect(normalizeIndicatorRatio('0.5')).toBe(DEFAULT_INDICATOR_RATIO)
+    expect(normalizeIndicatorRatio(-1)).toBe(MIN_INDICATOR_RATIO)
+    expect(normalizeIndicatorRatio(2)).toBe(MAX_INDICATOR_RATIO)
+    expect(normalizeIndicatorRatio(0.34)).toBe(0.34)
   })
 
   it('normalizeThemeRevealDuration 把非法输入收敛到默认值与上下限', () => {

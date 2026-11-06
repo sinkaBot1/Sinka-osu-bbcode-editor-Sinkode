@@ -5,7 +5,7 @@ import { escapeHtml } from '../security'
 // 运行时用锚点定位文本节点、<br>、块元素和行内媒体，因此这里的计数顺序
 // 必须与 DOM 顺序一致：父元素先于子元素，文本按输出顺序累计。
 export interface ElementAnchor {
-  /** 在预览内容根节点内查询元素的选择器。 */
+  /** 在预览内容根节点内查询元素的选择器；`img` 由运行时排除 imagemap 内部图片。 */
   readonly selector: string
   /** 同一选择器下的第几个元素（从 0 开始，按 DOM 顺序）。 */
   readonly index: number
@@ -13,7 +13,10 @@ export interface ElementAnchor {
 
 export interface LineAnchor {
   readonly line: number
-  /** 该行第一个可见文本字符在全部文本节点中的累计偏移（UTF-16 码元）。 */
+  /**
+   * 该行第一个可见文本字符在参与索引的文本节点中的累计偏移（UTF-16 码元）。
+   * 音频播放器内部会变化的计时文字不在索引内；媒体失败提示是运行时插入的，同样不计。
+   */
   readonly textOffset?: number
   /** 该行自己的换行输出的 <br> 序号；空行靠它定位。 */
   readonly breakIndex?: number

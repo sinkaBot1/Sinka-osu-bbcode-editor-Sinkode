@@ -1,6 +1,7 @@
 import { EditorState } from '@codemirror/state'
 import { lineNumbers, type EditorView, type ViewUpdate } from '@codemirror/view'
 import { createEditorExtensions } from './editorExtensions'
+import { indicatorExtensions } from './indicator'
 
 export function createEditorState(
   doc: string,
@@ -8,7 +9,7 @@ export function createEditorState(
 ): EditorState {
   return EditorState.create({
     doc,
-    extensions: [lineNumbers(), ...createEditorExtensions(onUpdate)],
+    extensions: [lineNumbers(), ...createEditorExtensions(onUpdate), indicatorExtensions()],
   })
 }
 
