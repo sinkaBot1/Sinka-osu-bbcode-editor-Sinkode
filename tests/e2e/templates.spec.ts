@@ -1,5 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import { DEFAULT_EXAMPLE_CONTENT } from '../../src/templates/defaultExample'
 import { clearEditor, openEditor, openEmptyEditor } from './helpers'
+
+// 默认示例允许临时替换内容，模板用例只验证“载入的是当前默认示例”，
+// 不把某段展示文案写死。取首行是为了避开不同编辑器的换行序列化差异。
+const defaultExampleProbe = DEFAULT_EXAMPLE_CONTENT.split('\n')[0]
 
 // DOM 矩形在平移期间可能舍入为 43.99998474121094；仅容许 0.001px 数值误差。
 const geometryEpsilon = 0.001
@@ -500,7 +505,7 @@ test.describe('模板、保存与复制', () => {
   test('首次访问创建默认示例，刷新后恢复当前模板（AC-TPL-01、FR-SAVE-06）', async ({ page }) => {
     const editor = await openEditor(page)
     await expect(page.locator('.template-select')).toHaveText('默认示例')
-    await expect(editor).toContainText('SINKA0')
+    await expect(editor).toContainText(defaultExampleProbe)
 
     await page.getByTitle('新建模板').click()
     await expect(page.locator('.template-item.is-active .template-select')).toHaveText('未命名模板')
@@ -546,7 +551,7 @@ test.describe('模板、保存与复制', () => {
     await page.getByRole('button', { name: '确认删除' }).click()
     await expect(page.locator('.template-select')).toHaveCount(2)
     await expect(page.locator('.template-item.is-active .template-select')).toHaveText('默认示例')
-    await expect(page.locator('.cm-content')).toContainText('SINKA0')
+    await expect(page.locator('.cm-content')).toContainText(defaultExampleProbe)
 
     await page.locator('.template-select', { hasText: '我的模板' }).click()
     await expect(page.locator('.cm-content')).toContainText('[b]我的模板[/b]')
@@ -578,7 +583,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.template-item.is-active .template-select')).toHaveText(
       '默认示例 (2)',
     )
-    await expect(page.locator('.cm-content')).toContainText('SINKA0')
+    await expect(page.locator('.cm-content')).toContainText(defaultExampleProbe)
     await expect(page.locator('.template-select', { hasText: '未命名模板' })).toHaveCount(1)
 
     await page.locator('.template-select', { hasText: '未命名模板' }).click()
@@ -907,7 +912,7 @@ test.describe('模板、保存与复制', () => {
       ),
     ).toBe(false)
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
-    expect(clipboardText).toContain('SINKA0')
+    expect(clipboardText).toContain(defaultExampleProbe)
   })
 })
 
