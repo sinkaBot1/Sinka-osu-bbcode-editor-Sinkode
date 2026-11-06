@@ -3,7 +3,7 @@ import type { PreviewResult } from '../../src/bbcode/compatibility'
 import { createPreviewScheduler } from '../../src/preview'
 
 function result(value: string): PreviewResult {
-  return { sanitizedHtml: value, diagnosticsIndependent: true, media: [] }
+  return { sanitizedHtml: value, diagnosticsIndependent: true, media: [], lineAnchors: [] }
 }
 
 describe('预览渲染调度', () => {

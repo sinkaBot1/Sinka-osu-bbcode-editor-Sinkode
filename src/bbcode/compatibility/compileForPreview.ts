@@ -2,6 +2,7 @@ import { getTagDefinition } from '../registry'
 import { escapeHtml, sanitizeHtml, validateUrl } from '../security'
 import { scanDocument } from '../scanner'
 import type { ScanResult, SourceRange } from '../scanner'
+import { escapeWithBreaks, LineAnchorCollector } from './lineAnchors'
 import type { MediaDescriptor, PreviewResult, StorageDocument } from './types'
 
 interface TagOccurrence extends SourceRange {
@@ -83,10 +84,6 @@ function pairTags(tags: readonly TagOccurrence[]): Pair[] {
   return roots.sort((left, right) => left.open.from - right.open.from)
 }
 
-function escapeWithBreaks(value: string): string {
-  return escapeHtml(value).replaceAll('\r\n', '\n').replaceAll('\r', '\n').replaceAll('\n', '<br>')
-}
-
 const autoLinkPattern =
   /(?:https:\/\/|www\.)[^\s<>\[\]]+|[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,63}/gi
 const trailingLinkPunctuation = /[.,!?;:)\]}，。！？；：]$/u
@@ -98,8 +95,13 @@ function trimTrailingLinkPunctuation(value: string): string {
   return value.slice(0, end)
 }
 
-function renderText(value: string, autoLinks: boolean): string {
-  if (!autoLinks) return escapeWithBreaks(value)
+function renderText(
+  value: string,
+  autoLinks: boolean,
+  anchors: LineAnchorCollector,
+  sourceFrom: number,
+): string {
+  if (!autoLinks) return anchors.text(value, { sourceFrom, breaks: true })
 
   let cursor = 0
   let output = ''
@@ -117,11 +119,17 @@ function renderText(value: string, autoLinks: boolean): string {
       : validateUrl(candidate.startsWith('www.') ? `https://${candidate}` : candidate, 'link')
     if (!target.allowed) continue
 
-    output += escapeWithBreaks(value.slice(cursor, matchFrom))
-    output += `<a href="${escapeHtml(target.value)}" target="_blank" rel="noopener noreferrer">${escapeHtml(candidate)}</a>`
+    output += anchors.text(value.slice(cursor, matchFrom), {
+      sourceFrom: sourceFrom + cursor,
+      breaks: true,
+    })
+    // 链接文字没有换行，保持原 escapeHtml 的输出；文本偏移仍要计入。
+    output += `<a href="${escapeHtml(target.value)}" target="_blank" rel="noopener noreferrer">${anchors.text(candidate, { sourceFrom: sourceFrom + matchFrom, breaks: false })}</a>`
     cursor = matchFrom + candidate.length
   }
-  return output + escapeWithBreaks(value.slice(cursor))
+  return (
+    output + anchors.text(value.slice(cursor), { sourceFrom: sourceFrom + cursor, breaks: true })
+  )
 }
 
 // 块级标签贴边换行的吸收规则。规则本身是锁定基准的可观察行为事实，
@@ -246,12 +254,20 @@ function renderNode(
   pair: Pair,
   media: MediaDescriptor[],
   autoLinks: boolean,
+  anchors: LineAnchorCollector,
 ): string {
   const { open, close } = pair
   const body = getBodyRange(source, open, close)
   const content = (allowAutoLinks = autoLinks) =>
-    renderSegment(source, body.from, body.to, pair.children, media, allowAutoLinks)
+    renderSegment(source, body.from, body.to, pair.children, media, allowAutoLinks, anchors)
   const rawContent = source.slice(body.from, body.to)
+  // 无效标签整体回退为可见文本。这里保留原文换行（不转 <br>），与旧输出一致；
+  // 同时把文本计入锚点，避免后续行的 textOffset 偏移。
+  const fallback = () =>
+    anchors.text(source.slice(open.from, close.to), {
+      sourceFrom: open.from,
+      breaks: false,
+    })
   switch (open.canonicalName) {
     case 'b':
       return `<strong>${content()}</strong>`
@@ -264,10 +280,10 @@ function renderNode(
     case 'color':
       return validColor(open.parameter)
         ? `<span style="color:${escapeHtml(open.parameter ?? '')}">${content()}</span>`
-        : escapeHtml(source.slice(open.from, close.to))
+        : fallback()
     case 'size': {
       const value = Number(open.parameter)
-      if (!Number.isInteger(value)) return escapeHtml(source.slice(open.from, close.to))
+      if (!Number.isInteger(value)) return fallback()
       const clamped = Math.max(30, Math.min(200, value))
       return `<span style="font-size:${clamped}%">${content()}</span>`
     }
@@ -275,76 +291,88 @@ function renderNode(
       const target = validateUrl(open.parameter ?? rawContent, 'link')
       return target.allowed
         ? `<a href="${escapeHtml(target.value)}" target="_blank" rel="noopener noreferrer">${content(false)}</a>`
-        : escapeHtml(source.slice(open.from, close.to))
+        : fallback()
     }
     case 'email': {
       const target = validateUrl(open.parameter ?? rawContent, 'email')
       return target.allowed
         ? `<a href="${escapeHtml(target.value)}" target="_blank" rel="noopener noreferrer">${content(false)}</a>`
-        : escapeHtml(source.slice(open.from, close.to))
+        : fallback()
     }
     case 'img': {
       const target = validateUrl(rawContent, 'media')
       media.push({ kind: 'image', url: target.value, allowed: target.allowed })
-      return target.allowed
-        ? `<img src="${escapeHtml(target.value)}" alt="" loading="lazy">`
-        : escapeHtml(source.slice(open.from, close.to))
+      if (!target.allowed) return fallback()
+      // 序号只统计正文图片；imagemap 内部的 <img> 由 .preview-imagemap 整体定位。
+      anchors.inline('img', open.from, 'img:content')
+      return `<img src="${escapeHtml(target.value)}" alt="" loading="lazy">`
     }
     case 'audio': {
       const target = validateUrl(rawContent, 'media')
       media.push({ kind: 'audio', url: target.value, allowed: target.allowed })
-      return target.allowed
-        ? renderAudioPlayer(target.value)
-        : escapeHtml(source.slice(open.from, close.to))
+      if (!target.allowed) return fallback()
+      anchors.inline('.bbcode-audio', open.from)
+      // 播放器内部的时间文字会随播放变化，运行时不参与文本索引，这里也不记账。
+      return renderAudioPlayer(target.value)
     }
     case 'youtube': {
       const id = youtubeId(rawContent)
       const url = id ? `https://www.youtube.com/embed/${id}?rel=0` : rawContent.trim()
       const allowed = Boolean(id)
       media.push({ kind: 'youtube', url, allowed })
-      return allowed
-        ? `<iframe src="${url}" title="YouTube 视频" loading="lazy"></iframe>`
-        : escapeHtml(source.slice(open.from, close.to))
+      if (!allowed) return fallback()
+      anchors.inline('iframe', open.from)
+      return `<iframe src="${url}" title="YouTube 视频" loading="lazy"></iframe>`
     }
     case 'imagemap':
-      return renderImagemap(source, open, close, body, media)
+      return renderImagemap(source, open, close, body, media, anchors)
     case 'centre':
+      anchors.block('.bbcode-centre', open.from)
       return `<div class="bbcode-centre">${content()}</div>`
     case 'code':
-      return `<pre><code>${escapeHtml(rawContent)}</code></pre>`
+      anchors.block('pre', open.from)
+      return `<pre><code>${anchors.text(rawContent, { sourceFrom: body.from, breaks: false })}</code></pre>`
     case 'c':
-      return `<code>${escapeHtml(rawContent)}</code>`
+      return `<code>${anchors.text(rawContent, { sourceFrom: body.from, breaks: false })}</code>`
     case 'quote': {
       const author = quoteAuthor(open.parameter)
-      if (author === undefined) return escapeHtml(source.slice(open.from, close.to))
-      const attribution = author ? `<h4>${renderInline(author, media)} wrote:</h4>` : ''
+      if (author === undefined) return fallback()
+      anchors.block('blockquote', open.from)
+      const attribution = author
+        ? `<h4>${anchors.withLine(anchors.lineAt(open.from), () => renderInline(author, media, anchors))}${anchors.text(' wrote:', { sourceFrom: open.from, breaks: false })}</h4>`
+        : ''
       return `<blockquote>${attribution}${content()}</blockquote>`
     }
     case 'list':
-      return renderList(source, open, body, pair.children, media, autoLinks)
+      return renderList(source, open, body, pair.children, media, autoLinks, anchors)
     case 'spoiler':
       return `<span class="bbcode-spoiler">${content()}</span>`
-    case 'spoilerbox':
-      return renderSpoilerbox(source, pair, body, media, autoLinks, 'SPOILER')
+    case 'spoilerbox': {
+      anchors.block('.bbcode-spoilerbox', open.from)
+      const title = anchors.text('SPOILER', { sourceFrom: open.from, breaks: false })
+      return renderSpoilerbox(source, pair, body, media, autoLinks, title, anchors)
+    }
     case 'heading':
+      anchors.block('h2', open.from)
       return `<h2>${content()}</h2>`
     case 'notice':
+      anchors.block('.bbcode-notice', open.from)
       return `<div class="bbcode-notice">${content()}</div>`
-    case 'box':
-      return renderSpoilerbox(
-        source,
-        pair,
-        body,
-        media,
-        autoLinks,
-        open.parameter ? renderInline(open.parameter, media) : 'SPOILER',
-      )
+    case 'box': {
+      anchors.block('.bbcode-spoilerbox', open.from)
+      const title = open.parameter
+        ? anchors.withLine(anchors.lineAt(open.from), () =>
+            renderInline(open.parameter as string, media, anchors),
+          )
+        : anchors.text('SPOILER', { sourceFrom: open.from, breaks: false })
+      return renderSpoilerbox(source, pair, body, media, autoLinks, title, anchors)
+    }
     case 'profile':
       return /^\d+$/.test(open.parameter ?? '')
         ? `<a href="https://osu.ppy.sh/users/${open.parameter}" target="_blank" rel="noopener noreferrer">${content(false)}</a>`
-        : escapeHtml(source.slice(open.from, close.to))
+        : fallback()
     default:
-      return escapeHtml(source.slice(open.from, close.to))
+      return fallback()
   }
 }
 
@@ -355,14 +383,35 @@ function renderSpoilerbox(
   media: MediaDescriptor[],
   autoLinks: boolean,
   title: string,
+  anchors: LineAnchorCollector,
 ): string {
-  const content = renderSegment(source, body.from, body.to, pair.children, media, autoLinks)
+  const content = renderSegment(
+    source,
+    body.from,
+    body.to,
+    pair.children,
+    media,
+    autoLinks,
+    anchors,
+  )
   return `<div class="bbcode-spoilerbox"><button type="button" class="bbcode-spoilerbox__link" aria-expanded="false"><span class="bbcode-spoilerbox__link-icon" aria-hidden="true"></span><span class="bbcode-spoilerbox__link-text">${title}</span></button><div class="bbcode-spoilerbox__body" hidden>${content}</div></div>`
 }
 
-function renderInline(source: string, media: MediaDescriptor[]): string {
+function renderInline(
+  source: string,
+  media: MediaDescriptor[],
+  anchors: LineAnchorCollector,
+): string {
   const scan = scanDocument(source)
-  return renderSegment(source, 0, source.length, pairTags(getOccurrences(scan)), media, true)
+  return renderSegment(
+    source,
+    0,
+    source.length,
+    pairTags(getOccurrences(scan)),
+    media,
+    true,
+    anchors,
+  )
 }
 
 interface ImagemapBody {
@@ -394,11 +443,18 @@ function renderImagemap(
   close: TagOccurrence,
   body: SourceRange,
   media: MediaDescriptor[],
+  anchors: LineAnchorCollector,
 ): string {
   const { image, regions } = parseImagemapBody(source, body)
-  if (!image.allowed || regions.length === 0) return escapeHtml(source.slice(open.from, close.to))
+  if (!image.allowed || regions.length === 0) {
+    return anchors.text(source.slice(open.from, close.to), {
+      sourceFrom: open.from,
+      breaks: false,
+    })
+  }
 
   media.push({ kind: 'image', url: image.value, allowed: true })
+  anchors.inline('.preview-imagemap', open.from)
   const hotspots = regions
     .map(([, x, y, width, height, target, title]) => {
       const style = `left:${x}%;top:${y}%;width:${width}%;height:${height}%`
@@ -423,6 +479,7 @@ function renderList(
   children: readonly Pair[],
   media: MediaDescriptor[],
   autoLinks: boolean,
+  anchors: LineAnchorCollector,
 ): string {
   const contentStart = body.from
   const contentEnd = body.to
@@ -435,16 +492,17 @@ function renderList(
       !children.some((child) => position > child.open.from && position < child.close.to),
   )
   const tag = open.parameter?.trim() === '1' ? 'ol' : 'ul'
+  anchors.block(tag, open.from)
   if (directMarkers.length === 0)
-    return `<${tag}>${renderSegment(source, contentStart, contentEnd, children, media, autoLinks)}</${tag}>`
+    return `<${tag}>${renderSegment(source, contentStart, contentEnd, children, media, autoLinks, anchors)}</${tag}>`
 
   const title = source.slice(contentStart, directMarkers[0]).replace(/\s+$/, '')
-  let output = renderText(title, autoLinks)
+  let output = renderText(title, autoLinks, anchors, contentStart)
   for (let index = 0; index < directMarkers.length; index += 1) {
     const itemStart = directMarkers[index] + 3
     const itemEnd = directMarkers[index + 1] ?? contentEnd
     const itemLength = source.slice(itemStart, itemEnd).replace(/\s+$/, '').length
-    output += `<li>${renderSegment(source, itemStart, itemStart + itemLength, children, media, autoLinks)}</li>`
+    output += `<li>${renderSegment(source, itemStart, itemStart + itemLength, children, media, autoLinks, anchors)}</li>`
   }
   return `<${tag}>${output}</${tag}>`
 }
@@ -456,22 +514,37 @@ function renderSegment(
   children: readonly Pair[],
   media: MediaDescriptor[],
   autoLinks: boolean,
+  anchors: LineAnchorCollector,
 ): string {
   let cursor = from
   let output = ''
   for (const child of children) {
     if (child.open.from < from || child.close.to > to) continue
-    output += renderText(source.slice(cursor, child.open.from), autoLinks)
-    output += renderNode(source, child, media, autoLinks)
+    output += renderText(source.slice(cursor, child.open.from), autoLinks, anchors, cursor)
+    output += renderNode(source, child, media, autoLinks, anchors)
     cursor = getAfterCloseOffset(source, child)
   }
-  return output + renderText(source.slice(cursor, to), autoLinks)
+  return output + renderText(source.slice(cursor, to), autoLinks, anchors, cursor)
 }
 
 export function compileForPreview(input: string | StorageDocument): PreviewResult {
   const source = typeof input === 'string' ? input : input.source
   const scan = typeof input === 'string' ? scanDocument(source) : input.scan
   const media: MediaDescriptor[] = []
-  const html = renderSegment(source, 0, source.length, pairTags(getOccurrences(scan)), media, true)
-  return { sanitizedHtml: sanitizeHtml(html), diagnosticsIndependent: true, media }
+  const anchors = new LineAnchorCollector(scan.lineIndex)
+  const html = renderSegment(
+    source,
+    0,
+    source.length,
+    pairTags(getOccurrences(scan)),
+    media,
+    true,
+    anchors,
+  )
+  return {
+    sanitizedHtml: sanitizeHtml(html),
+    diagnosticsIndependent: true,
+    media,
+    lineAnchors: anchors.finish(),
+  }
 }
