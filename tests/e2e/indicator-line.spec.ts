@@ -193,12 +193,13 @@ test('目标行在编辑器视野外时用 200ms 平滑滚动跟随', async ({ p
 
   await page.evaluate(() => {
     const element = document.querySelector<HTMLElement>('.cm-scroller')!
-    const samples: number[] = []
-    ;(window as unknown as { __indicatorScrollSamples?: number[] }).__indicatorScrollSamples =
-      samples
+    const samples: Array<[number, number]> = []
+    ;(
+      window as unknown as { __indicatorScrollSamples?: Array<[number, number]> }
+    ).__indicatorScrollSamples = samples
     const startedAt = performance.now()
     const tick = () => {
-      samples.push(element.scrollTop)
+      samples.push([performance.now() - startedAt, element.scrollTop])
       if (performance.now() - startedAt < 400) requestAnimationFrame(tick)
     }
     requestAnimationFrame(tick)
@@ -207,13 +208,24 @@ test('目标行在编辑器视野外时用 200ms 平滑滚动跟随', async ({ p
   await page.waitForTimeout(460)
   const samples = await page.evaluate(
     () =>
-      (window as unknown as { __indicatorScrollSamples?: number[] }).__indicatorScrollSamples ?? [],
+      (
+        window as unknown as {
+          __indicatorScrollSamples?: Array<[number, number]>
+        }
+      ).__indicatorScrollSamples ?? [],
   )
 
-  const final = samples[samples.length - 1] ?? 0
-  expect(final).toBeGreaterThan(200)
-  const intermediate = samples.filter((value) => value > 4 && value < final - 4)
+  const start = samples[0]?.[1] ?? 0
+  const final = samples[samples.length - 1]?.[1] ?? 0
+  expect(final).toBeGreaterThan(start + 200)
+  const intermediate = samples.filter(([, top]) => top > start + 4 && top < final - 4)
   expect(intermediate.length).toBeGreaterThanOrEqual(2)
+  const firstMoving = samples.find(([, top]) => top > start + 1)?.[0]
+  const half = samples.find(([, top]) => top >= start + (final - start) / 2)?.[0]
+  expect(firstMoving).toBeDefined()
+  expect(half).toBeDefined()
+  // 缓动应把位移铺开：走到一半至少再花 40ms；旧的 --ease 会在头两帧冲过大半距离。
+  expect((half ?? 0) - (firstMoving ?? 0)).toBeGreaterThanOrEqual(40)
   // 采样结束后动画应已落位，不会继续漂移。
   await expect
     .poll(() => scroller.evaluate((element) => element.scrollTop))

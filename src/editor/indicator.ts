@@ -85,13 +85,13 @@ function motionDuration(): number {
   return parsed
 }
 
-// 与高亮块的 CSS transition 共用 --ease；令牌缺失或不是 cubic-bezier 时退回设计曲线。
-const FALLBACK_EASE: CubicBezier = { x1: 0.22, y1: 1, x2: 0.36, y2: 1 }
+// 长距离滚动使用 --ease-scroll：两端更慢，避免大跨度时首帧吃掉大半距离。
+const FALLBACK_SCROLL_EASE: CubicBezier = { x1: 0.45, y1: 0, x2: 0.2, y2: 1 }
 
-function motionEasing(): Easing {
-  if (typeof window === 'undefined') return cubicBezierEasing(FALLBACK_EASE)
-  const value = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim()
-  return cubicBezierEasing(parseCubicBezier(value) ?? FALLBACK_EASE)
+function scrollEasing(): Easing {
+  if (typeof window === 'undefined') return cubicBezierEasing(FALLBACK_SCROLL_EASE)
+  const value = getComputedStyle(document.documentElement).getPropertyValue('--ease-scroll').trim()
+  return cubicBezierEasing(parseCubicBezier(value) ?? FALLBACK_SCROLL_EASE)
 }
 
 class IndicatorHighlighter {
@@ -209,7 +209,6 @@ class IndicatorHighlighter {
     const position = this.view.state.doc.line(line).from
     const wasVisible = this.visible
     this.stopSampling()
-    this.cancelScroll()
     this.targetPos = position
     this.targetLine = line
 
@@ -235,6 +234,8 @@ class IndicatorHighlighter {
     if (plan) {
       if (next.animate && duration > 0) this.animateScroll(position, duration)
       else this.reveal(plan.target)
+    } else {
+      this.cancelScroll()
     }
   }
 
@@ -306,7 +307,20 @@ class IndicatorHighlighter {
 
   private animateScroll(position: number, duration: number): void {
     const plan = this.scrollPlan(position)
-    if (!plan) return
+    if (!plan) {
+      this.cancelScroll()
+      return
+    }
+    if (this.scrollFrame !== 0 && this.scrollPosition !== null) {
+      // 连续拖动时续接当前 200ms 时间轴：只更新目标行，不重置起点和进度，
+      // 否则每换一行都从零速起步，编辑面会严重落后于指示线。
+      // 一次跨过一屏以上的新目标按独立跳跃处理，避免在时间轴末端瞬移。
+      if (Math.abs(plan.target - this.scrollTarget) <= this.view.scrollDOM.clientHeight) {
+        this.scrollPosition = position
+        this.scrollTarget = plan.target
+        return
+      }
+    }
     this.cancelScroll()
     const scroller = this.view.scrollDOM
     this.scrollPosition = position
@@ -314,7 +328,7 @@ class IndicatorHighlighter {
     this.scrollTarget = plan.target
     this.scrollStartedAt = performance.now()
     this.scrollDuration = duration
-    this.scrollEasing = motionEasing()
+    this.scrollEasing = scrollEasing()
     this.scrollFrame = requestAnimationFrame(() => this.stepScroll())
   }
 
@@ -353,6 +367,7 @@ class IndicatorHighlighter {
 
   /** 低动态效果或调用方关闭动画时，直接落到目标 scrollTop。 */
   private reveal(target: number): void {
+    this.cancelScroll()
     const scroller = this.view.scrollDOM
     const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight)
     scroller.scrollTop = Math.min(max, Math.max(0, target))

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   INDICATOR_SCROLL_MARGIN,
@@ -109,5 +111,18 @@ describe('cubic-bezier 缓动', () => {
       expect(value).toBeGreaterThanOrEqual(previous - 1e-9)
       previous = value
     }
+  })
+
+  it('跟随滚动令牌两端更慢，首帧不会吃掉大半距离', () => {
+    const scaleCss = readFileSync(join(process.cwd(), 'src', 'app', 'scale.css'), 'utf8')
+    const declared = /--ease-scroll:\s*([^;]+);/.exec(scaleCss)?.[1]
+    expect(declared).toBeDefined()
+    const cubic = parseCubicBezier(declared!.trim())
+    expect(cubic).not.toBeNull()
+    const ease = cubicBezierEasing(cubic!)
+    expect(ease(0.08)).toBeLessThan(0.1)
+    expect(ease(0.25)).toBeLessThan(0.3)
+    expect(ease(0.5)).toBeGreaterThan(0.4)
+    expect(ease(0.5)).toBeLessThan(0.8)
   })
 })

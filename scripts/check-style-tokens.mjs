@@ -109,7 +109,10 @@ function checkLiterals(file, css) {
   }
 
   for (const match of css.matchAll(/cubic-bezier\(/g)) {
-    report(file, `第 ${lineOf(css, match.index)} 行还有缓动函数字面量：缓动一律取 --ease`)
+    report(
+      file,
+      `第 ${lineOf(css, match.index)} 行还有缓动函数字面量：缓动一律取 --ease（长距离跟随滚动例外：--ease-scroll）`,
+    )
   }
 }
 
