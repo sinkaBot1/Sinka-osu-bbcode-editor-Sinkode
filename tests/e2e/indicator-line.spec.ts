@@ -174,7 +174,7 @@ test('滚轮在命中带上滚动预览，扫描线固定在画布视口', async
     .toBe(true)
 })
 
-test('几何：全宽线、2px 线体、40×28 端帽、8px 命中带', async ({ page }) => {
+test('几何：全宽线、1px 线体、6×6 端点、24×24 端点命中区、8px 命中带', async ({ page }) => {
   const editor = await openEmptyEditor(page)
   await fillLines(page, editor, 40)
   await indicatorToggle(page).click()
@@ -194,10 +194,15 @@ test('几何：全宽线、2px 线体、40×28 端帽、8px 命中带', async ({
       hitWidth: rect(hit).width,
       hitHeight: rect(hit).height,
       lineWidth: rect(line).width,
+      lineHeight: getComputedStyle(line).height,
       handleSizes: handles.map((handle) => ({
         width: rect(handle).width,
         height: rect(handle).height,
       })),
+      endpointHitSizes: handles.map((handle) => {
+        const style = getComputedStyle(handle, '::before')
+        return { width: style.width, height: style.height }
+      }),
       headerHeight: rect(header).height,
       toggleSize: { width: rect(toggle).width, height: rect(toggle).height },
       toggleRightGap: rect(panel).right - rect(toggle).right,
@@ -206,10 +211,15 @@ test('几何：全宽线、2px 线体、40×28 端帽、8px 命中带', async ({
 
   expect(metrics.hitWidth).toBeCloseTo(metrics.canvasWidth, 0)
   expect(metrics.lineWidth).toBeCloseTo(metrics.canvasWidth, 0)
+  expect(metrics.lineHeight).toBe('1px')
   expect(metrics.hitHeight).toBeCloseTo(8, 0)
   expect(metrics.handleSizes).toEqual([
-    { width: 40, height: 28 },
-    { width: 40, height: 28 },
+    { width: 6, height: 6 },
+    { width: 6, height: 6 },
+  ])
+  expect(metrics.endpointHitSizes).toEqual([
+    { width: '24px', height: '24px' },
+    { width: '24px', height: '24px' },
   ])
   expect(metrics.headerHeight).toBeCloseTo(40, 0)
   expect(metrics.toggleSize).toEqual({ width: 24, height: 28 })

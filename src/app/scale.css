@@ -47,6 +47,9 @@
   --row-instrument: 38px;
   --row-content: 34px;
 
+  /* 发丝线：扫描线这类 1px 功能线的统一宽度 */
+  --line-hairline: 1px;
+
   /* 框架高度 */
   --shell-header-h: 56px;
   --panel-head-h: 40px;

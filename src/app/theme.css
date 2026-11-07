@@ -1927,25 +1927,36 @@ h2 {
   top: 50%;
   right: 0;
   left: 0;
-  height: var(--space-1);
+  height: var(--line-hairline);
   background: var(--color-accent);
   pointer-events: none;
   transform: translateY(-50%);
   transition: background-color var(--dur-1) ease;
 }
+/* 端点：6×6 实色小方块，无图标；::before 提供 24×24 透明命中区。 */
 .preview-indicator__handle {
   position: absolute;
   top: 50%;
-  display: grid;
-  width: calc(var(--space-8) + var(--space-6));
-  height: var(--control-sm);
-  place-items: center;
+  width: var(--space-3);
+  height: var(--space-3);
   border: 0;
   border-radius: var(--radius);
   background: var(--color-accent);
   cursor: ns-resize;
   transform: translateY(-50%);
-  transition: background-color var(--dur-1) ease;
+  transition:
+    background-color var(--dur-1) ease,
+    width var(--dur-1) ease,
+    height var(--dur-1) ease;
+}
+.preview-indicator__handle::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--control-xs);
+  height: var(--control-xs);
+  content: '';
+  transform: translate(-50%, -50%);
 }
 .preview-indicator__handle--start {
   left: var(--space-1);
@@ -1953,31 +1964,25 @@ h2 {
 .preview-indicator__handle--end {
   right: var(--space-1);
 }
-.preview-indicator__hit:hover .preview-indicator__handle {
+.preview-indicator__hit:hover .preview-indicator__handle,
+.preview-indicator__hit:focus-visible .preview-indicator__handle {
+  width: var(--space-4);
+  height: var(--space-4);
   background: color-mix(in srgb, var(--color-accent) 86%, var(--color-on-accent));
 }
 .preview-indicator__hit.is-dragging .preview-indicator__handle {
+  width: var(--space-4);
+  height: var(--space-4);
   background: color-mix(in srgb, var(--color-accent) 80%, var(--color-on-accent));
 }
 .preview-indicator__hit:focus-visible .preview-indicator__handle {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
-.preview-indicator__grip {
-  display: grid;
-  gap: var(--space-1);
-  width: calc(var(--space-6) + var(--space-2));
-  pointer-events: none;
-}
-.preview-indicator__grip i {
-  display: block;
-  height: var(--space-1);
-  background: var(--color-on-accent);
-}
 .preview-indicator__label {
   position: absolute;
   top: calc(-1 * (var(--space-7) + var(--space-1)));
-  right: calc(var(--space-8) + var(--space-7) + var(--space-4));
+  right: calc(var(--space-3) + var(--space-4));
   padding: var(--space-1) var(--space-3);
   color: var(--color-on-accent);
   background: var(--color-accent);

@@ -357,12 +357,14 @@ onBeforeUnmount(() => {
       @wheel="onWheel"
     >
       <span class="preview-indicator__line" aria-hidden="true"></span>
-      <span class="preview-indicator__handle preview-indicator__handle--start" aria-hidden="true">
-        <span class="preview-indicator__grip"><i></i><i></i><i></i></span>
-      </span>
-      <span class="preview-indicator__handle preview-indicator__handle--end" aria-hidden="true">
-        <span class="preview-indicator__grip"><i></i><i></i><i></i></span>
-      </span>
+      <span
+        class="preview-indicator__handle preview-indicator__handle--start"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="preview-indicator__handle preview-indicator__handle--end"
+        aria-hidden="true"
+      ></span>
       <span class="preview-indicator__label" aria-hidden="true">{{ lineLabel }}</span>
     </div>
   </div>
