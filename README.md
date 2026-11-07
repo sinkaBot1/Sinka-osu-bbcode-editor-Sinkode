@@ -173,7 +173,7 @@ logo/                品牌素材（仅 PNG）
 ## 部署与发布现状
 
 - 在线站点：<https://sinkodeosu.site/>（GitHub Pages + 自定义域名，`www` 自动跳转裸域名）。
-- 发布由 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) 完成：`npm ci` → `npm run build` → 上传 `dist/` → 部署；质量检查仍由 [`ci.yml`](.github/workflows/ci.yml) 负责。
+- 检查与发布都在 [`ci.yml`](.github/workflows/ci.yml)：静态检查/构建与端到端测试并行；只有两者都通过，`main` 才会把 `dist/` 部署到 Pages。
 - 站点在域名根路径发布，因此 `vite.config.ts` 固定 `base: '/'`；改回 `github.io` 项目页形式时必须同步改成 `/<仓库名>/`，否则线上白屏。
 
 ## 遇到问题

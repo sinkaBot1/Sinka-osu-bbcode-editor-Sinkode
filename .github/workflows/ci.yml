@@ -1,18 +1,28 @@
+# 质量检查与 Pages 发布共用一条工作流：
+# - 静态检查/构建与浏览器测试并行，失败点更直观，总耗时也更短；
+# - 只有 main 上的两个检查 job 都通过，才会上传并部署 dist，避免把坏版本发上线；
+# - 第三方 action 固定到完整提交 SHA（项目规则），升级时必须重新核对 SHA。
 name: 质量检查
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# 同一引用只保留最新一次运行：PR 推送取消旧运行；main 不取消，避免打断发布。
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  verify:
-    name: 安装、检查与测试
+  checks:
+    name: 静态检查与构建
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     steps:
       - name: 检出代码
@@ -26,9 +36,6 @@ jobs:
 
       - name: 按锁文件安装依赖
         run: npm ci
-
-      - name: 安装 Chromium
-        run: npx playwright install --with-deps chromium
 
       - name: 检查格式
         run: npm run format:check
@@ -51,5 +58,63 @@ jobs:
       - name: 构建生产版本
         run: npm run build
 
+      - name: 上传 Pages 产物
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: dist
+
+  e2e:
+    name: 端到端测试
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: 配置 Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 按锁文件安装依赖
+        run: npm ci
+
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: 运行端到端测试
         run: npm run test:e2e
+
+      - name: 上传失败证据
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: playwright-failure
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+  deploy:
+    name: 部署到 GitHub Pages
+    needs: [checks, e2e]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 部署站点
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
