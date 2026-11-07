@@ -174,6 +174,52 @@ test('滚轮在命中带上滚动预览，扫描线固定在画布视口', async
     .toBe(true)
 })
 
+test('目标行在编辑器视野外时用 200ms 平滑滚动跟随', async ({ page }) => {
+  const editor = await openEmptyEditor(page)
+  await fillLines(page, editor, 160)
+  const toggle = indicatorToggle(page)
+  await toggle.click()
+  const hit = page.locator('.preview-indicator__hit')
+  await expect(hit).toBeVisible()
+  await page.waitForTimeout(700)
+
+  // 输入后光标停在文末，先把编辑面滚回顶部，确保 End 会跨越大段距离。
+  const scroller = page.locator('.cm-scroller')
+  await scroller.evaluate((element) => {
+    element.scrollTop = 0
+  })
+  await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBe(0)
+  await hit.focus()
+
+  await page.evaluate(() => {
+    const element = document.querySelector<HTMLElement>('.cm-scroller')!
+    const samples: number[] = []
+    ;(window as unknown as { __indicatorScrollSamples?: number[] }).__indicatorScrollSamples =
+      samples
+    const startedAt = performance.now()
+    const tick = () => {
+      samples.push(element.scrollTop)
+      if (performance.now() - startedAt < 400) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  })
+  await page.keyboard.press('End')
+  await page.waitForTimeout(460)
+  const samples = await page.evaluate(
+    () =>
+      (window as unknown as { __indicatorScrollSamples?: number[] }).__indicatorScrollSamples ?? [],
+  )
+
+  const final = samples[samples.length - 1] ?? 0
+  expect(final).toBeGreaterThan(200)
+  const intermediate = samples.filter((value) => value > 4 && value < final - 4)
+  expect(intermediate.length).toBeGreaterThanOrEqual(2)
+  // 采样结束后动画应已落位，不会继续漂移。
+  await expect
+    .poll(() => scroller.evaluate((element) => element.scrollTop))
+    .toBeGreaterThanOrEqual(final - 1)
+})
+
 test('几何：全宽线、1px 线体、6×6 端点、24×24 端点命中区、8px 命中带', async ({ page }) => {
   const editor = await openEmptyEditor(page)
   await fillLines(page, editor, 40)

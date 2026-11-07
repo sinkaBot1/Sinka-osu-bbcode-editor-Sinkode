@@ -6,6 +6,15 @@ import {
   gutterLineClass,
   type ViewUpdate,
 } from '@codemirror/view'
+import {
+  INDICATOR_SCROLL_MARGIN,
+  cubicBezierEasing,
+  nearestIndicatorScroll,
+  parseCubicBezier,
+  type CubicBezier,
+  type Easing,
+  type IndicatorScrollPlan,
+} from './indicatorScroll'
 
 // 编辑器侧的源码行指示线：一个跟着目标行移动的绝对定位高亮块。
 // 高亮块不进入文档装饰，因此不会改变选区、撤销历史或诊断；行号当前行
@@ -13,19 +22,20 @@ import {
 export interface SetIndicatorLineOptions {
   /** 是否把目标行滚入视野；不改选区和焦点。 */
   readonly scroll?: boolean
-  /** 是否播放行间滑动；首次出现、文档替换和低动态效果下传 false。 */
+  /** 是否播放过渡（行间滑动与跟随滚动）；首次出现、文档替换和低动态效果下传 false。 */
   readonly animate?: boolean
 }
 
 interface IndicatorLineState {
   readonly line: number | null
   readonly animate: boolean
+  readonly scroll: boolean
 }
 
 const setIndicatorLineEffect = StateEffect.define<IndicatorLineState>()
 
 const indicatorField = StateField.define<IndicatorLineState>({
-  create: () => ({ line: null, animate: false }),
+  create: () => ({ line: null, animate: false, scroll: false }),
   update(value, transaction) {
     for (const effect of transaction.effects) {
       if (effect.is(setIndicatorLineEffect)) return effect.value
@@ -37,7 +47,7 @@ const indicatorField = StateField.define<IndicatorLineState>({
         transaction.startState.doc.line(previousLine).from,
       )
       const mappedLine = transaction.state.doc.lineAt(position).number
-      if (mappedLine !== value.line) return { line: mappedLine, animate: false }
+      if (mappedLine !== value.line) return { line: mappedLine, animate: false, scroll: false }
     }
     return value
   },
@@ -75,11 +85,20 @@ function motionDuration(): number {
   return parsed
 }
 
+// 与高亮块的 CSS transition 共用 --ease；令牌缺失或不是 cubic-bezier 时退回设计曲线。
+const FALLBACK_EASE: CubicBezier = { x1: 0.22, y1: 1, x2: 0.36, y2: 1 }
+
+function motionEasing(): Easing {
+  if (typeof window === 'undefined') return cubicBezierEasing(FALLBACK_EASE)
+  const value = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim()
+  return cubicBezierEasing(parseCubicBezier(value) ?? FALLBACK_EASE)
+}
+
 class IndicatorHighlighter {
   private readonly band: HTMLDivElement
   private targetPos: number | null = null
   private targetLine: number | null = null
-  private applied: IndicatorLineState = { line: null, animate: false }
+  private applied: IndicatorLineState = { line: null, animate: false, scroll: false }
   private visible = false
   private animating = false
   private frame = 0
@@ -93,6 +112,16 @@ class IndicatorHighlighter {
   private pendingApply: IndicatorLineState | null = null
   private needsSnap = false
   private needsGutterRefresh = false
+  private scrollFrame = 0
+  private scrollPosition: number | null = null
+  private scrollFrom = 0
+  private scrollTarget = 0
+  private scrollStartedAt = 0
+  private scrollDuration = 0
+  private scrollEasing: Easing = (progress) => progress
+  private readonly cancelScrollOnIntent = (): void => {
+    this.cancelScroll()
+  }
 
   constructor(private readonly view: EditorView) {
     this.band = document.createElement('div')
@@ -100,10 +129,14 @@ class IndicatorHighlighter {
     this.band.setAttribute('aria-hidden', 'true')
     this.band.dataset.visible = 'false'
     view.scrollDOM.append(this.band)
+    for (const type of ['wheel', 'pointerdown', 'touchstart', 'keydown'] as const) {
+      view.scrollDOM.addEventListener(type, this.cancelScrollOnIntent, { passive: true })
+    }
   }
 
   update(update: ViewUpdate): void {
     // update 周期里不读布局（CodeMirror 会判定插件在读布局），只登记待办。
+    if (update.docChanged) this.cancelScroll()
     if (update.docChanged && this.targetPos !== null) {
       this.targetPos = update.changes.mapPos(this.targetPos)
       this.needsSnap = true
@@ -124,9 +157,13 @@ class IndicatorHighlighter {
 
   destroy(): void {
     this.stopSampling()
+    this.cancelScroll()
     this.clearSwept()
     if (this.syncFrame !== 0) cancelAnimationFrame(this.syncFrame)
     this.syncFrame = 0
+    for (const type of ['wheel', 'pointerdown', 'touchstart', 'keydown'] as const) {
+      this.view.scrollDOM.removeEventListener(type, this.cancelScrollOnIntent)
+    }
     this.band.remove()
   }
 
@@ -172,8 +209,12 @@ class IndicatorHighlighter {
     const position = this.view.state.doc.line(line).from
     const wasVisible = this.visible
     this.stopSampling()
+    this.cancelScroll()
     this.targetPos = position
     this.targetLine = line
+
+    const duration = motionDuration()
+    const plan = next.scroll ? this.scrollPlan(position) : null
 
     if (!wasVisible) {
       // 第一次出现不滑动，只在目标行原地淡入。
@@ -181,20 +222,20 @@ class IndicatorHighlighter {
       this.visible = true
       this.band.dataset.visible = 'true'
       this.clearSwept()
-      return
-    }
-
-    const duration = motionDuration()
-    if (next.animate && duration > 0) {
+    } else if (next.animate && duration > 0) {
       this.animating = true
       this.lastSampledLine = this.targetLine
       this.positionAt(position)
       this.startSampling(duration)
-      return
+    } else {
+      this.snapTo(position)
+      this.clearSwept()
     }
 
-    this.snapTo(position)
-    this.clearSwept()
+    if (plan) {
+      if (next.animate && duration > 0) this.animateScroll(position, duration)
+      else this.reveal(plan.target)
+    }
   }
 
   private hide(): void {
@@ -202,6 +243,7 @@ class IndicatorHighlighter {
     this.visible = false
     this.animating = false
     this.stopSampling()
+    this.cancelScroll()
     this.clearSwept()
     this.band.dataset.visible = 'false'
     this.targetPos = null
@@ -244,6 +286,84 @@ class IndicatorHighlighter {
     const firstPosition = this.view.posAtDOM(line, 0)
     const firstBlock = this.view.lineBlockAt(firstPosition)
     return { top: rect.top - firstBlock.top, left: rect.left, width: rect.width }
+  }
+
+  private scrollPlan(position: number): IndicatorScrollPlan | null {
+    const scroller = this.view.scrollDOM
+    const origin = this.contentOrigin()
+    if (!origin) return null
+    const block = this.view.lineBlockAt(position)
+    const scrollerRect = scroller.getBoundingClientRect()
+    return nearestIndicatorScroll({
+      scrollTop: scroller.scrollTop,
+      scrollHeight: scroller.scrollHeight,
+      viewportHeight: scroller.clientHeight,
+      blockTop: origin.top + block.top - scrollerRect.top,
+      blockHeight: block.height,
+      margin: INDICATOR_SCROLL_MARGIN,
+    })
+  }
+
+  private animateScroll(position: number, duration: number): void {
+    const plan = this.scrollPlan(position)
+    if (!plan) return
+    this.cancelScroll()
+    const scroller = this.view.scrollDOM
+    this.scrollPosition = position
+    this.scrollFrom = scroller.scrollTop
+    this.scrollTarget = plan.target
+    this.scrollStartedAt = performance.now()
+    this.scrollDuration = duration
+    this.scrollEasing = motionEasing()
+    this.scrollFrame = requestAnimationFrame(() => this.stepScroll())
+  }
+
+  /**
+   * 每帧按最新的行块高度重算目标：CodeMirror 会边滚边测量之前估算的行高，
+   * 目标可能在动画中途变化；固定起点 + 最新目标能保证仍然在 200ms 内落稳。
+   */
+  private stepScroll(): void {
+    this.scrollFrame = 0
+    if (this.scrollPosition === null) return
+    const plan = this.scrollPlan(this.scrollPosition)
+    if (!plan) {
+      this.finishScroll()
+      return
+    }
+    this.scrollTarget = plan.target
+    const scroller = this.view.scrollDOM
+    const elapsed = performance.now() - this.scrollStartedAt
+    const progress = Math.min(1, Math.max(0, elapsed / this.scrollDuration))
+    const value =
+      this.scrollFrom + (this.scrollTarget - this.scrollFrom) * this.scrollEasing(progress)
+    const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight)
+    scroller.scrollTop = Math.min(max, Math.max(0, value))
+    if (progress >= 1) {
+      this.finishScroll()
+      return
+    }
+    this.scrollFrame = requestAnimationFrame(() => this.stepScroll())
+  }
+
+  private finishScroll(): void {
+    this.cancelScroll()
+    this.needsSnap = true
+    this.scheduleSync()
+  }
+
+  /** 低动态效果或调用方关闭动画时，直接落到目标 scrollTop。 */
+  private reveal(target: number): void {
+    const scroller = this.view.scrollDOM
+    const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight)
+    scroller.scrollTop = Math.min(max, Math.max(0, target))
+    this.needsSnap = true
+    this.scheduleSync()
+  }
+
+  private cancelScroll(): void {
+    if (this.scrollFrame !== 0) cancelAnimationFrame(this.scrollFrame)
+    this.scrollFrame = 0
+    this.scrollPosition = null
   }
 
   private startSampling(duration: number): void {
@@ -389,18 +509,13 @@ export function setIndicatorLine(
   const current = view.state.field(indicatorField, false)
   if (current?.line === clamped) return
 
-  const effects: StateEffect<unknown>[] = [
-    setIndicatorLineEffect.of({ line: clamped, animate: options.animate ?? true }),
-  ]
-  if (options.scroll) {
-    effects.push(
-      EditorView.scrollIntoView(view.state.doc.line(clamped).from, {
-        y: 'nearest',
-        yMargin: 24,
-      }),
-    )
-  }
-  view.dispatch({ effects })
+  view.dispatch({
+    effects: setIndicatorLineEffect.of({
+      line: clamped,
+      animate: options.animate ?? true,
+      scroll: options.scroll ?? false,
+    }),
+  })
 }
 
 /** 读取当前指示行；没有指示行时返回 null。 */
@@ -411,5 +526,7 @@ export function indicatorLineFor(view: EditorView): number | null {
 /** 清除指示行与行号尾迹。 */
 export function clearIndicatorLine(view: EditorView): void {
   if (view.state.field(indicatorField, false)?.line == null) return
-  view.dispatch({ effects: setIndicatorLineEffect.of({ line: null, animate: false }) })
+  view.dispatch({
+    effects: setIndicatorLineEffect.of({ line: null, animate: false, scroll: false }),
+  })
 }
