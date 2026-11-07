@@ -56,8 +56,8 @@ onUnmounted(() => {
     <div class="splash-content">
       <div class="splash-label">
         <span class="splash-eyebrow">osu! bbcode editor</span>
-        <span class="splash-version" aria-label="版本 0.1.0">
-          <span class="v-char">v</span><span class="version-number">0.1.0</span>
+        <span class="splash-version" aria-label="版本 0.2.0">
+          <span class="v-char">v</span><span class="version-number">0.2.0</span>
         </span>
         <span class="splash-tag">preview</span>
       </div>
