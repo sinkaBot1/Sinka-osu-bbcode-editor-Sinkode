@@ -17,6 +17,61 @@ async function fillLines(page: Page, editor: Locator, count: number) {
 
 const indicatorToggle = (page: Page) => page.getByRole('button', { name: '显示源码行指示线' })
 
+// 与 src/templates/storage/workspaceRepository.ts 的 DATABASE_NAME、
+// src/templates/storage/types.ts 的 WORKSPACE_RECORD_KEY 保持一致。
+const WORKSPACE_DATABASE = 'sinka-osu-bbcode-editor'
+const WORKSPACE_STORE = 'workspace'
+const WORKSPACE_RECORD_KEY = 'workspace'
+
+/**
+ * 读取已落库的工作区记录，并按 IndicatorLine 渲染 `top` 的同一方式序列化比例。
+ *
+ * 设置写入与正文保存是两条独立通道：`.status-bar .save-status` 只跟踪
+ * SaveScheduler 的正文模板保存，`workspace.setIndicatorRatio()` 走
+ * repository.saveSettings，成功时不会改变状态文本。因此刷新前必须以
+ * IndexedDB 里的记录（而不是 save-status）作为同步点。
+ */
+async function persistedIndicatorTop(page: Page): Promise<string | null> {
+  return page.evaluate(
+    ({ databaseName, storeName, recordKey }) =>
+      new Promise<string | null>((resolve) => {
+        const request = indexedDB.open(databaseName)
+        request.onerror = () => resolve(null)
+        request.onsuccess = () => {
+          const database = request.result
+          try {
+            const transaction = database.transaction(storeName, 'readonly')
+            const get = transaction.objectStore(storeName).get(recordKey)
+            get.onerror = () => resolve(null)
+            get.onsuccess = () => {
+              const record = get.result as { indicatorRatio?: unknown } | undefined
+              const ratio = record?.indicatorRatio
+              if (typeof ratio !== 'number' || !Number.isFinite(ratio)) {
+                resolve(null)
+                return
+              }
+              // 与组件模板里的 `top: ${localRatio * 100}%` 使用同一种 CSS 序列化，
+              // 结果可以和刷新前的 element.style.top 精确比较，不需要容差。
+              const probe = document.createElement('div')
+              probe.style.top = `${ratio * 100}%`
+              resolve(probe.style.top)
+            }
+            transaction.oncomplete = () => database.close()
+            transaction.onabort = () => database.close()
+          } catch {
+            database.close()
+            resolve(null)
+          }
+        }
+      }),
+    {
+      databaseName: WORKSPACE_DATABASE,
+      storeName: WORKSPACE_STORE,
+      recordKey: WORKSPACE_RECORD_KEY,
+    },
+  )
+}
+
 test('开关显示扫描线与编辑器高亮，关闭后一起隐藏', async ({ page }) => {
   const editor = await openEditor(page)
   const toggle = indicatorToggle(page)
@@ -299,8 +354,13 @@ test('刷新后恢复开关与线高度', async ({ page }) => {
   await page.mouse.down()
   await page.mouse.move(hitBox.x + hitBox.width / 2, canvasBox.y + 40, { steps: 5 })
   await page.mouse.up()
+  // 这条状态只代表正文模板写入完成：save-status 由 SaveScheduler 驱动，
+  // 不覆盖 setIndicatorRatio 的 saveSettings 写入（见 workspaceStore.ts）。
   await expect(page.locator('.status-bar .save-status')).toContainText('已保存')
   const ratioBefore = await hit.evaluate((element) => element.style.top)
+  // 刷新前必须等比例真正写进 IndexedDB，否则 reload 会与设置写入竞争，
+  // 重新加载时读回默认的 0.5。
+  await expect.poll(() => persistedIndicatorTop(page)).toBe(ratioBefore)
 
   await page.reload()
   await expect(page.locator('.cm-content')).toBeVisible()
@@ -308,6 +368,9 @@ test('刷新后恢复开关与线高度', async ({ page }) => {
   const restored = page.locator('.preview-indicator__hit')
   await expect(restored).toBeVisible()
   await expect(page.locator('.cm-indicator-gutter-current')).toHaveCount(1)
+  // 恢复链路（initialize → applyWorkspace）早于编辑器与预览创建完成，但仍等
+  // 内联 top 真正反映已持久化的比例再取终值，避免把渲染/测量时序残留算进断言。
+  await expect.poll(() => restored.evaluate((element) => element.style.top)).toBe(ratioBefore)
   const ratioAfter = await restored.evaluate((element) => element.style.top)
   expect(ratioAfter).toBe(ratioBefore)
 })

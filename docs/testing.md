@@ -161,4 +161,9 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
 
 ## 8. CI 里跑什么
 
-`.github/workflows/ci.yml` 在 push 到 `main` 和所有 Pull Request 上执行，步骤与本文第 3 节一致（`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建 → 端到端），额外先安装 Chromium。CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。运行结果和失败步骤在仓库的 **Actions** 页面查看。
+`.github/workflows/ci.yml` 在 push 到 `main`、Pull Request 和手动触发时执行，分成两个并行 job：
+
+- **静态检查与构建**：`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建；
+- **端到端测试**：`npm ci` → 安装 Chromium → `npm run test:e2e`。
+
+CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。CI 上的 Playwright 会失败重试一次并保留 trace，失败时上传 `test-results/` 与 `playwright-report/`；本地不重试。`main` 上两个 job 都通过后，同一条工作流的部署 job 才会发布 Pages，检查失败不会上线。运行结果和失败步骤在仓库的 **Actions** 页面查看。

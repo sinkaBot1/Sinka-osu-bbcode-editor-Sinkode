@@ -361,10 +361,23 @@ test.describe('BBCode 参考面板', () => {
   })
 
   test('顶栏收起时帮助面板跟随同一曲线移动，不再瞬间跳位', async ({ page }) => {
-    await page.getByRole('button', { name: '打开帮助', exact: true }).click()
+    const helpButton = page.getByRole('button', { name: '打开帮助', exact: true })
     const panel = page.getByRole('dialog', { name: 'BBCode 参考' })
+    await helpButton.click()
     await expect(panel).toBeVisible()
-    await expect.poll(() => panel.evaluate((element) => element.getAnimations().length)).toBe(0)
+    // Enter 类在插入后的下一次绘制才挂上：只等 getAnimations() 为空会把
+    // “还没开始”误判成“已经结束”。先观察类名确认进入态确实出现过，再等
+    // Vue 清理；不等待 animation.finished，因为兜底清理会取消过渡并抛 AbortError。
+    await page.waitForFunction(() =>
+      document.querySelector('#help-panel')?.classList.contains('help-panel-enter-active'),
+    )
+    // 确认已回到 .help-panel 基类，后续采样的才是跟随顶栏的 top 过渡，
+    // 而不是进入动画的 top/opacity/transform 三条过渡声明。
+    await expect
+      .poll(() =>
+        panel.evaluate((element) => element.classList.contains('help-panel-enter-active')),
+      )
+      .toBe(false)
 
     const motion = await page.evaluate(async () => {
       const dock = document.querySelector<HTMLElement>('.header-dock')!
@@ -400,9 +413,12 @@ test.describe('BBCode 参考面板', () => {
       const middleTop = panelElement.getBoundingClientRect().top
       dockMotion.play()
       panelMotion.play()
+      const timing = panelMotion.effect?.getTiming()
       return {
-        duration: panelMotion.effect?.getTiming().duration,
-        easing: getComputedStyle(panelElement).transitionTimingFunction,
+        duration: timing?.duration,
+        // 与侧栏比较的是同一条运行中的 top 过渡的缓动，而不是元素上逗号分隔的
+        // transition-timing-function 声明列表（进入动画进行中时会是三个值）。
+        easing: timing?.easing,
         sidebarEasing,
         expandedTop,
         expandedDockBottom,
