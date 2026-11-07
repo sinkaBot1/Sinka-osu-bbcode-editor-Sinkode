@@ -1,5 +1,75 @@
-export const DEFAULT_EXAMPLE_NAME = '默认示例'
+export const DEFAULT_EXAMPLE_NAME = '这是一个默认示例'
 
 // 编辑器首次打开时载入的示例稿，同时也是各标签实际渲染效果的展示入口。
-// 临时占位：示例稿暂时改为 WIP，完整的展示稿稍后再恢复。
-export const DEFAULT_EXAMPLE_CONTENT = 'WIP'
+// 我编辑完就把这个注释删掉。
+export const DEFAULT_EXAMPLE_CONTENT = `[url=https://inex.osekai.net/profiles/21614712][img]https://imagepier.osekai.net/banner/21614712/37747.png[/img][/url]
+[centre]
+[img]https://www.helloimg.com/i/2026/10/11/6acb4c9e986c5.png[/img]
+[/centre]
+[centre]
+[size=200][color=#ff66aa][b]S[/b][/color][/size][size=170][color=#ff99cc][b]I[/b][/color][/size][size=140][color=LavenderBlush][b]N[/b][/color][/size][size=115][color=Aquamarine][b]K[/b][/color][/size][size=95][color=#7fd4c1][b]A[/b][/color][/size][size=80][color=Gold][b]0[/b][/color][/size]
+[/centre]
+
+[centre]
+[size=120][color=LavenderBlush][b]Sinkode[/b][/color][/size] [size=120][color=Aquamarine][i]BBCode Editor[/i][/color][/size]
+[/centre]
+
+[notice]
+[color=#ff66aa][b]欢迎来到 Sinkode。[/b][/color]
+
+如果你看到 [spoiler]这一小段被黑条盖住了[/spoiler]，用鼠标划过去就能读出来。
+文字样式一览：[b]粗体[/b]、[i]斜体[/i]、[u]下划线[/u]、[s]删除线[/s]、[color=Gold]金色[/color]、[color=Aquamarine]水绿色[/color]。
+[/notice]
+
+[heading][color=#ff66aa][b]技能清单[/b][/color][/heading]
+[list=1]
+[*][b]标签解析[/b]：严格嵌套配对，未知标签原样保留为文本
+[*][b]模板保存[/b]：打开侧边栏即可看到模板界面
+[*][b]候选词[/b]：输入 [ 后，自动弹出候选词列表
+[list]
+[*]按方向键↑↓切换候选词，按tab和enter键入选中的候选词
+[*]按esc关闭候选词面板
+[/list]
+[*][b]官网对齐[/b]：可以在osu官网个人简介编辑处进行的基础操作
+[*][b]切换主题[/b]：见展开头栏后的右上角
+[*][b]帮助面板[/b]：其中可以查看更多的bbcode语法细节以及预览效果
+[*][b]基础错误诊断[/b]：可以识别基本的bbcode语法错误，点击编辑器下方的 [b]n 个问题[/b] 来打开面板
+[/list]
+
+
+[quote="SINKA0"]
+"引用"， quote="SINKA0"
+[/quote]
+
+[heading][color=#ff66aa][b]代码块[/b][/color][/heading]
+如果你克隆了本项目的仓库，对应目录的命令行里敲 [c]npm run dev[/c] 就能启动本地服务器
+[code]
+> sinka-osu-bbcode-editor@0.1.0 dev
+> vite
+[/code]
+
+[heading][color=#ff66aa][b]媒体区 · YouTube · 音频[/b][/color][/heading]
+
+[youtube]https://www.youtube.com/watch?v=7wMz8mDyHgM&list=RD7wMz8mDyHgM&start_radio=1[/youtube]
+[audio]https://files.catbox.moe/h1qhu9.mp3[/audio]
+
+[heading][color=#ff66aa][b]图片热区点击示例[/b][/color][/heading]
+[imagemap]
+https://www.helloimg.com/i/2026/11/07/6aef36e1b83b0.png
+36.1 24.7 37.9 24.7 https://osu.ppy.sh/users/21614712 To My ProFile
+[/imagemap]
+
+[box=box]这里是被折叠起来的内容，点标题才会展开。[/box]
+[spoilerbox]
+[u][s]don't read this[/s][/u]
+[quote="ppy"]
+我们承诺，未来各届 osu! World Cup 都将采用 lazer（注意，这不包括其他游戏模式），除非遇到阻碍这一计划实施的重大障碍。若出现这种情况，我们会通过常规渠道（osu! 论坛、Discord、新闻公告等）向大家更新进展。
+[/quote]
+[/spoilerbox]
+i love lazer..
+
+[heading][color=#ff66aa][b]找到我[/b][/color][/heading]
+[list]
+[*]osu! 主页：[url]https://osu.ppy.sh/users/21614712[/url]
+[*]玩家名片：[profile=21614712]SINKA0[/profile] ←这个没被渲染，以后做（（
+[/list]`
