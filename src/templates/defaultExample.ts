@@ -1,4 +1,4 @@
-export const DEFAULT_EXAMPLE_NAME = '这是一个默认示例'
+export const DEFAULT_EXAMPLE_NAME = '默认示例'
 
 // 编辑器首次打开时载入的示例稿，同时也是各标签实际渲染效果的展示入口。
 // 我编辑完就把这个注释删掉。
