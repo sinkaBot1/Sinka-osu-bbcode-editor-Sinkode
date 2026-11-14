@@ -317,6 +317,17 @@ async function handleDeleteTemplate(id: string) {
   if (wasActive) replaceDocument(workspace.activeTemplate?.content ?? '')
 }
 
+// 批量删除要回传“删成没删成”：侧栏的确认步骤据此决定退出还是留在原处重试。
+async function handleDeleteTemplates(ids: readonly string[]) {
+  const activeId = workspace.activeTemplateId
+  const wasActive = activeId !== null && ids.includes(activeId)
+  const deleted = await workspace.deleteTemplates(ids)
+  // 存储不可用时 store 走内存分支并返回 true，活动模板已在内存里兜底，
+  // 这里同样要把编辑器切到新的活动模板。
+  if (deleted && wasActive) replaceDocument(workspace.activeTemplate?.content ?? '')
+  return deleted
+}
+
 async function handleRestoreExample() {
   await workspace.restoreDefaultExample()
   replaceDocument(workspace.activeTemplate?.content ?? '')
@@ -1033,6 +1044,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
           :templates="workspace.templates"
           :active-template-id="workspace.activeTemplateId"
           :open="templateSidebarOpen"
+          :delete-templates="handleDeleteTemplates"
           @toggle="toggleTemplateSidebar"
           @select="handleSelectTemplate"
           @create="handleCreateTemplate"
@@ -1346,6 +1358,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
       :templates="workspace.templates"
       :active-template-id="workspace.activeTemplateId"
       :open="mobileTemplateDrawerOpen"
+      :delete-templates="handleDeleteTemplates"
       @close="closeMobileTemplateDrawer"
       @select="handleSelectTemplate"
       @create="handleCreateTemplate"

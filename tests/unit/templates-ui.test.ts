@@ -18,13 +18,28 @@ describe('模板侧栏组件', () => {
     templates: TemplateRecord[]
     activeTemplateId: string
     open?: boolean
+    deleteTemplates?: (ids: readonly string[]) => Promise<boolean>
   }) {
+    const { deleteTemplates = async () => true, ...rest } = props
     const host = document.createElement('div')
     document.body.append(host)
     hosts.push(host)
-    const wrapper = mount(TemplateSidebar, { props, attachTo: host })
+    const wrapper = mount(TemplateSidebar, {
+      props: { ...rest, deleteTemplates },
+      attachTo: host,
+    })
     mounted.push(wrapper)
     return wrapper
+  }
+
+  async function enterBatch(wrapper: VueWrapper) {
+    await wrapper.get('button[title="批量选择模板"]').trigger('click')
+    await flushPromises()
+  }
+
+  function activeElementLabel() {
+    const active = document.activeElement
+    return active?.getAttribute('aria-label') ?? active?.textContent?.trim() ?? null
   }
 
   async function openMenu(wrapper: VueWrapper, name: string) {
@@ -207,6 +222,220 @@ describe('模板侧栏组件', () => {
     await openMenu(wrapper, '第一个')
     await wrapper.setProps({ open: false })
     expect(document.querySelector('#template-action-menu')).toBeNull()
+  })
+
+  it('进入批量选择：标题计数、取消按钮与整行复选，焦点落在第一行', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
+    expect(wrapper.find('.template-check-row').exists()).toBe(false)
+
+    await enterBatch(wrapper)
+
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 0 项')
+    expect(wrapper.get('button[aria-label="取消批量选择"]').text()).toBe('取消')
+    const rows = wrapper.findAll('.template-check-row')
+    expect(rows).toHaveLength(2)
+    expect(rows[0].attributes('role')).toBe('checkbox')
+    expect(rows[0].attributes('aria-checked')).toBe('false')
+    expect(rows[0].attributes('aria-label')).toBe('模板：第一个，未选')
+    expect(wrapper.find('.template-select').exists()).toBe(false)
+    expect(wrapper.get('[role="status"]').text()).toBe('批量选择模式，已选择 0 个模板')
+    expect(activeElementLabel()).toBe('模板：第一个，未选')
+
+    await wrapper.get('button[aria-label="取消批量选择"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.findAll('.template-check-row')).toHaveLength(0)
+    expect(wrapper.findAll('.template-select')).toHaveLength(2)
+    expect(activeElementLabel()).toBe('批量选择模板')
+  })
+
+  it('勾选不连续的行时标题与删除按钮同步计数', async () => {
+    const wrapper = mountSidebar({
+      templates: [
+        { id: 'a', name: '第一个', content: 'A', createdAt: 1, updatedAt: 1 },
+        { id: 'b', name: '第二个', content: 'B', createdAt: 2, updatedAt: 2 },
+        { id: 'c', name: '第三个', content: 'C', createdAt: 3, updatedAt: 3 },
+      ],
+      activeTemplateId: 'b',
+    })
+    await enterBatch(wrapper)
+
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+    await wrapper.findAll('.template-check-row')[2].trigger('click')
+
+    const rows = wrapper.findAll('.template-check-row')
+    expect(rows[0].attributes('aria-checked')).toBe('true')
+    expect(rows[1].attributes('aria-checked')).toBe('false')
+    expect(rows[2].attributes('aria-checked')).toBe('true')
+    expect(rows[0].attributes('aria-label')).toBe('模板：第一个，已选')
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 2 项')
+    expect(wrapper.get('button[aria-label="删除 2 个模板"]').text()).toBe('删除 2 项')
+
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 1 项')
+  })
+
+  it('全选与取消全选双向切换，0 项时删除按钮禁用', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
+    await enterBatch(wrapper)
+
+    const deleteButton = () => wrapper.get('.template-footer .template-batch-delete')
+    expect(deleteButton().attributes('disabled')).toBeDefined()
+
+    await wrapper.get('.template-batch-all').trigger('click')
+    expect(wrapper.get('.template-batch-all').text()).toBe('取消全选')
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 2 项')
+    expect(deleteButton().attributes('disabled')).toBeUndefined()
+
+    await wrapper.get('.template-batch-all').trigger('click')
+    expect(wrapper.get('.template-batch-all').text()).toBe('全选')
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 0 项')
+  })
+
+  it('确认步骤只列所选、按原顺序排列并变成静态行', async () => {
+    const wrapper = mountSidebar({
+      templates: [
+        { id: 'a', name: '第一个', content: 'A', createdAt: 1, updatedAt: 1 },
+        { id: 'b', name: '第二个', content: 'B', createdAt: 2, updatedAt: 2 },
+        { id: 'c', name: '第三个', content: 'C', createdAt: 3, updatedAt: 3 },
+      ],
+      activeTemplateId: 'b',
+    })
+    await enterBatch(wrapper)
+    // 先勾第三个再勾第一个：确认列表仍按模板原顺序
+    await wrapper.findAll('.template-check-row')[2].trigger('click')
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+    await wrapper.get('button[aria-label="删除 2 个模板"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('.section-heading h2').text()).toBe('确认删除')
+    expect(wrapper.get('button[aria-label="返回选择列表"]').text()).toBe('取消')
+    expect(wrapper.findAll('.template-check-name').map((node) => node.text())).toEqual([
+      '第一个',
+      '第三个',
+    ])
+    expect(wrapper.findAll('.template-check-row')).toHaveLength(0)
+    expect(wrapper.find('[role="checkbox"]').exists()).toBe(false)
+    expect(wrapper.get('.template-confirm-warning').text()).toBe('此操作不可撤销。')
+    expect(wrapper.get('[role="status"]').text()).toBe('确认删除 2 个模板')
+    expect(activeElementLabel()).toBe('返回选择列表')
+  })
+
+  it('取消确认回到选择态并保留勾选与焦点', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
+    await enterBatch(wrapper)
+    await wrapper.findAll('.template-check-row')[1].trigger('click')
+    await wrapper.get('button[aria-label="删除 1 个模板"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.get('button[aria-label="返回选择列表"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 1 项')
+    expect(wrapper.findAll('.template-check-row')[1].attributes('aria-checked')).toBe('true')
+    expect(activeElementLabel()).toBe('删除 1 个模板')
+  })
+
+  it('Esc 分层：确认退到选择、再退到普通态', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
+    await enterBatch(wrapper)
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+    await wrapper.get('button[aria-label="删除 1 个模板"]').trigger('click')
+    await flushPromises()
+
+    const root = wrapper.get('.template-sidebar-content')
+    await root.trigger('keydown', { key: 'Escape' })
+    await flushPromises()
+    expect(wrapper.get('.section-heading h2').text()).toBe('已选 1 项')
+
+    await wrapper.get('.template-sidebar-content').trigger('keydown', { key: 'Escape' })
+    await flushPromises()
+    expect(wrapper.findAll('.template-check-row')).toHaveLength(0)
+    expect(activeElementLabel()).toBe('批量选择模板')
+  })
+
+  it('删除成功后回普通态、清空勾选并播报结果', async () => {
+    const deleteTemplates = vi.fn().mockResolvedValue(true)
+    const wrapper = mountSidebar({
+      templates: [
+        { id: 'a', name: '第一个', content: 'A', createdAt: 1, updatedAt: 1 },
+        { id: 'b', name: '第二个', content: 'B', createdAt: 2, updatedAt: 2 },
+        { id: 'c', name: '第三个', content: 'C', createdAt: 3, updatedAt: 3 },
+      ],
+      activeTemplateId: 'a',
+      deleteTemplates,
+    })
+    await enterBatch(wrapper)
+    await wrapper.findAll('.template-check-row')[1].trigger('click')
+    await wrapper.findAll('.template-check-row')[2].trigger('click')
+    await wrapper.get('button[aria-label="删除 2 个模板"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('button[aria-label="删除 2 个模板"]').trigger('click')
+    await flushPromises()
+
+    expect(deleteTemplates).toHaveBeenCalledWith(['b', 'c'])
+    expect(wrapper.findAll('.template-check-row')).toHaveLength(0)
+    expect(wrapper.findAll('.template-select')).toHaveLength(3)
+    expect(wrapper.get('[role="status"]').text()).toBe('已删除 2 个模板')
+    expect(activeElementLabel()).toBe('批量选择模板')
+  })
+
+  it('删除失败留在确认态、警示可重试，成功后才退出', async () => {
+    const deleteTemplates = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    const wrapper = mountSidebar({
+      templates: makeTemplates(),
+      activeTemplateId: 'a',
+      deleteTemplates,
+    })
+    await enterBatch(wrapper)
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+    await wrapper.get('button[aria-label="删除 1 个模板"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.get('button[aria-label="删除 1 个模板"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.get('[role="alert"]').text()).toBe('删除失败，请重试')
+    expect(wrapper.get('.section-heading h2').text()).toBe('确认删除')
+    expect(wrapper.findAll('.template-check-name')).toHaveLength(1)
+    expect(activeElementLabel()).toBe('删除 1 个模板')
+
+    await wrapper.get('button[aria-label="删除 1 个模板"]').trigger('click')
+    await flushPromises()
+
+    expect(deleteTemplates).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    expect(wrapper.findAll('.template-check-row')).toHaveLength(0)
+  })
+
+  it('进入批量选择会关闭操作菜单并取消行内删除确认', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
+    await (
+      await openMenu(wrapper, '第一个')
+    )
+      .get('button[title="删除模板：第一个"]')
+      .trigger('click')
+    await nextTick()
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(true)
+
+    await enterBatch(wrapper)
+    expect(document.querySelector('#template-action-menu')).toBeNull()
+
+    await wrapper.get('button[aria-label="取消批量选择"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false)
+  })
+
+  it('关闭侧栏后重新展开回到普通态且勾选已清空', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a', open: true })
+    await enterBatch(wrapper)
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+
+    await wrapper.setProps({ open: false })
+    await wrapper.setProps({ open: true })
+
+    expect(wrapper.findAll('.template-select')).toHaveLength(2)
+    expect(wrapper.find('.template-check-row').exists()).toBe(false)
+    expect(wrapper.get('.section-heading h2').text()).toBe('模板2')
   })
 })
 

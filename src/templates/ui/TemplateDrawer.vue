@@ -9,6 +9,7 @@ const props = withDefaults(
     templates: readonly TemplateRecord[]
     activeTemplateId: string | null
     open?: boolean
+    deleteTemplates: (ids: readonly string[]) => Promise<boolean>
   }>(),
   { open: false },
 )
@@ -146,6 +147,7 @@ onUnmounted(() => {
               :templates="props.templates"
               :active-template-id="props.activeTemplateId"
               :open="true"
+              :delete-templates="props.deleteTemplates"
               @toggle="closeDrawer"
               @select="emit('select', $event)"
               @create="emit('create')"

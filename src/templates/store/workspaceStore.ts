@@ -245,6 +245,31 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
+  // 批量删除：先冲刷待保存内容，再交给 repository 的单个事务完成，
+  // 失败时 UI 需要拿到“没删成”的结论（返回值），而不是靠 emit 单向通知。
+  async function deleteTemplates(ids: readonly string[]): Promise<boolean> {
+    const targets = ids.filter((id) => templates.value.some((template) => template.id === id))
+    if (targets.length === 0) return true
+    if (!storageAvailable.value) {
+      const remaining = templates.value.filter((template) => !targets.includes(template.id))
+      templates.value = remaining.length === 0 ? [makeTemplate(NEW_TEMPLATE_NAME, '')] : remaining
+      if (!templates.value.some((template) => template.id === activeTemplateId.value)) {
+        activeTemplateId.value = templates.value[0].id
+      }
+      saveState.value = 'error'
+      return true
+    }
+    await scheduler.flush()
+    try {
+      const workspace = await repository.value.deleteTemplates(targets)
+      applyWorkspace(workspace)
+      return true
+    } catch {
+      saveState.value = 'error'
+      return false
+    }
+  }
+
   async function selectTemplate(id: string) {
     if (id === activeTemplateId.value) return
     if (!templates.value.some((template) => template.id === id)) return
@@ -317,6 +342,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     renameTemplate,
     duplicateTemplate,
     deleteTemplate,
+    deleteTemplates,
     selectTemplate,
     selectTheme,
     setThemeRevealDuration,

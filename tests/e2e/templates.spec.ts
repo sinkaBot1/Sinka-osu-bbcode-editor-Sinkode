@@ -1,6 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { DEFAULT_EXAMPLE_CONTENT } from '../../src/templates/defaultExample'
-import { clearEditor, openEditor, openEmptyEditor } from './helpers'
+import {
+  clearEditor,
+  installNetworkIsolation,
+  openEditor,
+  openEmptyEditor,
+  waitForSplashDone,
+} from './helpers'
 
 // 默认示例允许临时替换内容，模板用例只验证“载入的是当前默认示例”，
 // 不把某段展示文案写死。取首行是为了避开不同编辑器的换行序列化差异。
@@ -27,6 +33,79 @@ async function measureDeleteActions(confirm: Locator) {
 async function chooseTemplateAction(page: Page, name: string, action: '重命名' | '复制' | '删除') {
   await page.getByRole('button', { name: `更多操作：${name}` }).click()
   await page.getByRole('button', { name: `${action}模板：${name}` }).click()
+}
+
+/**
+ * 最窄栏宽下的 3 位计数需要上百个模板，逐个点“新建”太慢：直接写 IndexedDB 再刷新。
+ * 字段与 `src/templates/storage/types.ts` 的 schema v1 一致。
+ */
+async function seedTemplates(page: Page, count: number) {
+  await installNetworkIsolation(page)
+  await page.goto('/')
+  await waitForSplashDone(page)
+  await page.evaluate(async (total) => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('sinka-osu-bbcode-editor', 1)
+      request.onupgradeneeded = () => {
+        const db = request.result
+        if (!db.objectStoreNames.contains('templates')) {
+          db.createObjectStore('templates', { keyPath: 'id' })
+        }
+        if (!db.objectStoreNames.contains('workspace')) {
+          db.createObjectStore('workspace', { keyPath: 'key' })
+        }
+      }
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(['templates', 'workspace'], 'readwrite')
+      const store = transaction.objectStore('templates')
+      for (let index = 0; index < total; index += 1) {
+        store.put({
+          id: `seed-${index}`,
+          name: `模板 ${index + 1}`,
+          content: `内容 ${index + 1}`,
+          createdAt: index + 1,
+          updatedAt: index + 1,
+        })
+      }
+      transaction.objectStore('workspace').put({
+        key: 'workspace',
+        schemaVersion: 1,
+        activeTemplateId: 'seed-0',
+        selectedThemeId: 'darkode',
+        themeRevealDuration: 900,
+        indicatorEnabled: false,
+        indicatorRatio: 0.5,
+        lastMobileView: null,
+      })
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+    })
+    database.close()
+  }, count)
+  await page.reload()
+  await waitForSplashDone(page)
+}
+
+async function resizeTemplateColumn(page: Page, width: number) {
+  const readWidth = () =>
+    page.evaluate(() =>
+      Number.parseFloat(
+        getComputedStyle(document.querySelector<HTMLElement>('.workspace')!).getPropertyValue(
+          '--template-width',
+        ),
+      ),
+    )
+  const handleBox = (await page.getByRole('separator', { name: '调整模板栏宽度' }).boundingBox())!
+  const startX = handleBox.x + handleBox.width / 2
+  const startY = handleBox.y + Math.min(30, handleBox.height / 2)
+  await page.mouse.move(startX, startY)
+  await page.mouse.down()
+  await page.mouse.move(startX + width - (await readWidth()), startY, { steps: 6 })
+  await page.mouse.up()
+  await expect.poll(readWidth).toBeCloseTo(width, 0)
 }
 
 test.describe('模板、保存与复制', () => {
@@ -115,7 +194,8 @@ test.describe('模板、保存与复制', () => {
     )
 
     await expectNeutralHover('.template-sidebar-toggle', '模板栏开合')
-    await expectNeutralHover('.section-heading button', '模板栏新建')
+    await expectNeutralHover('.section-heading button[title="新建模板"]', '模板栏新建')
+    await expectNeutralHover('.section-heading button[title="批量选择模板"]', '模板栏批量选择')
     await expectNeutralHover('.template-select', '模板行')
     await expectNeutralHover('.template-footer button', '恢复默认示例')
 
@@ -914,6 +994,255 @@ test.describe('模板、保存与复制', () => {
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
     expect(clipboardText).toContain(defaultExampleProbe)
   })
+
+  test('批量选择：不连续勾选、确认顺序、Esc 分层与成功删除', async ({ page }) => {
+    await openEditor(page)
+    await page.getByTitle('新建模板').click()
+    await page.getByTitle('新建模板').click()
+    await expect(page.locator('.template-select')).toHaveCount(3)
+
+    const batchTrigger = page.getByRole('button', { name: '批量选择模板' })
+    await batchTrigger.click()
+    await expect(page.locator('.template-sidebar h2')).toHaveText('已选 0 项')
+    await expect(page.getByRole('button', { name: '取消批量选择' })).toBeVisible()
+    await expect(page.getByRole('checkbox')).toHaveCount(3)
+    await expect(page.getByRole('checkbox').first()).toBeFocused()
+
+    // 键盘勾选：焦点已在第一行，Space 切换 aria-checked
+    await page.keyboard.press('Space')
+    await expect(page.locator('.template-sidebar h2')).toHaveText('已选 1 项')
+    await expect(page.getByRole('checkbox').first()).toHaveAttribute('aria-checked', 'true')
+    await page.keyboard.press('Space')
+    await expect(page.locator('.template-sidebar h2')).toHaveText('已选 0 项')
+
+    // 不连续勾选：默认示例与最后一个模板
+    await page.getByRole('checkbox', { name: '模板：默认示例，未选' }).click()
+    await page.getByRole('checkbox', { name: '模板：未命名模板 (2)，未选' }).click()
+    await expect(page.locator('.template-sidebar h2')).toHaveText('已选 2 项')
+    await expect(page.getByRole('button', { name: '删除 2 个模板' })).toBeVisible()
+
+    // 确认：只列所选、按原顺序、行变静态、焦点在返回按钮
+    await page.getByRole('button', { name: '删除 2 个模板' }).click()
+    await expect(page.locator('.template-sidebar h2')).toHaveText('确认删除')
+    await expect(page.locator('.template-check-name')).toHaveText(['默认示例', '未命名模板 (2)'])
+    await expect(page.getByRole('checkbox')).toHaveCount(0)
+    await expect(page.locator('.template-confirm-warning')).toHaveText('此操作不可撤销。')
+    await expect(page.getByRole('button', { name: '返回选择列表' })).toBeFocused()
+
+    // Esc 分层：确认 → 选择 → 普通
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.template-sidebar h2')).toHaveText('已选 2 项')
+    await expect(page.getByRole('button', { name: '删除 2 个模板' })).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.template-select')).toHaveCount(3)
+    await expect(batchTrigger).toBeFocused()
+
+    // 再来一次并真正删除
+    await batchTrigger.click()
+    await page.getByRole('checkbox', { name: '模板：默认示例，未选' }).click()
+    await page.getByRole('checkbox', { name: '模板：未命名模板 (2)，未选' }).click()
+    await page.getByRole('button', { name: '删除 2 个模板' }).click()
+    await page.getByRole('button', { name: '删除 2 个模板' }).click()
+
+    await expect(page.locator('.template-select')).toHaveCount(1)
+    await expect(page.getByRole('button', { name: '未命名模板', exact: true })).toBeVisible()
+    await expect(page.locator('.template-sidebar [role="status"]')).toHaveText('已删除 2 个模板')
+    await expect(batchTrigger).toBeFocused()
+    await expect(page.locator('.template-sidebar h2')).toHaveText('模板1')
+  })
+
+  test('批量删除当前模板后编辑器切到剩余最早的模板', async ({ page }) => {
+    const editor = await openEditor(page)
+    await page.getByTitle('新建模板').click()
+    await page.getByTitle('新建模板').click()
+    await page.getByRole('button', { name: '未命名模板 (2)', exact: true }).click()
+    await editor.locator('.cm-line').first().click()
+    await page.keyboard.insertText('将被删除的内容')
+    await expect(page.locator('.status-bar .save-status')).toContainText('已保存')
+
+    await page.getByRole('button', { name: '批量选择模板' }).click()
+    await page.getByRole('checkbox', { name: '模板：未命名模板，未选' }).click()
+    await page.getByRole('checkbox', { name: '模板：未命名模板 (2)，未选' }).click()
+    await page.getByRole('button', { name: '删除 2 个模板' }).click()
+    await page.getByRole('button', { name: '删除 2 个模板' }).click()
+
+    await expect(page.locator('.template-select')).toHaveCount(1)
+    await expect(page.locator('.template-item.is-active .template-select')).toHaveText('默认示例')
+    await expect(editor).toContainText(defaultExampleProbe)
+  })
+
+  test('批量删除失败时不出现删了一半，可原地重试', async ({ page }) => {
+    await openEditor(page)
+    await page.getByTitle('新建模板').click()
+    await expect(page.locator('.template-select')).toHaveCount(2)
+    await page.getByRole('button', { name: '批量选择模板' }).click()
+    await page.getByRole('checkbox', { name: '模板：默认示例，未选' }).click()
+    await page.getByRole('button', { name: '删除 1 个模板' }).click()
+
+    // 注入失败：事务里的 delete 直接抛错，验证显式回滚（要么全删要么全不删）
+    await page.evaluate(() => {
+      const prototype = IDBObjectStore.prototype
+      const original = prototype.delete
+      ;(window as unknown as { __restoreDelete: () => void }).__restoreDelete = () => {
+        prototype.delete = original
+      }
+      prototype.delete = function patchedDelete() {
+        throw new Error('模拟删除失败')
+      }
+    })
+
+    await page.getByRole('button', { name: '删除 1 个模板' }).click()
+    const failure = page.locator('.template-confirm-error')
+    await expect(failure).toHaveText('删除失败，请重试')
+    await expect(failure).toHaveAttribute('role', 'alert')
+
+    // 回到选择列表：两个模板都还在，说明没有删掉一半
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('checkbox')).toHaveCount(2)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.template-select')).toHaveCount(2)
+
+    await page.evaluate(() => {
+      ;(window as unknown as { __restoreDelete: () => void }).__restoreDelete()
+    })
+
+    await page.getByRole('button', { name: '批量选择模板' }).click()
+    await page.getByRole('checkbox', { name: '模板：默认示例，未选' }).click()
+    await page.getByRole('button', { name: '删除 1 个模板' }).click()
+    await page.getByRole('button', { name: '删除 1 个模板' }).click()
+    await expect(page.locator('.template-select')).toHaveCount(1)
+    await expect(page.locator('.template-confirm-error')).toHaveCount(0)
+  })
+
+  test('窄屏抽屉的批量选择保持 44px 命中区，Esc 只回退步骤', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await openEditor(page)
+    await page.getByRole('button', { name: '打开模板抽屉' }).click()
+    const drawer = page.getByRole('dialog', { name: '模板' })
+    await expect(drawer).toBeVisible()
+    await drawer.getByTitle('新建模板').click()
+
+    const trigger = drawer.getByRole('button', { name: '批量选择模板' })
+    const triggerBox = (await trigger.boundingBox())!
+    expect(triggerBox.width).toBeGreaterThanOrEqual(44 - geometryEpsilon)
+    expect(triggerBox.height).toBeGreaterThanOrEqual(44 - geometryEpsilon)
+
+    await trigger.click()
+    const targets = await page.evaluate(() =>
+      [
+        '.template-drawer-sidebar .template-check-row',
+        '.template-drawer-sidebar .template-footer button',
+      ]
+        .map((selector) => {
+          const element = document.querySelector<HTMLElement>(selector)!
+          return element.getBoundingClientRect().height
+        })
+        .concat(
+          document
+            .querySelector<HTMLElement>('.template-drawer-sidebar [aria-label="取消批量选择"]')!
+            .getBoundingClientRect().height,
+        ),
+    )
+    for (const height of targets) {
+      expect(height).toBeGreaterThanOrEqual(44 - geometryEpsilon)
+    }
+    // 抽屉里标题承载“已选 N 项”，不能像普通态那样隐藏
+    await expect(page.locator('.template-drawer-sidebar .section-heading h2')).toHaveText(
+      '已选 0 项',
+    )
+
+    await drawer.getByRole('checkbox').first().click()
+    await drawer.getByRole('button', { name: '删除 1 个模板' }).click()
+    await expect(drawer.getByRole('button', { name: '返回选择列表' })).toBeFocused()
+
+    await page.keyboard.press('Escape')
+    await expect(drawer.getByRole('button', { name: '删除 1 个模板' })).toBeVisible()
+    await expect(drawer).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(drawer.getByRole('button', { name: '批量选择模板' })).toBeVisible()
+    await expect(drawer).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(drawer).toBeHidden()
+  })
+
+  test('160px 模板栏下三态不裁切，窄栏页脚与标题改用紧凑排版', async ({ page }) => {
+    await seedTemplates(page, 100)
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await resizeTemplateColumn(page, 160)
+
+    await expect(page.locator('.template-sidebar h2')).toHaveText('模板101')
+    await page.getByRole('button', { name: '批量选择模板' }).click()
+    await page.locator('.template-batch-all').click()
+    await expect(page.locator('.template-sidebar h2')).toHaveText('已选 101 项')
+
+    const compact = await page.evaluate(() => {
+      const panel = document.querySelector<HTMLElement>('.template-sidebar-panel')!
+      const title = panel.querySelector<HTMLElement>('.section-heading h2')!
+      const footer = panel.querySelector<HTMLElement>('.template-footer')!
+      const footerRect = footer.getBoundingClientRect()
+      return {
+        titleFontSize: getComputedStyle(title).fontSize,
+        titleClipped: title.scrollWidth > title.clientWidth + 1,
+        titleWrap: getComputedStyle(title).whiteSpace,
+        footerDirection: getComputedStyle(footer).flexDirection,
+        footerOverflow: footer.scrollWidth > footer.clientWidth + 1,
+        buttons: Array.from(footer.querySelectorAll<HTMLButtonElement>('button')).map((button) => {
+          const rect = button.getBoundingClientRect()
+          return {
+            text: button.textContent?.replace(/\s+/g, ' ').trim(),
+            width: rect.width,
+            clipped: button.scrollWidth > button.clientWidth + 1,
+            insidePanel: rect.right <= footerRect.right + 1,
+          }
+        }),
+      }
+    })
+    expect(compact.titleFontSize).toBe('11px')
+    expect(compact.titleClipped).toBe(false)
+    expect(compact.titleWrap).toBe('nowrap')
+    expect(compact.footerDirection).toBe('column')
+    expect(compact.footerOverflow).toBe(false)
+    expect(compact.buttons.map((button) => button.text)).toEqual(['取消全选', '删除 101 项'])
+    for (const button of compact.buttons) {
+      expect(button.clipped).toBe(false)
+      expect(button.insidePanel).toBe(true)
+    }
+
+    // 确认页脚：警示行 + 满宽删除按钮
+    await page.getByRole('button', { name: '删除 101 个模板' }).click()
+    await expect(page.locator('.template-sidebar h2')).toHaveText('确认删除')
+    const confirm = await page.evaluate(() => {
+      const footer = document.querySelector<HTMLElement>('.template-sidebar .template-footer')!
+      const button = footer.querySelector<HTMLButtonElement>('button')!
+      const warning = footer.querySelector<HTMLElement>('.template-confirm-warning')!
+      return {
+        overflow: footer.scrollWidth > footer.clientWidth + 1,
+        footerWidth: footer.getBoundingClientRect().width,
+        buttonWidth: button.getBoundingClientRect().width,
+        buttonClipped: button.scrollWidth > button.clientWidth + 1,
+        warningText: warning.textContent?.trim(),
+        warningHeight: warning.getBoundingClientRect().height,
+      }
+    })
+    expect(confirm.overflow).toBe(false)
+    expect(confirm.buttonWidth).toBeCloseTo(confirm.footerWidth, 0)
+    expect(confirm.buttonClipped).toBe(false)
+    expect(confirm.warningText).toBe('此操作不可撤销。')
+    expect(confirm.warningHeight).toBeGreaterThan(0)
+
+    // 栏宽回到默认 210px：页脚恢复单行
+    await page.keyboard.press('Escape')
+    await resizeTemplateColumn(page, 210)
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            getComputedStyle(document.querySelector<HTMLElement>('.template-footer--select')!)
+              .flexDirection,
+        ),
+      )
+      .toBe('row')
+  })
 })
 
 for (const viewport of [
@@ -956,7 +1285,7 @@ for (const viewport of [
         visualHeight: visual.height,
         touchTargets: [
           '.template-drawer-close',
-          '.template-drawer-sidebar .section-heading > button',
+          '.template-drawer-sidebar .section-heading-actions > button',
           '.template-drawer-sidebar .template-select',
         ].map((selector) => {
           const rect = document.querySelector<HTMLElement>(selector)!.getBoundingClientRect()

@@ -300,4 +300,77 @@ describe('本地工作区存储（schema v1）', () => {
     const workspace = await repository.load()
     expect(workspace.templates[0].content).toBe('恢复写入')
   })
+
+  it('批量删除在一个事务里删完所选，剩余模板保持创建时间顺序', async () => {
+    const { repository } = makeRepository({ now: () => 1 })
+    const base = await repository.load()
+    const first = base.templates[0]
+    const second = makeRecord({ name: '第二个', createdAt: 2, updatedAt: 2 })
+    const third = makeRecord({ name: '第三个', createdAt: 3, updatedAt: 3 })
+    const fourth = makeRecord({ name: '第四个', createdAt: 4, updatedAt: 4 })
+    for (const record of [second, third, fourth]) await repository.saveTemplate(record)
+    await repository.saveSettings({ activeTemplateId: second.id })
+
+    const workspace = await repository.deleteTemplates([fourth.id, second.id])
+
+    expect(workspace.templates.map((template) => template.id)).toEqual([first.id, third.id])
+    // 当前模板被删后按创建时间选最早的剩余模板
+    expect(workspace.activeTemplateId).toBe(first.id)
+    const reloaded = await repository.load()
+    expect(reloaded.templates.map((template) => template.id)).toEqual([first.id, third.id])
+  })
+
+  it('批量删除里混入不存在的 id 时忽略它，其余照常删除', async () => {
+    const { repository } = makeRepository({ now: () => 1 })
+    const base = await repository.load()
+    const first = base.templates[0]
+    const second = makeRecord({ name: '第二个', createdAt: 2, updatedAt: 2 })
+    await repository.saveTemplate(second)
+
+    const workspace = await repository.deleteTemplates(['missing-template', second.id])
+
+    expect(workspace.templates.map((template) => template.id)).toEqual([first.id])
+    expect(workspace.activeTemplateId).toBe(first.id)
+  })
+
+  it('批量删除全部模板后补建空白模板并修正活动模板', async () => {
+    const { repository } = makeRepository({ now: () => 1 })
+    const base = await repository.load()
+    const second = makeRecord({ name: '第二个', createdAt: 2, updatedAt: 2 })
+    await repository.saveTemplate(second)
+
+    const workspace = await repository.deleteTemplates([base.templates[0].id, second.id])
+
+    expect(workspace.templates).toHaveLength(1)
+    expect(workspace.templates[0].name).toBe('未命名模板')
+    expect(workspace.templates[0].content).toBe('')
+    expect(workspace.activeTemplateId).toBe(workspace.templates[0].id)
+  })
+
+  it('批量删除中途失败时事务回滚，一个模板都不少', async () => {
+    const { repository } = makeRepository({ now: () => 1 })
+    const base = await repository.load()
+    const first = base.templates[0]
+    const second = makeRecord({ name: '第二个', createdAt: 2, updatedAt: 2 })
+    await repository.saveTemplate(second)
+
+    const originalDelete = IDBObjectStore.prototype.delete
+    let calls = 0
+    IDBObjectStore.prototype.delete = function patchedDelete(this: IDBObjectStore, key) {
+      calls += 1
+      if (calls === 2) throw new Error('模拟删除失败')
+      return originalDelete.call(this, key)
+    }
+    try {
+      await expect(repository.deleteTemplates([first.id, second.id])).rejects.toThrow(
+        '模拟删除失败',
+      )
+    } finally {
+      IDBObjectStore.prototype.delete = originalDelete
+    }
+
+    const reloaded = await repository.load()
+    expect(reloaded.templates.map((template) => template.id)).toEqual([first.id, second.id])
+    expect(reloaded.activeTemplateId).toBe(first.id)
+  })
 })

@@ -24,6 +24,7 @@ export interface WorkspaceRepository {
   load(): Promise<LocalWorkspace>
   saveTemplate(template: TemplateRecord): Promise<void>
   deleteTemplate(id: string): Promise<LocalWorkspace>
+  deleteTemplates(ids: readonly string[]): Promise<LocalWorkspace>
   saveSettings(settings: Partial<WorkspaceSettings>): Promise<void>
   runMigration(fromVersion: number): Promise<void>
   close(): void
@@ -167,32 +168,50 @@ export function createWorkspaceRepository(
   }
 
   async function deleteTemplate(id: string): Promise<LocalWorkspace> {
+    return deleteTemplates([id])
+  }
+
+  // 批量删除在一个读改写事务里完成，任何一步失败都显式回滚：
+  // 不同引擎对“在事务的微任务里抛错”是否自动 abort 处理不一致，只靠自动回滚
+  // 可能出现“删了一半”的结果，所以失败路径自己调用 transaction.abort()。
+  async function deleteTemplates(ids: readonly string[]): Promise<LocalWorkspace> {
     return enqueue(async () => {
       const database = await openDatabase()
       const transaction = database.transaction(['templates', 'workspace'], 'readwrite')
-      const templatesStore = transaction.objectStore('templates')
-      const workspaceStore = transaction.objectStore('workspace')
-      await templatesStore.delete(id)
-      const templates = sortTemplates(await templatesStore.getAll())
-      let workspace = await workspaceStore.get(WORKSPACE_RECORD_KEY)
+      try {
+        const templatesStore = transaction.objectStore('templates')
+        const workspaceStore = transaction.objectStore('workspace')
+        for (const id of ids) await templatesStore.delete(id)
+        const templates = sortTemplates(await templatesStore.getAll())
+        let workspace = await workspaceStore.get(WORKSPACE_RECORD_KEY)
 
-      if (!workspace) {
-        workspace = defaultWorkspace('')
+        if (!workspace) {
+          workspace = defaultWorkspace('')
+        }
+
+        if (templates.length === 0) {
+          const blank = makeTemplate(NEW_TEMPLATE_NAME, '')
+          await templatesStore.put(blank)
+          templates.push(blank)
+        }
+
+        if (!templates.some((template) => template.id === workspace.activeTemplateId)) {
+          workspace = { ...workspace, activeTemplateId: templates[0].id }
+        }
+
+        await workspaceStore.put(workspace)
+        await transaction.done
+        return toLocalWorkspace(templates, workspace)
+      } catch (error) {
+        try {
+          transaction.abort()
+        } catch {
+          // 事务已经结束（提交或已回滚）：没有可回滚的内容
+        }
+        // 消费 abort 之后的 rejection，避免留下未处理的 Promise
+        await transaction.done.catch(() => undefined)
+        throw error
       }
-
-      if (templates.length === 0) {
-        const blank = makeTemplate(NEW_TEMPLATE_NAME, '')
-        await templatesStore.put(blank)
-        templates.push(blank)
-      }
-
-      if (!templates.some((template) => template.id === workspace.activeTemplateId)) {
-        workspace = { ...workspace, activeTemplateId: templates[0].id }
-      }
-
-      await workspaceStore.put(workspace)
-      await transaction.done
-      return toLocalWorkspace(templates, workspace)
     })
   }
 
@@ -244,5 +263,5 @@ export function createWorkspaceRepository(
     void pending?.then((database) => database.close()).catch(() => undefined)
   }
 
-  return { load, saveTemplate, deleteTemplate, saveSettings, runMigration, close }
+  return { load, saveTemplate, deleteTemplate, deleteTemplates, saveSettings, runMigration, close }
 }

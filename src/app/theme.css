@@ -868,15 +868,35 @@ h2 {
   min-width: 0;
   margin-bottom: 0;
 }
-/* 内容族的标题用 600 而不是 h2 默认的 700：卡片里不需要那么重的笔画 */
+/* 内容族的标题用 600 而不是 h2 默认的 700：卡片里不需要那么重的笔画。
+   批量态的标题要随 160px 最窄栏宽收敛，因此单行不换行、超长省略。 */
 .template-sidebar-panel .section-heading h2 {
+  min-width: 0;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-/* 标题行右侧的新建按钮：24px 直角图标按钮，与开合按钮同尺寸（自动化测试比对两者） */
-.template-sidebar-panel .section-heading > button {
+/* 标题行右侧动作包一层 flex：批量选择与新建并排，间距 4px；
+   按钮仍是 24×24、8px 圆角，与开合按钮同尺寸（自动化测试比对两者）。 */
+.section-heading-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+.template-sidebar-panel .section-heading-actions > button {
   width: var(--control-xs);
   height: var(--control-xs);
   border-radius: var(--r-row);
+}
+/* 批量态的标题文字按钮：桌面 24 高、12px 字，和图标按钮同高 */
+.template-sidebar-panel .section-heading-actions > .template-cancel {
+  width: auto;
+  min-width: var(--control-xs);
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+  white-space: nowrap;
 }
 /* 标题右侧的等宽计数：内容族的“无衬线标题 + 等宽计数”分工 */
 .template-sidebar-count {
@@ -890,6 +910,19 @@ h2 {
   min-width: 0;
   margin-top: var(--space-5);
   overflow: hidden;
+}
+/* 三态切换：列表与页脚整块换 key 重挂载，这里只播放一次 120ms 淡入。
+   不做淡出——新节点就在同一帧接管，焦点落点与“滚到顶部”都不用等动画。 */
+@keyframes template-batch-step-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.template-sidebar-panel.is-batch .template-sidebar-main {
+  animation: template-batch-step-fade var(--dur-1) var(--ease);
 }
 .template-sidebar-panel-enter-active,
 .template-sidebar-panel-leave-active {
@@ -1062,6 +1095,80 @@ h2 {
 .template-more[aria-expanded='true'] {
   color: var(--color-text);
   background: var(--state-hover);
+}
+/* 批量选择与确认态的行：整行是一个复选按钮（确认态是静态行），高度与内边距沿用内容行。
+   选中浮层与当前模板的 2px 圆头竖条可以同时出现：竖条说“哪个是当前模板”，
+   复选标记说“哪些被勾选”，两者不互相顶替。 */
+.template-row--batch {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: 0 var(--space-3);
+}
+.template-row--batch.is-selected,
+.template-row--batch.is-active {
+  background: var(--state-selected);
+}
+.template-row--static,
+.template-row--static:hover {
+  background: transparent;
+  cursor: default;
+}
+/* 确认态的当前模板仍保留竖条与选中浮层，其余行退回透明底 */
+.template-row--static.is-active {
+  background: var(--state-selected);
+}
+.template-check-row {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--row-content);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-row);
+  color: var(--color-text);
+  background: transparent;
+  font-size: var(--text-base);
+  text-align: left;
+  cursor: pointer;
+}
+.template-check-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.template-check-row .template-check-name {
+  flex: 1 1 auto;
+}
+/* 复选标记：视觉 16 的圆，命中区用伪元素补到 24（窄屏抽屉里整行按钮已经是 44 高）。
+   选中态是强调色实底加 11px、笔画 3 的对勾，未选中只留 1px 次级色描边。 */
+.template-check {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-pill);
+  color: var(--color-on-accent);
+  background: transparent;
+  transition:
+    background var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.template-check::after {
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-pill);
+  content: '';
+}
+.template-check.is-checked {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
 }
 /* 模板操作菜单：内容族浮层，圆角 10 + 投影；主题弹层同为圆角 + 投影，
    两者的差别只在半径（10 与 12）与服务对象。 */
@@ -1244,6 +1351,82 @@ h2 {
 .template-footer button:hover {
   border-color: transparent;
   background: var(--state-hover);
+}
+/* 批量选择的页脚：左“全选 / 取消全选”、右“删除 N 项”。
+   最宽的组合（“取消全选” + “删除 101 项”）约 139px，正常栏宽单行放得下；
+   更窄的栏宽由后面的容器查询切成两行。选择页的删除按钮不配图标，
+   Trash2 只出现在确认页那个占满宽度的按钮里。 */
+.template-footer--select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.template-footer .template-batch-all,
+.template-footer .template-batch-delete {
+  width: auto;
+  min-height: var(--control-md);
+  padding: 0 var(--space-2);
+  border-color: transparent;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+.template-footer .template-batch-delete {
+  justify-content: center;
+  color: var(--color-danger);
+}
+.template-footer .template-batch-delete:hover:not(:disabled) {
+  color: var(--color-danger);
+  background: var(--state-hover);
+}
+/* 禁用只换次级色与 not-allowed，不靠透明度（对比度基线要求） */
+.template-footer .template-batch-delete:disabled,
+.template-footer .template-batch-delete:disabled:hover {
+  color: var(--color-muted);
+  background: transparent;
+  cursor: not-allowed;
+}
+/* 确认页脚：一行警示（或错误行）加一个占满宽度的删除按钮 */
+.template-footer--confirm {
+  display: grid;
+  gap: var(--space-2);
+}
+.template-footer .template-batch-delete--wide {
+  width: 100%;
+}
+.template-confirm-warning,
+.template-confirm-error {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+.template-confirm-warning {
+  color: var(--color-muted);
+}
+.template-confirm-error {
+  color: var(--color-danger);
+}
+/* 窄模板栏（面板 < 150px）启用紧凑排版：批量态标题降一档字号，
+   选择态页脚“全选”与“删除 N 项”改成上下两行各占满宽度。
+   “取消全选 + 删除 101 项”最宽约 139px，正常栏宽（默认 210px 对应面板 154px）
+   单行放得下；160/196 两档切成两行后，3 位计数与全选也不会换行或裁切。
+   面板宽度用容器查询读，与视口宽度无关（栏宽是用户拖出来的）。 */
+.template-sidebar-panel {
+  container-type: inline-size;
+}
+@container (max-width: 149px) {
+  .template-sidebar-panel.is-batch .section-heading h2 {
+    font-size: var(--text-xs);
+  }
+  .template-footer--select {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .template-footer--select .template-batch-all,
+  .template-footer--select .template-batch-delete {
+    width: 100%;
+    justify-content: center;
+  }
 }
 .copy-control {
   position: relative;
@@ -2636,10 +2819,16 @@ h2 {
 .template-drawer-sidebar .template-sidebar-panel {
   display: block;
 }
-.template-drawer-sidebar .template-select {
+.template-drawer-sidebar .template-select,
+.template-drawer-sidebar .template-check-row {
   min-height: var(--control-lg);
 }
-.template-drawer-sidebar .section-heading h2 {
+.template-drawer-sidebar .template-row--batch {
+  min-height: var(--control-lg);
+}
+/* 抽屉头已经写着“模板”，普通态把标题藏起来、新建按钮靠右；
+   批量选择与确认态的标题承载“已选 N 项 / 确认删除”，必须可见并靠左。 */
+.template-drawer-sidebar .template-sidebar-panel:not(.is-batch) .section-heading h2 {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -2648,18 +2837,20 @@ h2 {
   clip-path: inset(50%);
   white-space: nowrap;
 }
-/* 抽屉头已经写着“模板”，标题隐藏后新建按钮靠右，和行尾的“更多”对齐 */
-.template-drawer-sidebar .section-heading {
+.template-drawer-sidebar .template-sidebar-panel:not(.is-batch) .section-heading {
   justify-content: flex-end;
 }
 .template-drawer-sidebar .template-sidebar-main {
   margin-top: 8px;
 }
-.template-drawer-sidebar .section-heading > button,
+.template-drawer-sidebar .section-heading-actions > button,
 .template-drawer-sidebar .template-rename-actions button,
 .template-drawer-sidebar .template-delete-actions button {
   min-width: 44px;
   min-height: 44px;
+}
+.template-drawer-sidebar .template-footer button {
+  min-height: var(--control-lg);
 }
 .template-drawer-enter-active,
 .template-drawer-leave-active {

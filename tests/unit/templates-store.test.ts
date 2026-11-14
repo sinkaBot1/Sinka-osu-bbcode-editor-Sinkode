@@ -70,6 +70,18 @@ function createStubRepository(
       }
       return structuredClone(workspace)
     },
+    async deleteTemplates(ids) {
+      if (options.failWrites) throw new Error('写入失败')
+      deletedIds.push(...ids)
+      workspace.templates = workspace.templates.filter((template) => !ids.includes(template.id))
+      if (workspace.templates.length === 0) {
+        workspace.templates.push(makeRecord({ name: '未命名模板', content: '' }))
+      }
+      if (!workspace.templates.some((template) => template.id === workspace.activeTemplateId)) {
+        workspace.activeTemplateId = workspace.templates[0].id
+      }
+      return structuredClone(workspace)
+    },
     async saveSettings(settings) {
       if (options.failWrites) throw new Error('写入失败')
       savedSettings.push(settings)
@@ -301,5 +313,82 @@ describe('工作区 Pinia store', () => {
     expect(store.activeTemplate?.content).toBe('离线编辑')
     expect(savedTemplates).toHaveLength(0)
     expect(store.saveState).toBe('error')
+  })
+
+  it('批量删除先冲刷待保存内容，再应用删完的工作区', async () => {
+    const first = makeRecord({ name: '第一个', createdAt: 1 })
+    const second = makeRecord({ name: '第二个', createdAt: 2 })
+    const third = makeRecord({ name: '第三个', createdAt: 3 })
+    const { repository, savedTemplates, deletedIds } = createStubRepository({
+      templates: [first, second, third],
+      activeTemplateId: first.id,
+    })
+    const store = makeStore()
+    await store.initialize(repository)
+
+    store.updateActiveContent('未保存内容')
+    const deleted = await store.deleteTemplates([first.id, third.id])
+
+    expect(deleted).toBe(true)
+    // 先落盘再删除：被删模板的最后一次编辑不会丢
+    expect(savedTemplates.at(-1)?.content).toBe('未保存内容')
+    expect(deletedIds).toEqual([first.id, third.id])
+    expect(store.templates.map((template) => template.id)).toEqual([second.id])
+    expect(store.activeTemplateId).toBe(second.id)
+  })
+
+  it('批量删除失败时返回 false、列表不变并置保存失败（失败路径）', async () => {
+    const first = makeRecord({ name: '第一个', createdAt: 1 })
+    const second = makeRecord({ name: '第二个', createdAt: 2 })
+    const { repository, deletedIds } = createStubRepository(
+      { templates: [first, second], activeTemplateId: first.id },
+      { failWrites: true },
+    )
+    const store = makeStore()
+    await store.initialize(repository)
+
+    const deleted = await store.deleteTemplates([first.id])
+
+    expect(deleted).toBe(false)
+    expect(store.saveState).toBe('error')
+    expect(store.templates.map((template) => template.id)).toEqual([first.id, second.id])
+    expect(store.activeTemplateId).toBe(first.id)
+    expect(deletedIds).toEqual([])
+  })
+
+  it('本地存储不可用时批量删除走内存分支并返回 true（失败路径）', async () => {
+    const { repository, deletedIds } = createStubRepository({}, { failLoad: true })
+    const store = makeStore()
+    await store.initialize(repository)
+    await store.createTemplate()
+    const ids = store.templates.map((template) => template.id)
+    expect(ids.length).toBeGreaterThan(1)
+
+    const deleted = await store.deleteTemplates(ids)
+
+    expect(deleted).toBe(true)
+    expect(deletedIds).toEqual([])
+    expect(store.templates).toHaveLength(1)
+    expect(store.templates[0].name).toBe('未命名模板')
+    expect(store.templates[0].content).toBe('')
+    expect(store.activeTemplateId).toBe(store.templates[0].id)
+    expect(store.saveState).toBe('error')
+  })
+
+  it('批量删除传空列表或全部缺失的 id 时不动数据', async () => {
+    const first = makeRecord({ name: '第一个', createdAt: 1 })
+    const { repository, deletedIds } = createStubRepository({
+      templates: [first],
+      activeTemplateId: first.id,
+    })
+    const store = makeStore()
+    await store.initialize(repository)
+
+    expect(await store.deleteTemplates([])).toBe(true)
+    expect(await store.deleteTemplates(['missing-template'])).toBe(true)
+
+    expect(deletedIds).toEqual([])
+    expect(store.templates.map((template) => template.id)).toEqual([first.id])
+    expect(store.saveState).toBe('idle')
   })
 })
