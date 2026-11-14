@@ -44,7 +44,7 @@ export const DEFAULT_EXAMPLE_CONTENT = `[url=https://inex.osekai.net/profiles/21
 [heading][color=#ff66aa][b]代码块[/b][/color][/heading]
 如果你克隆了本项目的仓库，对应目录的命令行里敲 [c]npm run dev[/c] 就能启动本地服务器
 [code]
-> sinka-osu-bbcode-editor@0.1.0 dev
+> sinka-osu-bbcode-editor@0.2.0 dev
 > vite
 [/code]
 
