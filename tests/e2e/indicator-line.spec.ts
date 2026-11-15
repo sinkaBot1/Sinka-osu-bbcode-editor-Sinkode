@@ -17,6 +17,13 @@ async function fillLines(page: Page, editor: Locator, count: number) {
 
 const indicatorToggle = (page: Page) => page.getByRole('button', { name: '显示源码行指示线' })
 
+async function toggleColors(toggle: Locator) {
+  return toggle.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return { color: style.color, backgroundColor: style.backgroundColor }
+  })
+}
+
 // 与 src/templates/storage/workspaceRepository.ts 的 DATABASE_NAME、
 // src/templates/storage/types.ts 的 WORKSPACE_RECORD_KEY 保持一致。
 const WORKSPACE_DATABASE = 'sinka-osu-bbcode-editor'
@@ -77,6 +84,7 @@ test('开关显示扫描线与编辑器高亮，关闭后一起隐藏', async ({
   const toggle = indicatorToggle(page)
   await expect(toggle).toBeEnabled()
   await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.locator('.panel-indicator-label')).toHaveText('行指示线')
   await expect(page.locator('.preview-indicator')).toHaveCount(0)
 
   await toggle.click()
@@ -85,6 +93,14 @@ test('开关显示扫描线与编辑器高亮，关闭后一起隐藏', async ({
   await expect(page.locator('.indicator-readout')).toHaveText(/^第 \d+ 行$/)
   await expect(page.locator('.cm-indicator-band')).toHaveAttribute('data-visible', 'true')
   await expect(page.locator('.cm-indicator-gutter-current')).toHaveCount(1)
+
+  // 指针停在开关上时，开启态仍保持强调色，不被悬停样式盖掉。
+  await page.mouse.move(0, 0)
+  await page.waitForTimeout(200)
+  const activeColors = await toggleColors(toggle)
+  await toggle.hover()
+  await page.waitForTimeout(200)
+  expect(await toggleColors(toggle)).toEqual(activeColors)
 
   // 开启后预览里已有的点击仍能到达内容：折叠盒按钮可以展开。
   await editor.click()
@@ -105,6 +121,7 @@ test('开关显示扫描线与编辑器高亮，关闭后一起隐藏', async ({
 test('空预览时开关禁用，线不渲染', async ({ page }) => {
   await openEmptyEditor(page)
   await expect(indicatorToggle(page)).toBeDisabled()
+  await expect(page.locator('.panel-indicator-label')).toBeVisible()
   await expect(page.locator('.preview-indicator')).toHaveCount(0)
   await expect(page.locator('.cm-indicator-gutter-current')).toHaveCount(0)
 })
@@ -335,7 +352,7 @@ test('几何：全宽线、1px 线体、6×6 端点、24×24 端点命中区、8
     { width: '24px', height: '24px' },
   ])
   expect(metrics.headerHeight).toBeCloseTo(40, 0)
-  expect(metrics.toggleSize).toEqual({ width: 24, height: 28 })
+  expect(metrics.toggleSize).toEqual({ width: 82, height: 28 })
   expect(metrics.toggleRightGap).toBeCloseTo(70, 0)
 })
 
@@ -653,6 +670,8 @@ for (const width of [320, 390, 820, 1440]) {
       const rect = (selector: string) =>
         document.querySelector<HTMLElement>(selector)!.getBoundingClientRect()
       const header = document.querySelector<HTMLElement>('.preview-panel > .panel-header')!
+      const toggleElement = document.querySelector<HTMLElement>('.panel-indicator-toggle')!
+      const label = document.querySelector<HTMLElement>('.panel-indicator-label')!
       const toggle = rect('.panel-indicator-toggle')
       const headerToggle = rect('.header-toggle')
       const overlaps = (a: DOMRect, b: DOMRect) =>
@@ -664,6 +683,11 @@ for (const width of [320, 390, 820, 1440]) {
           toggle.left >= header.getBoundingClientRect().left &&
           toggle.right <= header.getBoundingClientRect().right + 1,
         overlapsHeaderToggle: overlaps(toggle, headerToggle),
+        labelText: label.textContent?.trim(),
+        labelVisible: label.getClientRects().length > 0,
+        toggleWidth: toggle.width,
+        toggleHeight: toggle.height,
+        toggleFitsText: toggleElement.scrollWidth <= toggleElement.clientWidth + 1,
         separators: document.querySelectorAll('[role="separator"]').length,
       }
     })
@@ -672,6 +696,11 @@ for (const width of [320, 390, 820, 1440]) {
     expect(metrics.headerFits).toBe(true)
     expect(metrics.toggleInsideHeader).toBe(true)
     expect(metrics.overlapsHeaderToggle).toBe(false)
+    expect(metrics.labelText).toBe('行指示线')
+    expect(metrics.labelVisible).toBe(true)
+    expect(metrics.toggleWidth).toBeGreaterThanOrEqual(24)
+    expect(metrics.toggleHeight).toBeGreaterThanOrEqual(24)
+    expect(metrics.toggleFitsText).toBe(true)
     expect(metrics.separators).toBe(2)
   })
 }

@@ -1275,6 +1275,7 @@ function diagnosticLocation(item: (typeof diagnostics.value)[number]) {
               @click="toggleIndicator"
             >
               <ScanLine :size="16" :stroke-width="2" aria-hidden="true" />
+              <span class="panel-indicator-label">行指示线</span>
             </button>
           </div>
           <span class="visually-hidden" role="status">{{ indicatorAnnouncement }}</span>

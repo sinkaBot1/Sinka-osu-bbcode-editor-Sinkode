@@ -1667,21 +1667,30 @@ h2 {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-/* 面板头的源码行指示线开关：24×28 仪器族图标按钮，落在 70px 预留区左缘。 */
+/* 面板头的源码行指示线开关：28px 高的仪器族图标加文字按钮，落在 70px 预留区左缘。
+   文字取完整名称的末四字，和 aria-label「显示源码行指示线」保持包含关系；
+   静止无框、只占文字宽度，窄屏也不与读数挤行。 */
 .panel-indicator-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--control-xs);
+  gap: var(--space-3);
+  min-width: var(--control-xs);
   height: var(--control-sm);
-  padding: 0;
+  padding: 0 var(--space-3);
   border: 0;
   border-radius: var(--radius);
   color: var(--color-muted);
   background: transparent;
+  font-size: var(--text-sm);
+  white-space: nowrap;
   cursor: pointer;
+  transition:
+    background-color var(--dur-1) ease,
+    color var(--dur-1) ease;
 }
-.panel-indicator-toggle:hover:not(:disabled) {
+/* 悬停只改写未开启态：开启态始终保留强调浮层，指针停留时也不会把状态盖掉。 */
+.panel-indicator-toggle:hover:not(:disabled):not([aria-pressed='true']) {
   color: var(--color-text);
   background: var(--state-hover);
 }
