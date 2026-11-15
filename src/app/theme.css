@@ -911,18 +911,21 @@ h2 {
   margin-top: var(--space-5);
   overflow: hidden;
 }
-/* 三态切换：列表与页脚整块换 key 重挂载，这里只播放一次 120ms 淡入。
-   不做淡出——新节点就在同一帧接管，焦点落点与“滚到顶部”都不用等动画。 */
-@keyframes template-batch-step-fade {
+/* 三态切换：标题、列表与页脚作为一整块换 key 重挂载，播放一次 --dur-2 淡入 + 6px 上移。
+   不做淡出——新节点就在同一帧接管，焦点落点与“滚到顶部”都不用等动画；
+   首次展开侧栏不挂 is-step-entering，避免与侧栏自身的入场动画叠加。 */
+@keyframes template-step-enter {
   from {
     opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
+    transform: none;
   }
 }
-.template-sidebar-panel.is-batch .template-sidebar-main {
-  animation: template-batch-step-fade var(--dur-1) var(--ease);
+.template-step.is-step-entering {
+  animation: template-step-enter var(--dur-2) var(--ease);
 }
 .template-sidebar-panel-enter-active,
 .template-sidebar-panel-leave-active {
@@ -1040,6 +1043,9 @@ h2 {
   min-height: var(--row-content);
   padding: 0 var(--space-2) 0 var(--space-3);
   border-radius: var(--r-row);
+  /* 行的尺寸属于内容族清单：三态都按 13px 排版。确认态的静态行没有按钮承载
+     字号，必须在这里统一，否则会继承页面正文的 16px，切换步骤时字会变大。 */
+  font-size: var(--text-base);
   transition: background var(--dur-1) ease;
 }
 .template-row:hover {

@@ -1051,6 +1051,82 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.template-sidebar h2')).toHaveText('模板1')
   })
 
+  test('三态切换保持行文字字号，并让标题、列表与页脚整块进入', async ({ page }) => {
+    await openEditor(page)
+    await page.getByTitle('新建模板').click()
+    await expect(page.locator('.template-item')).toHaveCount(2)
+
+    const rowFontSize = (selector: string) =>
+      page.evaluate(
+        (target) => getComputedStyle(document.querySelector<HTMLElement>(target)!).fontSize,
+        selector,
+      )
+    const browseRowFontSize = await rowFontSize('.template-select')
+    expect(browseRowFontSize).toBe('13px')
+
+    // 点按与采样放在同一次 evaluate 里：先挂 animationstart 监听再点，
+    // 不靠固定等待抢时间窗；resolve 的值就是进入动画的第一帧。
+    const playStepSwitch = (trigger: string) =>
+      page.evaluate(
+        (selector) =>
+          new Promise<{ animation: string; duration: string; opacity: number; transform: string }>(
+            (resolve, reject) => {
+              const timer = setTimeout(
+                () => reject(new Error(`点击 ${selector} 后没有播放三态切换动画`)),
+                2000,
+              )
+              document.addEventListener(
+                'animationstart',
+                (event) => {
+                  if (event.animationName !== 'template-step-enter') return
+                  clearTimeout(timer)
+                  const target = event.target as HTMLElement
+                  const styles = getComputedStyle(target)
+                  resolve({
+                    animation: event.animationName,
+                    duration: styles.animationDuration,
+                    opacity: Number(styles.opacity),
+                    transform: styles.transform,
+                  })
+                },
+                true,
+              )
+              document.querySelector<HTMLElement>(selector)!.click()
+            },
+          ),
+        trigger,
+      )
+    const stepOpacity = () =>
+      page.evaluate(() =>
+        Number(getComputedStyle(document.querySelector<HTMLElement>('.template-step')!).opacity),
+      )
+
+    const enterSelect = await playStepSwitch('button[title="批量选择模板"]')
+    expect(enterSelect.animation).toBe('template-step-enter')
+    expect(enterSelect.duration).toBe('0.2s')
+    // 动画已跑起来：透明度未满、仍带 6px 下移，不是弹一下就到终态。
+    expect(enterSelect.opacity).toBeLessThan(1)
+    expect(enterSelect.transform).not.toBe('none')
+    expect(await rowFontSize('.template-check-row')).toBe(browseRowFontSize)
+    await expect.poll(stepOpacity).toBe(1)
+
+    // 选择 → 确认：确认态静态行没有按钮承载字号，这里锁死与浏览态一致，
+    // 不能退回页面正文的 16px。
+    await page.getByRole('checkbox').first().click()
+    const enterConfirm = await playStepSwitch('button[aria-label="删除 1 个模板"]')
+    expect(enterConfirm.animation).toBe('template-step-enter')
+    await expect(page.locator('.template-sidebar h2')).toHaveText('确认删除')
+    expect(await rowFontSize('.template-check-name')).toBe(browseRowFontSize)
+
+    // 确认 → 选择 → 普通：每一步都播放，回到普通态字号也不跳。
+    const backToSelect = await playStepSwitch('button[aria-label="返回选择列表"]')
+    expect(backToSelect.animation).toBe('template-step-enter')
+    expect(await rowFontSize('.template-check-name')).toBe(browseRowFontSize)
+    const backToBrowse = await playStepSwitch('button[aria-label="取消批量选择"]')
+    expect(backToBrowse.animation).toBe('template-step-enter')
+    expect(await rowFontSize('.template-select')).toBe(browseRowFontSize)
+  })
+
   test('批量删除当前模板后编辑器切到剩余最早的模板', async ({ page }) => {
     const editor = await openEditor(page)
     await page.getByTitle('新建模板').click()

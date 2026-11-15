@@ -248,6 +248,31 @@ describe('模板侧栏组件', () => {
     expect(activeElementLabel()).toBe('批量选择模板')
   })
 
+  it('三态切换把标题、列表与页脚作为一整块播放进入动画，重新展开不播放', async () => {
+    const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
+    const step = () => wrapper.get('.template-step')
+    // 首次渲染不动：展开侧栏已经由面板自身播放 260ms 入场，内容块不再叠一层。
+    expect(step().classes()).not.toContain('is-step-entering')
+
+    await enterBatch(wrapper)
+    expect(step().classes()).toContain('is-step-entering')
+    expect(step().find('.section-heading').exists()).toBe(true)
+    expect(step().find('.template-list').exists()).toBe(true)
+    expect(step().find('.template-footer').exists()).toBe(true)
+
+    // 选择 → 确认也是换 key 重挂载，同一个动画类跟着新节点走。
+    await wrapper.findAll('.template-check-row')[0].trigger('click')
+    await wrapper.get('button[aria-label="删除 1 个模板"]').trigger('click')
+    await flushPromises()
+    expect(step().classes()).toContain('is-step-entering')
+
+    // 收起再展开回到普通态：不残留动画类，避免和面板入场叠加。
+    await wrapper.setProps({ open: false })
+    await wrapper.setProps({ open: true })
+    expect(wrapper.get('.template-step').classes()).not.toContain('is-step-entering')
+    expect(wrapper.get('.template-step .section-heading').exists()).toBe(true)
+  })
+
   it('勾选不连续的行时标题与删除按钮同步计数', async () => {
     const wrapper = mountSidebar({
       templates: [

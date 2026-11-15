@@ -40,6 +40,8 @@ const emit = defineEmits<{
 type SidebarMode = 'browse' | 'select' | 'confirm'
 
 const mode = ref<SidebarMode>('browse')
+/** 三态切换的整块进入动画只在真正换态时播放：首次展开侧栏保持静止。 */
+const stepEntering = ref(false)
 const selectedIds = ref<string[]>([])
 const deleting = ref(false)
 const deleteFailed = ref(false)
@@ -78,6 +80,13 @@ const selectAllLabel = computed(() => (allSelected.value ? '取消全选' : '全
 
 function isSelected(id: string) {
   return selectedIds.value.includes(id)
+}
+
+/** 三态切换统一走这里：只有真的换态才让整块在新节点上播放一次进入动画。 */
+function setMode(next: SidebarMode) {
+  if (mode.value === next) return
+  mode.value = next
+  stepEntering.value = true
 }
 
 function updateActionMenuPlacement() {
@@ -215,9 +224,10 @@ function toggleSidebar() {
   emit('toggle')
 }
 
-/** 侧栏收起或抽屉关闭时回到普通态：选择不跨会话保留。 */
+/** 侧栏收起或抽屉关闭时回到普通态：选择不跨会话保留，重新展开也不播放切换动画。 */
 function resetBatchState() {
   mode.value = 'browse'
+  stepEntering.value = false
   selectedIds.value = []
   deleting.value = false
   deleteFailed.value = false
@@ -230,7 +240,7 @@ function enterSelectMode() {
   pendingDeleteId.value = null
   selectedIds.value = []
   deleteFailed.value = false
-  mode.value = 'select'
+  setMode('select')
   announcement.value = '批量选择模式，已选择 0 个模板'
   focusInSidebar('.template-check-row')
 }
@@ -265,7 +275,7 @@ function scrollListToTop() {
 function requestConfirmDelete() {
   if (selectedCount.value === 0 || deleting.value) return
   deleteFailed.value = false
-  mode.value = 'confirm'
+  setMode('confirm')
   announcement.value = `确认删除 ${selectedCount.value} 个模板`
   void nextTick(() => {
     scrollListToTop()
@@ -276,13 +286,13 @@ function requestConfirmDelete() {
 function cancelConfirm() {
   if (deleting.value) return
   deleteFailed.value = false
-  mode.value = 'select'
+  setMode('select')
   void nextTick(() => selectDeleteButton.value?.focus())
 }
 
 function exitSelectMode() {
   if (deleting.value) return
-  mode.value = 'browse'
+  setMode('browse')
   selectedIds.value = []
   deleteFailed.value = false
   void nextTick(() => batchButton.value?.focus())
@@ -312,7 +322,7 @@ async function confirmBatchDelete() {
     void nextTick(() => confirmDeleteButton.value?.focus())
     return
   }
-  mode.value = 'browse'
+  setMode('browse')
   selectedIds.value = []
   announcement.value = `已删除 ${count} 个模板`
   void nextTick(() => batchButton.value?.focus())
@@ -396,225 +406,227 @@ watch(
     <div class="template-sidebar-layout">
       <Transition name="template-sidebar-panel">
         <div v-if="props.open" class="template-sidebar-panel" :class="{ 'is-batch': isBatching }">
-          <div class="section-heading">
-            <h2 v-if="mode === 'browse'">
-              模板<span class="template-sidebar-count">{{ templates.length }}</span>
-            </h2>
-            <h2 v-else-if="mode === 'select'">
-              已选 <span class="template-sidebar-count">{{ selectedCount }}</span> 项
-            </h2>
-            <h2 v-else>确认删除</h2>
-            <div class="section-heading-actions">
-              <template v-if="mode === 'browse'">
-                <button
-                  ref="batchButton"
-                  type="button"
-                  class="template-batch"
-                  aria-label="批量选择模板"
-                  title="批量选择模板"
-                  @click="enterSelectMode"
-                >
-                  <ListChecks :size="15" :stroke-width="2" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="新建模板"
-                  title="新建模板"
-                  @click="emit('create')"
-                >
-                  <Plus :size="15" :stroke-width="2" aria-hidden="true" />
-                </button>
-              </template>
-              <button
-                v-else
-                ref="cancelButton"
-                type="button"
-                class="template-cancel"
-                :aria-label="cancelLabel"
-                :title="cancelLabel"
-                @click="handleCancel"
-              >
-                取消
-              </button>
-            </div>
-          </div>
-
           <p class="visually-hidden" role="status">{{ announcement }}</p>
 
-          <!-- 按状态换 key：切换三态时整块重挂载，由 CSS 播放一次 120ms 淡入。
-               不做整块淡出，焦点与“滚到顶部”都在同一帧落到新节点上。 -->
-          <div :key="mode" class="template-sidebar-main">
-            <TransitionGroup name="template-list" tag="ul" class="template-list">
-              <li
-                v-for="template in visibleTemplates"
-                :key="template.id"
-                class="template-item"
-                :class="{
-                  'is-active': template.id === activeTemplateId,
-                  'is-selected': mode === 'select' && isSelected(template.id),
-                }"
-                :data-template-id="template.id"
-              >
+          <!-- 按状态换 key：标题、列表与页脚一起重挂载，由 CSS 播放一次 200ms 淡入 + 上移。
+               不做整块淡出，焦点与“滚到顶部”都在同一帧落到新节点上；首次展开不挂动画类。 -->
+          <div :key="mode" class="template-step" :class="{ 'is-step-entering': stepEntering }">
+            <div class="section-heading">
+              <h2 v-if="mode === 'browse'">
+                模板<span class="template-sidebar-count">{{ templates.length }}</span>
+              </h2>
+              <h2 v-else-if="mode === 'select'">
+                已选 <span class="template-sidebar-count">{{ selectedCount }}</span> 项
+              </h2>
+              <h2 v-else>确认删除</h2>
+              <div class="section-heading-actions">
                 <template v-if="mode === 'browse'">
-                  <div
-                    class="template-row"
-                    :class="{ 'is-active': template.id === activeTemplateId }"
+                  <button
+                    ref="batchButton"
+                    type="button"
+                    class="template-batch"
+                    aria-label="批量选择模板"
+                    title="批量选择模板"
+                    @click="enterSelectMode"
                   >
-                    <button
-                      type="button"
-                      class="template-select"
-                      :class="{ 'is-active': template.id === activeTemplateId }"
-                      :title="template.name"
-                      @click="selectTemplate(template.id)"
-                    >
-                      {{ template.name }}
-                    </button>
-                    <button
-                      type="button"
-                      class="template-more"
-                      :aria-label="`更多操作：${template.name}`"
-                      :title="`更多操作：${template.name}`"
-                      :aria-expanded="actionMenuId === template.id"
-                      :aria-controls="
-                        actionMenuId === template.id ? 'template-action-menu' : undefined
-                      "
-                      @click="toggleActionMenu(template, $event)"
-                    >
-                      <Ellipsis :size="15" :stroke-width="2" aria-hidden="true" />
-                    </button>
-                  </div>
-                  <form
-                    v-if="renamingId === template.id"
-                    class="template-rename"
-                    @submit.prevent="confirmRename(template.id)"
+                    <ListChecks :size="15" :stroke-width="2" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="新建模板"
+                    title="新建模板"
+                    @click="emit('create')"
                   >
-                    <input
-                      v-model="renameDraft"
-                      type="text"
-                      aria-label="模板名称"
-                      maxlength="80"
-                      @keydown.esc="cancelRename"
-                    />
-                    <div class="template-rename-actions">
-                      <button type="button" @click="cancelRename">取消</button>
-                      <button type="submit">保存</button>
-                    </div>
-                  </form>
-                  <Transition name="template-delete-confirm">
+                    <Plus :size="15" :stroke-width="2" aria-hidden="true" />
+                  </button>
+                </template>
+                <button
+                  v-else
+                  ref="cancelButton"
+                  type="button"
+                  class="template-cancel"
+                  :aria-label="cancelLabel"
+                  :title="cancelLabel"
+                  @click="handleCancel"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+
+            <div class="template-sidebar-main">
+              <TransitionGroup name="template-list" tag="ul" class="template-list">
+                <li
+                  v-for="template in visibleTemplates"
+                  :key="template.id"
+                  class="template-item"
+                  :class="{
+                    'is-active': template.id === activeTemplateId,
+                    'is-selected': mode === 'select' && isSelected(template.id),
+                  }"
+                  :data-template-id="template.id"
+                >
+                  <template v-if="mode === 'browse'">
                     <div
-                      v-if="pendingDeleteId === template.id"
-                      class="template-delete-confirm"
-                      role="alertdialog"
-                      :aria-label="`确认删除模板：${template.name}`"
+                      class="template-row"
+                      :class="{ 'is-active': template.id === activeTemplateId }"
                     >
-                      <div class="template-delete-confirm-inner">
-                        <div class="template-delete-confirm-surface">
-                          <p>确定删除“{{ template.name }}”吗？此操作不可撤销。</p>
-                          <div class="template-delete-actions">
-                            <button type="button" @click="cancelDelete">取消</button>
-                            <button
-                              type="button"
-                              class="danger"
-                              aria-label="确认删除"
-                              @click="confirmDelete(template.id)"
-                            >
-                              删除
-                            </button>
+                      <button
+                        type="button"
+                        class="template-select"
+                        :class="{ 'is-active': template.id === activeTemplateId }"
+                        :title="template.name"
+                        @click="selectTemplate(template.id)"
+                      >
+                        {{ template.name }}
+                      </button>
+                      <button
+                        type="button"
+                        class="template-more"
+                        :aria-label="`更多操作：${template.name}`"
+                        :title="`更多操作：${template.name}`"
+                        :aria-expanded="actionMenuId === template.id"
+                        :aria-controls="
+                          actionMenuId === template.id ? 'template-action-menu' : undefined
+                        "
+                        @click="toggleActionMenu(template, $event)"
+                      >
+                        <Ellipsis :size="15" :stroke-width="2" aria-hidden="true" />
+                      </button>
+                    </div>
+                    <form
+                      v-if="renamingId === template.id"
+                      class="template-rename"
+                      @submit.prevent="confirmRename(template.id)"
+                    >
+                      <input
+                        v-model="renameDraft"
+                        type="text"
+                        aria-label="模板名称"
+                        maxlength="80"
+                        @keydown.esc="cancelRename"
+                      />
+                      <div class="template-rename-actions">
+                        <button type="button" @click="cancelRename">取消</button>
+                        <button type="submit">保存</button>
+                      </div>
+                    </form>
+                    <Transition name="template-delete-confirm">
+                      <div
+                        v-if="pendingDeleteId === template.id"
+                        class="template-delete-confirm"
+                        role="alertdialog"
+                        :aria-label="`确认删除模板：${template.name}`"
+                      >
+                        <div class="template-delete-confirm-inner">
+                          <div class="template-delete-confirm-surface">
+                            <p>确定删除“{{ template.name }}”吗？此操作不可撤销。</p>
+                            <div class="template-delete-actions">
+                              <button type="button" @click="cancelDelete">取消</button>
+                              <button
+                                type="button"
+                                class="danger"
+                                aria-label="确认删除"
+                                @click="confirmDelete(template.id)"
+                              >
+                                删除
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </Transition>
-                </template>
-                <div
-                  v-else-if="mode === 'select'"
-                  class="template-row template-row--batch"
-                  :class="{
-                    'is-active': template.id === activeTemplateId,
-                    'is-selected': isSelected(template.id),
-                  }"
-                >
-                  <button
-                    type="button"
-                    class="template-check-row"
-                    role="checkbox"
-                    :aria-checked="isSelected(template.id)"
-                    :aria-label="`模板：${template.name}，${isSelected(template.id) ? '已选' : '未选'}`"
-                    :title="template.name"
-                    @click="toggleTemplateSelection(template.id)"
+                    </Transition>
+                  </template>
+                  <div
+                    v-else-if="mode === 'select'"
+                    class="template-row template-row--batch"
+                    :class="{
+                      'is-active': template.id === activeTemplateId,
+                      'is-selected': isSelected(template.id),
+                    }"
                   >
-                    <span
-                      class="template-check"
-                      :class="{ 'is-checked': isSelected(template.id) }"
-                      aria-hidden="true"
+                    <button
+                      type="button"
+                      class="template-check-row"
+                      role="checkbox"
+                      :aria-checked="isSelected(template.id)"
+                      :aria-label="`模板：${template.name}，${isSelected(template.id) ? '已选' : '未选'}`"
+                      :title="template.name"
+                      @click="toggleTemplateSelection(template.id)"
                     >
-                      <Check v-if="isSelected(template.id)" :size="11" :stroke-width="3" />
+                      <span
+                        class="template-check"
+                        :class="{ 'is-checked': isSelected(template.id) }"
+                        aria-hidden="true"
+                      >
+                        <Check v-if="isSelected(template.id)" :size="11" :stroke-width="3" />
+                      </span>
+                      <span class="template-check-name">{{ template.name }}</span>
+                    </button>
+                  </div>
+                  <div
+                    v-else
+                    class="template-row template-row--batch template-row--static"
+                    :class="{ 'is-active': template.id === activeTemplateId }"
+                  >
+                    <span class="template-check is-checked" aria-hidden="true">
+                      <Check :size="11" :stroke-width="3" />
                     </span>
                     <span class="template-check-name">{{ template.name }}</span>
-                  </button>
-                </div>
-                <div
-                  v-else
-                  class="template-row template-row--batch template-row--static"
-                  :class="{ 'is-active': template.id === activeTemplateId }"
-                >
-                  <span class="template-check is-checked" aria-hidden="true">
-                    <Check :size="11" :stroke-width="3" />
-                  </span>
-                  <span class="template-check-name">{{ template.name }}</span>
-                </div>
-              </li>
-            </TransitionGroup>
+                  </div>
+                </li>
+              </TransitionGroup>
 
-            <div
-              class="template-footer"
-              :class="{
-                'template-footer--select': mode === 'select',
-                'template-footer--confirm': mode === 'confirm',
-              }"
-            >
-              <button
-                v-if="mode === 'browse'"
-                type="button"
-                aria-label="恢复默认示例"
-                title="恢复默认示例"
-                @click="emit('restore')"
+              <div
+                class="template-footer"
+                :class="{
+                  'template-footer--select': mode === 'select',
+                  'template-footer--confirm': mode === 'confirm',
+                }"
               >
-                <RotateCcw :size="15" :stroke-width="2" aria-hidden="true" />
-                恢复默认示例
-              </button>
-              <template v-else-if="mode === 'select'">
-                <button type="button" class="template-batch-all" @click="toggleSelectAll">
-                  {{ selectAllLabel }}
-                </button>
                 <button
-                  ref="selectDeleteButton"
+                  v-if="mode === 'browse'"
                   type="button"
-                  class="template-batch-delete"
-                  :disabled="selectedCount === 0 || deleting"
-                  :aria-label="`删除 ${selectedCount} 个模板`"
-                  @click="requestConfirmDelete"
+                  aria-label="恢复默认示例"
+                  title="恢复默认示例"
+                  @click="emit('restore')"
                 >
-                  删除 {{ selectedCount }} 项
+                  <RotateCcw :size="15" :stroke-width="2" aria-hidden="true" />
+                  恢复默认示例
                 </button>
-              </template>
-              <template v-else>
-                <p v-if="deleteFailed" class="template-confirm-error" role="alert">
-                  删除失败，请重试
-                </p>
-                <p v-else class="template-confirm-warning">此操作不可撤销。</p>
-                <button
-                  ref="confirmDeleteButton"
-                  type="button"
-                  class="template-batch-delete template-batch-delete--wide"
-                  :disabled="deleting"
-                  :aria-label="`删除 ${selectedCount} 个模板`"
-                  @click="confirmBatchDelete"
-                >
-                  <Trash2 :size="15" :stroke-width="2" aria-hidden="true" />
-                  删除 {{ selectedCount }} 项
-                </button>
-              </template>
+                <template v-else-if="mode === 'select'">
+                  <button type="button" class="template-batch-all" @click="toggleSelectAll">
+                    {{ selectAllLabel }}
+                  </button>
+                  <button
+                    ref="selectDeleteButton"
+                    type="button"
+                    class="template-batch-delete"
+                    :disabled="selectedCount === 0 || deleting"
+                    :aria-label="`删除 ${selectedCount} 个模板`"
+                    @click="requestConfirmDelete"
+                  >
+                    删除 {{ selectedCount }} 项
+                  </button>
+                </template>
+                <template v-else>
+                  <p v-if="deleteFailed" class="template-confirm-error" role="alert">
+                    删除失败，请重试
+                  </p>
+                  <p v-else class="template-confirm-warning">此操作不可撤销。</p>
+                  <button
+                    ref="confirmDeleteButton"
+                    type="button"
+                    class="template-batch-delete template-batch-delete--wide"
+                    :disabled="deleting"
+                    :aria-label="`删除 ${selectedCount} 个模板`"
+                    @click="confirmBatchDelete"
+                  >
+                    <Trash2 :size="15" :stroke-width="2" aria-hidden="true" />
+                    删除 {{ selectedCount }} 项
+                  </button>
+                </template>
+              </div>
             </div>
           </div>
         </div>
