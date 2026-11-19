@@ -1,6 +1,6 @@
 # osu-web 固定样例（tests/fixtures/osu-web/）
 
-> 固定样例矩阵与基准取证说明见 `docs/compatibility.md`。
+> 基准提交与差异登记见 `docs/compatibility.md`；本文件第 6 节列出样例矩阵。
 > 本目录样例的**输入**为本项目独立编写（覆盖相同行为类），不复制 osu-web 自带样例文件；每个 case 通过 `metadata.json` 中的 `upstreamEvidence` 指向上游证据路径。
 
 ## 目录格式
@@ -25,6 +25,8 @@
 | `upstreamEvidence` | `{ path, note }[]`，路径相对 osu-web 仓库根；无上游自带样例时注明并给出替代证据 |
 | `intentionalDifferences` | 差异编号（`D-XX`，登记在 `docs/compatibility.md` 的差异表），无则空数组 |
 | `notes` | 补充说明 |
+
+完整字段规则以[测试说明 §4.2](../../../docs/testing.md#42-metadatajson)为准；本表只作速查。
 
 ### expected.json 字段
 
@@ -70,7 +72,7 @@ node tests/check-osu-web-fixtures.mjs
 | `heading-basic` | heading | `bbcode.less` heading 注释 + 标签清单 |
 | `profile-with-id` | profile | `basic_profile_with_id` |
 
-### size（PAR-03：30 / 200 / 250 等边界与越界值）
+### size（30 / 200 / 250 等边界与越界值）
 
 | case | 覆盖 | 上游证据 |
 |---|---|---|
@@ -91,7 +93,7 @@ node tests/check-osu-web-fixtures.mjs
 | `img-empty` | 空 img | `img_empty` |
 | `invalid-email-url` | 空/不完整 url、email 参数 | `invalid_email_url` |
 | `profile-name-only` | 无 ID 的 profile | `basic_profile`（上游行为；本项目有意差异 D-01） |
-| `profile-non-numeric` | 非数字 ID 的 profile | `basic_profile` + PAR-06 |
+| `profile-non-numeric` | 非数字 ID 的 profile | `basic_profile` |
 | `imagemap-invalid-content` | imagemap 非法内容 | `imagemap_invalid_content_escape` |
 | `imagemap-unclosed-nested` | imagemap 嵌套未闭合 | `imagemap_multi_first_invalid` |
 

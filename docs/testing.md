@@ -25,7 +25,7 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 生产产物验收 | 同上，入口不同 | `npm run test:e2e:preview` | 同一套用例针对 `dist/` 构建产物运行 |
 | 人工发布验收 | 无自动脚本 | 人工 | 真实第三方媒体、目标浏览器、公开地址烟测（发布前阶段） |
 
-**自动化测试不得依赖实时 osu! 网站、图床或 YouTube**。端到端测试还会主动拦截所有站外请求并返回空响应（见 `tests/e2e/helpers.ts` 的 `installNetworkIsolation`），保证「预览请求了哪个地址」由测试自己控制。真实媒体只在发布前人工验收。
+**自动化测试不访问真实第三方服务**。端到端测试默认拦截站外请求：导航返回空白页，其他请求返回空响应（见 `tests/e2e/helpers.ts` 的 `installNetworkIsolation`）；「预览请求了哪个地址」由测试自己控制，需要媒体的用例自行注册本地路由。真实媒体只在发布前人工验收。
 
 ## 3. 六条固定命令
 
@@ -40,9 +40,9 @@ npm run test:e2e       # 浏览器端到端流程（Playwright + Chromium）
 | 5 | `npm run build` | 生成 `dist/`，退出码 0 |
 | 6 | `npm run test:e2e` | 所有端到端用例通过，退出码为 0 |
 
-另外三条与本仓库证据链直接相关：
+另外三条辅助检查：
 
-- `node tests/check-osu-web-fixtures.mjs`：校验固定样例矩阵的完整性、必备用例、标签覆盖与 `size` 边界（当前 49 case / 24 标签）。
+- `node tests/check-osu-web-fixtures.mjs`：校验固定样例矩阵的完整性、必备用例、标签覆盖与 `size` 边界。
 - `npm run docs:check`：检查 Markdown 标题结构、本地链接与锚点是否有效。
 - `npm run style:check`：检查 `src/app/theme.css` 里不再出现圆角、字号、时长、缓动与 `z-index` 字面量，并确认每个 `var(--x)` 都有声明（令牌或运行时写入）。令牌定义在 `src/app/scale.css`，组件规则只引用不写数值；迁移期尚未归一的取值走 `--legacy-*` 占位，规则见[主题与切换动效](theme.md)第 2 节。
 
@@ -129,11 +129,11 @@ npm run test:e2e                         # 端到端未受影响
 ## 6. 增加端到端测试
 
 - 文件放在 `tests/e2e/`，命名 `*.spec.ts`；浏览器矩阵当前只有 Chromium（配置见 `playwright.config.ts`）。
-- 执行前遵守[协作规则](../AGENTS.md#供应链隐私与网络)：默认不访问真实外网，确认测试入口已隔离；依赖或浏览器缺失时不能自动下载，确需联网须先取得所有者明确同意。
-- 用 `tests/e2e/helpers.ts` 的 `openEditor()` / `openEmptyEditor()` 打开页面：在导航前安装浏览器上下文级站外请求拦截，覆盖主页面、iframe 和新窗口的首次导航。仅精确匹配 `127.0.0.1`、`localhost`、`[::1]` 的本机服务允许真实连接；站外导航由本地空 HTML 响应接管，其它站外资源返回空响应。站外 WebSocket 直接关闭、不连接服务器，测试配置禁止 Service Worker 绕过拦截。媒体专项样例仍使用本地替身内容，整个验收不访问真实图床、YouTube、osu! 或 GitHub。
-- `tests/e2e/network-isolation.spec.ts` 用第二层阻断保护验证新窗口首次导航与伪装本机域名：隔离失效时由保护层中止请求并让断言失败，不发出真实站外连接。该保护层只用于离线验收，不改变软件实际外链与媒体行为，也不调整 TLS、签名或依赖完整性检查。
-- 预览扫描线的几何断言放在 `tests/e2e/indicator-line.spec.ts`：同帧比较扫描线与画布比例、1px 线体、6×6 端点、24×24 端点命中区、8px 命中带，以及高亮块与目标 `.cm-line` 的 top/left/width/height（容差 `0.001px`）。跟随滚动跳到视野外时逐帧采样 `.cm-scroller` 的 `scrollTop`，确认存在中间帧而不是瞬移。该文件继续使用 `openEditor()` 的上下文级站外拦截；图片与 iframe 使用本地替身，不访问真实媒体。同文件在 320/390/820/1440 四档宽度下检查面板头开关的文字标签、24px 命中下限、开关不溢出面板头且不与开合把手重叠；开启态的强调色在悬停时保持不变。
-- 顶栏外链用例使用上述上下文级隔离，固定目标为项目所有者的 osu! 主页与项目 GitHub 仓库；验证链接属性、打开后的目标 URL、当前页面不被替换，以及新窗口显示统一隔离提供的空白页面。这些断言验证软件的外链行为，不验证站外网站是否在线。当前隔离不是系统级断网，新增测试必须在导航前调用统一隔离入口。
+- 执行前遵守[协作规则](../AGENTS.md#供应链隐私与网络)：测试默认只连接本机服务，确认入口已隔离；依赖或浏览器缺失时不能自动下载，确需联网须先由维护者明确同意。
+- 用 `tests/e2e/helpers.ts` 的 `openEditor()` / `openEmptyEditor()` 打开页面：在首次导航前安装浏览器上下文级站外请求拦截，覆盖主页面、iframe、新窗口、站外 WebSocket 与 Service Worker；允许的主机与拦截要求见[协作规则](../AGENTS.md#供应链隐私与网络)，站外媒体使用本地替身。
+- `tests/e2e/network-isolation.spec.ts` 用第二层阻断保护验证新窗口首次导航与伪装本机域名；隔离失效时由保护层中止请求并让断言失败，不发出真实站外连接，也不调整 TLS、签名或依赖完整性检查。
+- 预览扫描线的几何断言放在 `tests/e2e/indicator-line.spec.ts`：同帧比较扫描线与画布比例、线体、端点、命中区与高亮块几何（规格见[工作台说明](workbench.md#预览扫描线与源码行联动)），容差 `0.001px`。跟随滚动跳到视野外时逐帧采样 `.cm-scroller` 的 `scrollTop`，确认存在中间帧而不是瞬移。该文件继续使用 `openEditor()` 的上下文级站外拦截；图片与 iframe 使用本地替身，不访问真实媒体。同文件在 320/390/820/1440 四档宽度下检查面板头开关的文字标签、24px 命中下限、开关不溢出面板头且不与开合把手重叠；开启态的强调色在悬停时保持不变。
+- 顶栏外链用例使用上述上下文级隔离，固定目标为维护者的 osu! 主页与项目 GitHub 仓库；验证链接属性、打开后的目标 URL、当前页面不被替换，以及新窗口显示统一隔离提供的空白页面。这些断言验证软件的外链行为，不验证站外网站是否在线。新增测试必须在导航前调用统一隔离入口。
 - 常用命令：
 
 ```bash
@@ -146,7 +146,7 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
 
 - 几何断言（宽度、间距）请**在同一帧内**读取相关矩形，并明确容差来源；仓库对 DOM 几何比较使用 `0.001px` 容差抵消亚像素舍入。真实布局回归必须仍能被抓到，不允许用大容差掩盖问题。
 - 失败时先看 `test-results/` 里的失败截图与 trace（配置为首次重试时记录 trace），再决定是修实现还是修测试。
-- imagemap 气泡还要读取截图像素确认尖端实际可见、两侧没有矩形背景。动效比较父子透明度相乘后的最终有效值；固定输入与所有者截图见[气泡修复证据](evidence/imagemap-tooltip-2026-10-03/README.md)。
+- imagemap 气泡还要读取截图像素确认尖端实际可见、两侧没有矩形背景。动效比较父子透明度相乘后的最终有效值；固定输入与维护者截图见[气泡修复证据](evidence/imagemap-tooltip-2026-10-03/README.md)。
 
 ## 7. 测试失败怎么定位
 
@@ -161,9 +161,6 @@ npm run test:e2e -- --repeat-each=10 --workers=4         # 抖动类问题复现
 
 ## 8. CI 里跑什么
 
-`.github/workflows/ci.yml` 在 push 到 `main`、Pull Request 和手动触发时执行，分成两个并行 job：
-
-- **静态检查与构建**：`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建；
-- **端到端测试**：`npm ci` → 安装 Chromium → `npm run test:e2e`。
-
-CI 环境是干净的 Ubuntu 虚拟机，因此它同时验证了「新环境能否按文档跑起来」。CI 上的 Playwright 会失败重试一次并保留 trace，失败时上传 `test-results/` 与 `playwright-report/`；本地不重试。`main` 上两个 job 都通过后，同一条工作流的部署 job 才会发布 Pages，检查失败不会上线。运行结果和失败步骤在仓库的 **Actions** 页面查看。
+- `.github/workflows/ci.yml` 在 push 到 `main`、Pull Request 和手动触发时执行，分成两个并行 job：**静态检查与构建**（`npm ci` → 格式 → 文档链接 → lint → 样式令牌 → 类型 → 单元/组件 → 构建）和**端到端测试**（`npm ci` → 安装 Chromium → `npm run test:e2e`）。
+- CI 使用干净的 Ubuntu 虚拟机，同时验证新环境能否按文档跑起来；Playwright 在 CI 上失败重试一次并保留 trace，失败时上传 `test-results/` 与 `playwright-report/`，本地不重试。
+- `main` 上两个 job 都通过后，同一条工作流的部署 job 才会发布 Pages，检查失败不会上线；运行结果和失败步骤在仓库的 **Actions** 页面查看。

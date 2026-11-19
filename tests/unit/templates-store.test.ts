@@ -128,7 +128,7 @@ describe('工作区 Pinia store', () => {
     expect(store.templates).toHaveLength(1)
   })
 
-  it('编辑内容立即更新内存并防抖写入（FR-SAVE-01）', async () => {
+  it('编辑内容立即更新内存并防抖写入', async () => {
     vi.useFakeTimers()
     const { repository, savedTemplates } = createStubRepository()
     const store = makeStore()
@@ -143,7 +143,7 @@ describe('工作区 Pinia store', () => {
     expect(store.saveState).toBe('saved')
   })
 
-  it('相对时间刷新不触发重复写入（FR-SAVE-05、NFR-PERF-03）', async () => {
+  it('相对时间刷新不触发重复写入', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-09-19T12:00:00'))
     const { repository, savedTemplates } = createStubRepository()
@@ -164,7 +164,7 @@ describe('工作区 Pinia store', () => {
     expect(store.saveStatusText).toContain('3 分钟前')
   })
 
-  it('新建、复制与重命名遵循自动命名规则（FR-TPL-08/09/10）', async () => {
+  it('新建、复制与重命名遵循自动命名规则', async () => {
     const { repository, savedSettings } = createStubRepository({
       templates: [makeRecord({ name: '标题' })],
     })
@@ -187,7 +187,7 @@ describe('工作区 Pinia store', () => {
     expect(await store.renameTemplate(created.id, '   ')).toBe(renamed)
   })
 
-  it('删除当前模板后切换到剩余模板（FR-TPL-03/04）', async () => {
+  it('删除当前模板后切换到剩余模板', async () => {
     const first = makeRecord({ name: '第一个', createdAt: 1 })
     const second = makeRecord({ name: '第二个', createdAt: 2 })
     const { repository } = createStubRepository({

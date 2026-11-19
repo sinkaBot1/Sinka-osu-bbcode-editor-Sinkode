@@ -22,7 +22,7 @@ afterEach(() => {
 })
 
 describe('编辑器状态与撤销历史', () => {
-  it('自动保存式读取文档不会创建或修改撤销记录（FR-UNDO-05）', () => {
+  it('自动保存式读取文档不会创建或修改撤销记录', () => {
     const view = mountEditor('初始')
     view.dispatch({ changes: { from: 0, to: 0, insert: '编辑' } })
     const depthBeforeSave = undoDepth(view.state)
@@ -36,7 +36,7 @@ describe('编辑器状态与撤销历史', () => {
     view.destroy()
   })
 
-  it('切换模板替换文档后清空撤销与重做历史（FR-UNDO-06）', () => {
+  it('切换模板替换文档后清空撤销与重做历史', () => {
     const view = mountEditor('第一个模板')
     view.dispatch({ changes: { from: 5, to: 5, insert: '内容' } })
     view.dispatch({ changes: { from: 0, to: 0, insert: '前缀' } })

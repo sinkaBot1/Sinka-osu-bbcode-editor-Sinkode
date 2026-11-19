@@ -260,7 +260,7 @@ describe('主题令牌契约', () => {
 
   // 批量选择的复选标记是强调色实底上的 11px 对勾，属图形对象（WCAG 1.4.11 的 3:1 口径）。
   // Claucode 的珊瑚色底白对勾只有 3.28:1，所以这里守图形口径；
-  // 文字口径仍由上面 Hollowcode 的用例覆盖，换色值需要项目所有者授权。
+  // 文字口径仍由上面 Hollowcode 的用例覆盖，换色值需要维护者确认。
   it('三个主题的强调色底对勾满足图形对比度', () => {
     for (const [name, block] of themeBlocks) {
       const ratio = contrastRatio(token(block, '--color-on-accent'), token(block, '--color-accent'))

@@ -582,7 +582,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
   })
 
-  test('首次访问创建默认示例，刷新后恢复当前模板（AC-TPL-01、FR-SAVE-06）', async ({ page }) => {
+  test('首次访问创建默认示例，刷新后恢复当前模板', async ({ page }) => {
     const editor = await openEditor(page)
     await expect(page.locator('.template-select')).toHaveText('默认示例')
     await expect(editor).toContainText(defaultExampleProbe)
@@ -600,7 +600,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.template-select')).toHaveCount(2)
   })
 
-  test('新建、切换、重命名、复制与确认删除（AC-TPL-02、AC-TPL-03）', async ({ page }) => {
+  test('新建、切换、重命名、复制与确认删除', async ({ page }) => {
     const editor = await openEditor(page)
 
     await page.getByTitle('新建模板').click()
@@ -637,7 +637,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.cm-content')).toContainText('[b]我的模板[/b]')
   })
 
-  test('删除最后一个模板后补建空白模板（AC-TPL-03）', async ({ page }) => {
+  test('删除最后一个模板后补建空白模板', async ({ page }) => {
     await openEditor(page)
 
     await chooseTemplateAction(page, '默认示例', '删除')
@@ -649,7 +649,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.cm-content')).toHaveText('')
   })
 
-  test('恢复默认示例只新增，不覆盖或删除现有模板（AC-TPL-04、FR-TPL-07）', async ({ page }) => {
+  test('恢复默认示例只新增，不覆盖或删除现有模板', async ({ page }) => {
     const editor = await openEditor(page)
 
     await page.getByTitle('新建模板').click()
@@ -670,7 +670,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.cm-content')).toContainText('保留内容')
   })
 
-  test('切换模板清空撤销与重做历史（FR-UNDO-06）', async ({ page }) => {
+  test('切换模板清空撤销与重做历史', async ({ page }) => {
     const editor = await openEmptyEditor(page)
     await editor.click()
     await page.keyboard.insertText('模板一内容')
@@ -690,7 +690,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.cm-content')).toContainText('模板一内容')
   })
 
-  test('复制结果与编辑器原文逐字节一致（FR-COPY-01/02、DATA-03）', async ({ page, context }) => {
+  test('复制结果与编辑器原文逐字节一致', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     const editor = await openEmptyEditor(page)
     await editor.click()
@@ -937,7 +937,7 @@ test.describe('模板、保存与复制', () => {
     await page.mouse.up()
   })
 
-  test('停止输入约 500ms 后显示保存时间（AC-TPL-05、FR-SAVE-03/04）', async ({ page }) => {
+  test('停止输入约 500ms 后显示保存时间', async ({ page }) => {
     const editor = await openEmptyEditor(page)
     await editor.click()
     await page.keyboard.type('保存状态测试', { delay: 30 })
@@ -949,10 +949,7 @@ test.describe('模板、保存与复制', () => {
     await expect(page.locator('.status-bar .save-status')).toHaveText(/已保存 \d{2}:\d{2}（.*）/)
   })
 
-  test('编辑、保存、复制与模板操作不上传内容（NFR-PRIV-01/02、FR-COPY-04）', async ({
-    page,
-    context,
-  }) => {
+  test('编辑、保存、复制与模板操作不上传内容', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     const externalRequests: { url: string; method: string; postData: string | null }[] = []
     page.on('request', (request) => {

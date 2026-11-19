@@ -152,7 +152,7 @@ describe('模板侧栏组件', () => {
     expect(wrapper.emitted('duplicate')?.[0]).toEqual(['a'])
   })
 
-  it('删除需要二次确认（FR-TPL-03）', async () => {
+  it('删除需要二次确认', async () => {
     const wrapper = mountSidebar({ templates: makeTemplates(), activeTemplateId: 'a' })
 
     await (
@@ -496,7 +496,7 @@ describe('复制按钮组件', () => {
     vi.useRealTimers()
   })
 
-  it('成功复制逐字节内容，并在按钮上就地反馈 2 秒（FR-COPY-01/02）', async () => {
+  it('成功复制逐字节内容，并在按钮上就地反馈 2 秒', async () => {
     vi.useFakeTimers()
     const writeText = vi.fn().mockResolvedValue(undefined)
     setClipboard({ writeText })
@@ -533,7 +533,7 @@ describe('复制按钮组件', () => {
     expect(wrapper.get('.visually-hidden').text()).toBe('')
   })
 
-  it('复制被拒绝时显示失败反馈而不是成功（FR-COPY-03）', async () => {
+  it('复制被拒绝时显示失败反馈而不是成功', async () => {
     setClipboard({ writeText: vi.fn().mockRejectedValue(new Error('权限被拒绝')) })
     const wrapper = mount(CopyButton, { props: { source: '原文' } })
 
@@ -550,7 +550,7 @@ describe('复制按钮组件', () => {
     expect(wrapper.get('.visually-hidden').text()).toContain('复制失败')
   })
 
-  it('失败浮窗沿用 2 秒后收起的时长（FR-COPY-03）', async () => {
+  it('失败浮窗沿用 2 秒后收起的时长', async () => {
     vi.useFakeTimers()
     setClipboard({ writeText: vi.fn().mockRejectedValue(new Error('权限被拒绝')) })
     const wrapper = mount(CopyButton, { props: { source: '原文' } })
@@ -563,7 +563,7 @@ describe('复制按钮组件', () => {
     expect(wrapper.find('.copy-toast').exists()).toBe(false)
   })
 
-  it('缺少剪贴板能力时明确失败，不做静默降级（NFR-BR-03）', async () => {
+  it('缺少剪贴板能力时明确失败，不做静默降级', async () => {
     setClipboard(undefined)
     const wrapper = mount(CopyButton, { props: { source: '原文' } })
 

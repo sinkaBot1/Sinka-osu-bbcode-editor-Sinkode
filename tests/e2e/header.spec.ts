@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { installNetworkIsolation } from './helpers'
 
 const osProfileUrl = 'https://osu.ppy.sh/users/21614712'
-// 这个链接指向所有者本人的 osu! 主页，其 osu! 用户名是 SINKA0；
+// 这个链接指向维护者本人的 osu! 主页，其 osu! 用户名是 SINKA0；
 // Sinkode 是产品名，两者不可互换。
 const OS_PROFILE_LINK_NAME = '在 osu! 打开 SINKA0 的主页（新标签页）'
 const OS_PROFILE_TITLE = '在 osu! 打开 SINKA0 的主页'
@@ -168,7 +168,7 @@ test('头栏图标入口说明清楚，帮助和主题窗口沿用工作台行�
   await expect(dialog).not.toBeVisible()
 })
 
-test('顶栏品牌标志链接到项目所有者的 osu! 主页', async ({ page, context }) => {
+test('顶栏品牌标志链接到维护者的 osu! 主页', async ({ page, context }) => {
   await installNetworkIsolation(page)
   await page.goto('/')
   const brandLink = page.getByRole('link', { name: OS_PROFILE_LINK_NAME })

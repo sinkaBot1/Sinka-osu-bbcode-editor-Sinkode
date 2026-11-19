@@ -46,7 +46,7 @@ afterEach(() => {
 })
 
 describe('本地工作区存储（schema v1）', () => {
-  it('首次加载在同一事务创建默认示例与 activeTemplateId（FR-TPL-05、DATA-02）', async () => {
+  it('首次加载在同一事务创建默认示例与 activeTemplateId', async () => {
     const { repository } = makeRepository()
     const workspace = await repository.load()
 
@@ -63,7 +63,7 @@ describe('本地工作区存储（schema v1）', () => {
     expect(again.templates[0].id).toBe(workspace.templates[0].id)
   })
 
-  it('保存模板后可重新加载，并保持原文逐字节一致（DATA-03）', async () => {
+  it('保存模板后可重新加载，并保持原文逐字节一致', async () => {
     const { repository } = makeRepository()
     const base = await repository.load()
     const content = '第一行😀\n[b]第二行[/b]\n'
@@ -74,7 +74,7 @@ describe('本地工作区存储（schema v1）', () => {
     expect(workspace.templates[0].content).toBe(content)
   })
 
-  it('删除最后一个模板后补建空白模板并修正 activeTemplateId（FR-TPL-04、DATA-02）', async () => {
+  it('删除最后一个模板后补建空白模板并修正 activeTemplateId', async () => {
     const { repository } = makeRepository()
     const base = await repository.load()
     const deletedId = base.templates[0].id

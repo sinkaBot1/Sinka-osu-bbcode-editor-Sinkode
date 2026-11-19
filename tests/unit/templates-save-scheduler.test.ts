@@ -10,7 +10,7 @@ async function flushMicrotasks(times = 10) {
 }
 
 describe('自动保存调度器', () => {
-  it('500ms 内合并输入，只写入最新内容（FR-SAVE-01、NFR-PERF-02）', async () => {
+  it('500ms 内合并输入，只写入最新内容', async () => {
     vi.useFakeTimers()
     const writes: string[] = []
     const states: string[] = []
@@ -79,7 +79,7 @@ describe('自动保存调度器', () => {
     scheduler.dispose()
   })
 
-  it('写入失败进入错误状态，后续成功写入可恢复（FR-SAVE-03）', async () => {
+  it('写入失败进入错误状态，后续成功写入可恢复', async () => {
     vi.useFakeTimers()
     const statuses: string[] = []
     let shouldFail = true

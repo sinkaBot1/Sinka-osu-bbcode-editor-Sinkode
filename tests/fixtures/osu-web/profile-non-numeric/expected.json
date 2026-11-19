@@ -2,7 +2,7 @@
   "case": "profile-non-numeric",
   "status": "asserted",
   "observations": [
-    "参数不是纯数字的 profile 保留为普通文本并诊断为错误，不生成链接（PAR-05/PAR-06）。"
+    "参数不是纯数字的 profile 保留为普通文本并诊断为错误，不生成链接。"
   ],
   "expectedAssertions": {
     "sourceUnchanged": true,

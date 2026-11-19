@@ -42,7 +42,7 @@ const DIFF_IDS = new Set([
   'D-18',
 ]);
 
-// 需求明确要求必须存在的 case（错误矩阵与 PAR-03 边界）。
+// 必须存在的 case（错误矩阵与 size 边界）。
 const REQUIRED_CASES = [
   'bold-basic', 'italic-basic', 'underline-basic', 'strike-and-alias',
   'color-names-and-hex', 'url-forms', 'img-basic', 'email-basic',
@@ -183,7 +183,7 @@ const sizeInputs = [...foundCases.entries()]
   .map(([, c]) => c.input)
   .join('\n');
 for (const required of ['[size=30]', '[size=200]', '[size=250]']) {
-  if (!sizeInputs.includes(required)) problem(`size 类样例输入中缺少 ${required}（PAR-03）`);
+  if (!sizeInputs.includes(required)) problem(`size 类样例输入中缺少 ${required}`);
 }
 
 const byCategory = {};
